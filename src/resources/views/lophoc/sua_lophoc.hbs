@@ -1,0 +1,42 @@
+
+<div class="card mt-5">
+      <div class="card-header bg-danger text-white">
+<h3 class="font-weight-bold ">THÊM LỚP HỌC</h3>
+      </div>
+  <div class="card-body">
+    
+        <form action="/lophoc/capnhat" method="post">  
+        
+       <div class="form-row"> <!--thuộc tính form-row nó giúp chia 2 cột trên 1 row của nó-->
+                    <div class="col-6">
+                        <label>MÃ LỚP</label>
+                        <input name="txt_ma_lop" id="txt_ma_lop" class="form-control" type="text" value="{{lophoc.ma_lop}}">
+                          
+                    </div>
+                    </div>
+                    <div class="form-row"> <!--thuộc tính form-row nó giúp chia 2 cột trên 1 row của nó-->                  
+                   <div class="col-6">
+                        <label>TÊN LỚP</label>
+                        <input name="txt_ten_lop" id="txt_ten_lop" class="form-control" type="text" value="{{lophoc.ten_lop}}">                       
+                    </div>
+                    </div>
+                     <div class="form-row"> <!--thuộc tính form-row nó giúp chia 2 cột trên 1 row của nó-->
+                    <div class="col-6">
+                        <label>GIÁO VIÊN CHỦ NHIỆM </label>
+                        <input  name="txt_gvcn" id="txt_gvcn" class="form-control" type="text" value="{{lophoc.gvcn}}">
+                       
+                    </div>
+                    <input  name="txt_id" id="txt_id" class="form-control" type="text" value="{{lophoc.id}}" hidden>
+                   
+</div>
+
+<div class="card-header text-white">
+                    <button id="submit-button" type="submit" class="btn btn-warning" name="action" value="CONFIRM"><i class="icon-save"></i>&nbsp&nbspLưu Lại&nbsp&nbsp</button>
+                    <a href="/tintucdatxanh" class="btn btn-danger"><i class="icon-remove"></i>&nbsp&nbspVề Trang Chủ&nbsp&nbsp</a>
+</div>
+</form>
+
+</div>
+  
+ 
+ 

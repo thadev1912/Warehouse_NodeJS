@@ -1,0 +1,49 @@
+<div class="card mt-5">
+      <div class="card-header bg-danger text-white">
+            <h3 class="font-weight-bold ">DANH SÁCH SINH VIÊN</h3>
+      </div>
+
+
+      <div class="card-body">
+             <form class="form-inline" action="" method="post">
+             <input class="form-control mr-1 font-italic" type="search" name="txt_timkiem" placeholder="Tìm kiếm theo tên" aria-label="Search">
+             <button class="btn btn-primary" type="submit"><i class="fa fa-search">Tìm Kiếm</i></button>
+  </form>
+            </br>
+             {{#if messages}}
+   <div class="alert alert-danger"><{{messages}}></div>
+{{/if}}
+            <div> <a href="sinhvien/them" class=" btn btn-primary mb-3"><i
+                              class="btn-icon-only icon-edit">Thêm mới</i></a> <br></div>
+            <table class="table table-bordered">
+                  <thead>
+                        <th>Mã Sinh Viên</th>
+                        <th>Họ Tên</th>
+                        <th>Giới Tính</th>
+                        <th>Địa Chỉ</th>
+                        <th>Số Điện Thoại</th>
+                        <th>Lớp</th>
+                        <th>Tùy Chỉnh</th>
+                  </thead>
+                  <tbody>
+                        {{#each sinhvien}}
+                        <tr>
+                              <td headers="name">{{this.ma_sv}}</td>
+                              <td headers="name">{{this.ten_sv}}</td>                              
+                              <td headers="name">{{#if this.gioitinh_sv}} Nam {{^}} Nữ {{/if}}</td>
+                              <td headers="name">{{this.diachi_sv}}</td>
+                              <td headers="name">{{this.sdt_sv}}</td>
+                              <td headers="name">{{this.Lophoc.ten_lop}}</td>
+                              <td><a href="sinhvien/sua/{{this.id}}" type="button"
+                                          class="btn btn-primary">Sửa</a>||
+                                    <a href="sinhvien/xoa/{{this.id}}" type="button"
+                                          class="btn btn-danger">Xóa</a>
+                              </td>
+                        </tr>
+
+                        {{/each}}
+
+                  </tbody>
+            </table>
+      </div>
+</div>  

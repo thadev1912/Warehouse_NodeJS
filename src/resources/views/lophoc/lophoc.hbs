@@ -1,0 +1,36 @@
+
+<div class="card mt-5">
+      <div class="card-header bg-danger text-white">
+<h3 class="font-weight-bold ">DANH SÁCH LỚP HỌC</h3>
+      </div>
+ 
+
+  <div class="card-body">
+          </br>
+      <div> <a href="lophoc/them" class=" btn btn-primary mb-3"><i class="btn-icon-only icon-edit">Thêm mới</i></a> <br></div> 
+     <table class="table table-bordered">
+     <thead>
+               <th>Mã Lớp</th>
+               <th>Tên Lớp</th>
+               <th>Giáo Viên Chủ Nhiệm</th>              
+               <th>Tùy Chỉnh</th>
+  </thead>
+  <tbody>
+  {{#each lophoc}}
+        <tr>
+               <td headers="name">{{this.ma_lop}}</td>
+              <td headers="name">{{this.ten_lop}}</td>
+              <td headers="name">{{this.gvcn}}</td>              
+              <td><a href="lophoc/sua/{{this.id}}" type="button" class="btn btn-primary">Sửa</a>||
+              <a href="lophoc/xoa/{{this.id}}" type="button" class="btn btn-danger">Xóa</a></td>
+         </tr>
+
+ {{/each}}
+
+  </tbody>
+</table>
+  </div>
+</div>
+
+ 
+ 

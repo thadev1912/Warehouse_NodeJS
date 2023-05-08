@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const lophoc = require('../app/Controllers/LophocController');
+router.get('/', lophoc.index);
+router.get('/them', lophoc.create);
+router.post('/luu', lophoc.store);
+router.get('/sua/:id', lophoc.edit);
+router.post('/capnhat', lophoc.update);
+router.get('/xoa/:id', lophoc.destroy);
+module.exports = router;

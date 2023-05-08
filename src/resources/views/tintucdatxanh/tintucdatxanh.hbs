@@ -1,0 +1,38 @@
+
+<div class="card mt-5">
+      <div class="card-header bg-danger text-white">
+<h3 class="font-weight-bold ">DANH SÁCH BÀI VIẾT</h3>
+      </div>
+ 
+
+  <div class="card-body">
+          </br>
+      <div> <a href="tintucdatxanh/themtintucdatxanh" class=" btn btn-primary mb-3"><i class="btn-icon-only icon-edit">Thêm mới</i></a> <br></div> 
+     <table class="table table-bordered">
+     <thead>
+               <th>Tiêu Đề Bài Viết</th>
+               <th>Nội dung Bài Viết</th>
+               <th>Danh mục Bài Viết</th>
+               <th>Tác giả Bài Viết</th>
+               <th>Tùy Chỉnh</th>
+  </thead>
+  <tbody>
+  {{#each data}}
+        <tr>
+               <td headers="name">{{this.tieude_baiviet}}</td>
+              <td headers="name">{{this.noidung_baiviet}}</td>
+              <td headers="name">{{this.danhmuc_baiviet}}</td>
+              <td headers="name">{{this.tacgia_baiviet}}</td>
+              <td><a href="tintucdatxanh/suatintucdatxanh/{{this.id}}" type="button" class="btn btn-primary">Sửa</a>||
+              <a href="tintucdatxanh/xoatintucdatxanh/{{this.id}}" type="button" class="btn btn-danger">Xóa</a></td>
+         </tr>
+
+ {{/each}}
+
+  </tbody>
+</table>
+  </div>
+</div>
+
+ 
+ 
