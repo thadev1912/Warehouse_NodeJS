@@ -27,6 +27,7 @@ app.use(cookieParser());
 app.use(toastr());
 app.use(express.static(path.join(__dirname, 'public'))); // cần check lại link css  
 //midleware
+
 app.use(express.json())  // hỗ trợ json
 app.use(bodyParser.urlencoded({ extended: true }));  // dùng để res.body
 
@@ -54,6 +55,3 @@ app.engine('hbs', handlebars.engine({
 ));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'src/resources/views'));// check đường dẫn để điều hướng sang thu mục view
-// //midleware
-// app.use(bodyParser.urlencoded({ extended: false })); // check dữ liệu submit từ client lên server dùng trong query.body
-// app.use(express.json());
