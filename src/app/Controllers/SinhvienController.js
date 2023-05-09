@@ -130,7 +130,7 @@ let update = async (req, res) => {
   }
 }
 let destroy = async (req, res) => {
-  let id = req.params.id;
+  let id = req.body.id;
   try {
     let sinhvien = await db.Sinhvien.destroy({
       where: { id: id },
