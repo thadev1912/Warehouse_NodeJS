@@ -1,0 +1,11 @@
+var express = require('express');
+var router = express.Router();
+const invoice_xuat = require('../app/Controllers/InvoiceXuatController');
+const validate=require('../../request/validate_invoice_xuat');
+router.get('/',invoice_xuat.index);
+router.post('/store',validate.validate_invoice_xuat(),invoice_xuat.store);
+router.get('/edit/:id',invoice_xuat.edit);
+router.put('/update/:id',validate.validate_invoice_xuat(),invoice_xuat.update);
+router.delete('/delete/:id',invoice_xuat.destroy);
+router.post('/search',invoice_xuat.search);
+module.exports = router;

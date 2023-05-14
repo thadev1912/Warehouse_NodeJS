@@ -11,6 +11,8 @@ const phieunhapkho=require('./phieunhapkho');
 const phieuxuatkho=require('./phieuxuatkho');
 const chitietnhapkho=require('./chitietnhapkho');
 const chitietxuatkho=require('./chitietxuatkho');
+const invoice_nhap=require('./invoice_nhap');
+const invoice_xuat=require('./invoice_xuat');
 const middlewareAuthentication =require('../app/middlewares/auth')
 function route(app)
 {
@@ -26,6 +28,8 @@ app.use('/phieunhapkho',phieunhapkho);
 app.use('/phieuxuatkho',phieuxuatkho);
 app.use('/chitietnhapkho',chitietnhapkho);
 app.use('/chitietxuatkho',chitietxuatkho);
+app.use('/invoice_nhap',invoice_nhap);
+app.use('/invoice_xuat',invoice_xuat);
 }
 
 module.exports = route;
