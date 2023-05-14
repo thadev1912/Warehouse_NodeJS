@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 24, 2023 at 05:20 AM
--- Server version: 10.4.25-MariaDB
--- PHP Version: 8.1.10
+-- Generation Time: May 14, 2023 at 02:36 PM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.1.17
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,24 +24,49 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `bangdiems`
+-- Table structure for table `chitietnhapkhos`
 --
 
-CREATE TABLE `bangdiems` (
+CREATE TABLE `chitietnhapkhos` (
   `id` int(11) NOT NULL,
-  `kiemtra_mieng` int(11) DEFAULT NULL,
-  `kiemtra15p_lan1` int(11) DEFAULT NULL,
-  `kiemtra15p_lan2` int(11) DEFAULT NULL,
-  `kiemtra_30p` int(11) DEFAULT NULL,
-  `kiemtra_45p` int(11) DEFAULT NULL,
-  `diem_thi` int(11) DEFAULT NULL,
-  `tb_mon` int(11) DEFAULT NULL,
-  `id_monhoc` varchar(255) DEFAULT NULL,
-  `id_sinhvien` varchar(255) DEFAULT NULL,
-  `id_giaovien` varchar(255) DEFAULT NULL,
+  `id_phieunhap` varchar(255) DEFAULT NULL,
+  `id_vattu` varchar(255) DEFAULT NULL,
+  `sl_vattu` varchar(255) DEFAULT NULL,
+  `id_kho` varchar(255) DEFAULT NULL,
+  `id_lydo` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chitietnhapkhos`
+--
+
+INSERT INTO `chitietnhapkhos` (`id`, `id_phieunhap`, `id_vattu`, `sl_vattu`, `id_kho`, `id_lydo`, `createdAt`, `updatedAt`) VALUES
+(1, 'PNK01', 'VT01', '20', 'KH01', '1', '2023-05-14 10:18:43', '2023-05-14 10:18:43');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chitietxuatkhos`
+--
+
+CREATE TABLE `chitietxuatkhos` (
+  `id` int(11) NOT NULL,
+  `id_phieuxuat` varchar(255) DEFAULT NULL,
+  `id_vattu` varchar(255) DEFAULT NULL,
+  `sl_vattu` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chitietxuatkhos`
+--
+
+INSERT INTO `chitietxuatkhos` (`id`, `id_phieuxuat`, `id_vattu`, `sl_vattu`, `createdAt`, `updatedAt`) VALUES
+(1, 'PXK01', 'VT01', '10', '2023-05-14 10:45:34', '2023-05-14 10:45:34'),
+(3, 'PXK02', 'VT02', '20', '2023-05-14 10:45:34', '2023-05-14 10:45:34');
 
 -- --------------------------------------------------------
 
@@ -55,65 +80,164 @@ CREATE TABLE `contacts` (
   `address` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `demo`
+-- Table structure for table `donvitinhs`
 --
 
-CREATE TABLE `demo` (
+CREATE TABLE `donvitinhs` (
   `id` int(11) NOT NULL,
-  `hoten` varchar(100) NOT NULL,
-  `namsinh` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `demo`
---
-
-INSERT INTO `demo` (`id`, `hoten`, `namsinh`) VALUES
-(1, 'Thạch Chanh Tha', '1992'),
-(2, 'Nguyễn Đức Cảnh', '1999');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `lophocs`
---
-
-CREATE TABLE `lophocs` (
-  `id` int(11) NOT NULL,
-  `ma_lop` varchar(255) DEFAULT NULL,
-  `ten_lop` varchar(255) DEFAULT NULL,
-  `gvcn` varchar(255) DEFAULT NULL,
+  `donvitinh` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `lophocs`
+-- Dumping data for table `donvitinhs`
 --
 
-INSERT INTO `lophocs` (`id`, `ma_lop`, `ten_lop`, `gvcn`, `createdAt`, `updatedAt`) VALUES
-(1, 'CNTT-10', 'Công Nghệ Thông Tin-2010', 'Bùi Hữu Kính', '2023-04-04 14:05:44', '2023-04-04 14:05:44'),
-(5, 'CNTT-11', 'Công Nghệ Thông Tin-2011', 'Lê Đức Thọ', '2023-04-04 13:09:47', '2023-04-04 13:26:46'),
-(8, 'CNTT-12', 'Công Nghệ Thông Tin-2012', 'Vũ Minh Chiến', '2023-04-06 04:32:57', '2023-04-06 04:46:04');
+INSERT INTO `donvitinhs` (`id`, `donvitinh`, `createdAt`, `updatedAt`) VALUES
+(1, 'Cái', '2023-05-14 06:54:48', '2023-05-14 06:54:48'),
+(2, 'Bịch', '2023-05-14 06:54:48', '2023-05-14 06:54:48');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `monhocs`
+-- Table structure for table `invoice_nhaps`
 --
 
-CREATE TABLE `monhocs` (
+CREATE TABLE `invoice_nhaps` (
   `id` int(11) NOT NULL,
-  `ma_mon` varchar(255) DEFAULT NULL,
-  `ten_mon` varchar(255) DEFAULT NULL,
+  `invoice_number` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `invoice_nhaps`
+--
+
+INSERT INTO `invoice_nhaps` (`id`, `invoice_number`, `createdAt`, `updatedAt`) VALUES
+(1, 'PNK01', '2023-05-14 11:05:24', '2023-05-14 11:05:24'),
+(2, 'PNK02', '2023-05-14 11:05:24', '2023-05-14 11:05:24'),
+(3, '789', '2023-05-14 09:13:33', '2023-05-14 09:17:18'),
+(5, '666', '2023-05-14 09:17:30', '2023-05-14 09:17:30');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `invoice_xuats`
+--
+
+CREATE TABLE `invoice_xuats` (
+  `id` int(11) NOT NULL,
+  `invoice_number` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `invoice_xuats`
+--
+
+INSERT INTO `invoice_xuats` (`id`, `invoice_number`, `createdAt`, `updatedAt`) VALUES
+(1, 'PXK01', '2023-05-14 11:05:45', '2023-05-14 11:05:45'),
+(2, 'PXK02', '2023-05-14 11:05:45', '2023-05-14 11:05:45');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `khos`
+--
+
+CREATE TABLE `khos` (
+  `id` int(11) NOT NULL,
+  `ma_kho` varchar(255) DEFAULT NULL,
+  `ten_kho` varchar(255) DEFAULT NULL,
+  `dia_chi` varchar(255) DEFAULT NULL,
+  `sdt` varchar(255) DEFAULT NULL,
+  `ghi_chu` text DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `khos`
+--
+
+INSERT INTO `khos` (`id`, `ma_kho`, `ten_kho`, `dia_chi`, `sdt`, `ghi_chu`, `createdAt`, `updatedAt`) VALUES
+(1, 'KH01', 'Kho Ninh Kiều', 'Mậu Thân- Ninh Kiều', '0908 346 989', NULL, '2023-05-13 05:20:55', '2023-05-13 05:20:55'),
+(2, 'KH02', 'Kho Cái Răng', 'Lê Hồng Phong', '038 778 1268', NULL, '2023-05-13 05:20:55', '2023-05-13 05:20:55'),
+(3, '789', '789', '789', '789', '789', '2023-05-14 02:49:45', '2023-05-14 02:49:55');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `lydonhaps`
+--
+
+CREATE TABLE `lydonhaps` (
+  `id` int(11) NOT NULL,
+  `lydo` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `lydonhaps`
+--
+
+INSERT INTO `lydonhaps` (`id`, `lydo`, `createdAt`, `updatedAt`) VALUES
+(1, 'Nhập định kỳ', '2023-05-14 06:21:26', '2023-05-14 06:21:26'),
+(2, 'Nhập dự phòng', '2023-05-14 06:21:26', '2023-05-14 06:21:26'),
+(4, '123', '2023-05-14 04:34:25', '2023-05-14 04:34:25');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `lydoxuats`
+--
+
+CREATE TABLE `lydoxuats` (
+  `id` int(11) NOT NULL,
+  `lydo` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `lydoxuats`
+--
+
+INSERT INTO `lydoxuats` (`id`, `lydo`, `createdAt`, `updatedAt`) VALUES
+(1, 'Xuất sản xuất', '2023-05-14 06:21:51', '2023-05-14 06:21:51'),
+(2, 'Xuất gấp', '2023-05-14 06:21:51', '2023-05-14 06:21:51');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `nhacungcaps`
+--
+
+CREATE TABLE `nhacungcaps` (
+  `id` int(11) NOT NULL,
+  `ma_nhacc` varchar(255) DEFAULT NULL,
+  `ten_nhacc` varchar(255) DEFAULT NULL,
+  `diachi_nhacc` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `nhacungcaps`
+--
+
+INSERT INTO `nhacungcaps` (`id`, `ma_nhacc`, `ten_nhacc`, `diachi_nhacc`, `createdAt`, `updatedAt`) VALUES
+(1, 'TTD', 'Công Ty Trung Thành Danh', 'Quận Ninh Kiều-Cần Thơ', '2023-05-14 05:55:32', '2023-05-14 05:55:32'),
+(4, 'BBC', 'Công Ty Bảo Bảo Công', 'Quận Cái Răng-Cần Thơ', '2023-05-14 05:55:32', '2023-05-14 05:55:32');
 
 -- --------------------------------------------------------
 
@@ -126,7 +250,7 @@ CREATE TABLE `permissons` (
   `permisson_name` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `permissons`
@@ -142,6 +266,58 @@ INSERT INTO `permissons` (`id`, `permisson_name`, `createdAt`, `updatedAt`) VALU
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `phieunhapkhos`
+--
+
+CREATE TABLE `phieunhapkhos` (
+  `id` int(11) NOT NULL,
+  `ma_phieu` varchar(255) DEFAULT NULL,
+  `id_nhanvien` varchar(255) DEFAULT NULL,
+  `id_kho` varchar(255) DEFAULT NULL,
+  `id_nhacc` varchar(255) DEFAULT NULL,
+  `id_lydo` varchar(255) DEFAULT NULL,
+  `ngaynhap` datetime DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `phieunhapkhos`
+--
+
+INSERT INTO `phieunhapkhos` (`id`, `ma_phieu`, `id_nhanvien`, `id_kho`, `id_nhacc`, `id_lydo`, `ngaynhap`, `createdAt`, `updatedAt`) VALUES
+(1, 'PNK001', 'NV01', 'KH01', 'TTD', '1', '2023-05-08 13:57:34', '2023-05-14 08:57:34', '2023-05-14 08:57:34'),
+(4, 'PNK002', 'NV02', 'KH02', 'BBC', '1', '2023-05-08 13:57:34', '2023-05-14 08:57:34', '2023-05-14 08:57:34');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `phieuxuatkhos`
+--
+
+CREATE TABLE `phieuxuatkhos` (
+  `id` int(11) NOT NULL,
+  `ma_phieu` varchar(255) DEFAULT NULL,
+  `id_thukho` varchar(255) DEFAULT NULL,
+  `id_nhanvien` varchar(255) DEFAULT NULL,
+  `id_lydo` varchar(255) DEFAULT NULL,
+  `ngayxuat` datetime DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `phieuxuatkhos`
+--
+
+INSERT INTO `phieuxuatkhos` (`id`, `ma_phieu`, `id_thukho`, `id_nhanvien`, `id_lydo`, `ngayxuat`, `createdAt`, `updatedAt`) VALUES
+(1, 'PXK01', 'NV01', 'NV01', '1', NULL, '2023-05-14 09:39:46', '2023-05-14 09:39:46'),
+(2, '123', NULL, '123', '123', NULL, '2023-05-14 07:42:43', '2023-05-14 07:42:43'),
+(4, 'PXK02', 'NV02', 'NV02', '2', NULL, '2023-05-14 09:39:46', '2023-05-14 09:39:46');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `roles`
 --
 
@@ -150,7 +326,7 @@ CREATE TABLE `roles` (
   `role_name` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `roles`
@@ -172,7 +348,7 @@ CREATE TABLE `role_permissions` (
   `id_permission` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `role_permissions`
@@ -189,7 +365,7 @@ INSERT INTO `role_permissions` (`id`, `id_role`, `id_permission`, `createdAt`, `
 --
 
 CREATE TABLE `sequelizemeta` (
-  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL
+  `name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -198,16 +374,23 @@ CREATE TABLE `sequelizemeta` (
 
 INSERT INTO `sequelizemeta` (`name`) VALUES
 ('20230228132838-create-contact.js'),
-('20230323133036-create-tintucdatxanh.js'),
-('20230404030416-create-sinhvien.js'),
-('20230404120023-create-lophoc.js'),
-('20230406045730-create-monhoc.js'),
-('20230406051409-create-bangdiem.js'),
 ('20230419094236-create-user.js'),
 ('20230423081539-create-role.js'),
 ('20230423081720-create-permisson.js'),
 ('20230423081824-create-user-role.js'),
-('20230423081936-create-role-permission.js');
+('20230423081936-create-role-permission.js'),
+('20230508143043-create-kho.js'),
+('20230514030825-create-vattu.js'),
+('20230514035428-create-nhacungcap.js'),
+('20230514042050-create-lydo-nhap.js'),
+('20230514042103-create-lydo-xuat.js'),
+('20230514044701-create-donvitinh.js'),
+('20230514065001-create-phieunhapkho.js'),
+('20230514065232-create-phieuxuatkho.js'),
+('20230514080645-create-chitietnhapkho.js'),
+('20230514080807-create-chitietxuatkho.js'),
+('20230514085856-create-invoice-nhap.js'),
+('20230514085911-create-invoice-xuat.js');
 
 -- --------------------------------------------------------
 
@@ -226,7 +409,7 @@ CREATE TABLE `sinhviens` (
   `ma_lop` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `sinhviens`
@@ -234,31 +417,6 @@ CREATE TABLE `sinhviens` (
 
 INSERT INTO `sinhviens` (`id`, `ma_sv`, `ten_sv`, `ngaysinh_sv`, `gioitinh_sv`, `diachi_sv`, `sdt_sv`, `ma_lop`, `createdAt`, `updatedAt`) VALUES
 (62, '13', '13', '0000-00-00', 1, '13', '13', '13', '2023-04-18 09:46:03', '2023-04-18 09:46:03');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tintucdatxanhs`
---
-
-CREATE TABLE `tintucdatxanhs` (
-  `id` int(11) NOT NULL,
-  `tieude_baiviet` varchar(255) DEFAULT NULL,
-  `noidung_baiviet` varchar(255) DEFAULT NULL,
-  `danhmuc_baiviet` text DEFAULT NULL,
-  `tacgia_baiviet` varchar(255) DEFAULT NULL,
-  `createdAt` datetime NOT NULL,
-  `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `tintucdatxanhs`
---
-
-INSERT INTO `tintucdatxanhs` (`id`, `tieude_baiviet`, `noidung_baiviet`, `danhmuc_baiviet`, `tacgia_baiviet`, `createdAt`, `updatedAt`) VALUES
-(1, 'Cần Thơ ngày thêm đổi mới đó nha 123', 'Chiều 23-3, Thường trực Ban Chỉ đạo triển khai thực hiện Nghị quyết số 59-NQ/TW của Bộ Chính trị, Nghị quyết số 45/2022/QH15 của Quốc hội, Nghị quyết số 98/NQ-CP của Chính phủ và các dự án trọng điểm trên địa bàn thành phố Cần Thơ họp về tiến độ thực hiện', 'Tin Tức Thị Trường', 'Thạch Chanh Tha', '2023-03-24 09:23:57', '2023-03-27 13:36:26'),
-(2, 'Trà Vinh ngày thêm đổi mới', 'Chiều 23-3, Thường trực Ban Chỉ đạo triển khai thực hiện Nghị quyết số 59-NQ/TW của Bộ Chính trị, Nghị quyết số 45/2022/QH15 của Quốc hội, Nghị quyết số 98/NQ-CP của Chính phủ và các dự án trọng điểm trên địa bàn thành phố Cần Thơ họp về tiến độ thực hiện', 'Tin Tức Thị Trường', 'Ngô Thị Diễm My', '2023-03-24 09:23:57', '2023-03-24 09:23:57'),
-(4, '3456', '3456', '3456', '3456', '2023-03-25 12:04:17', '2023-03-25 12:04:17');
 
 -- --------------------------------------------------------
 
@@ -275,7 +433,7 @@ CREATE TABLE `users` (
   `password` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
@@ -297,7 +455,7 @@ CREATE TABLE `user_roles` (
   `id_role` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_roles`
@@ -308,14 +466,44 @@ INSERT INTO `user_roles` (`id`, `id_user`, `id_role`, `createdAt`, `updatedAt`) 
 (2, '1', '2', '2023-04-23 10:26:28', '2023-04-23 10:26:28'),
 (4, '2', '2', '2023-04-23 10:26:43', '2023-04-23 10:26:43');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vattus`
+--
+
+CREATE TABLE `vattus` (
+  `id` int(11) NOT NULL,
+  `ma_vattu` varchar(255) DEFAULT NULL,
+  `ten_vattu` varchar(255) DEFAULT NULL,
+  `donvitinh` varchar(255) DEFAULT NULL,
+  `soluong` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `vattus`
+--
+
+INSERT INTO `vattus` (`id`, `ma_vattu`, `ten_vattu`, `donvitinh`, `soluong`, `createdAt`, `updatedAt`) VALUES
+(1, 'VT01', 'Bút Chì', 'Cái', '10', '2023-05-14 05:13:24', '2023-05-14 05:13:24'),
+(2, '999', '999', '999', '999', '2023-05-14 03:30:07', '2023-05-14 03:35:16');
+
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `bangdiems`
+-- Indexes for table `chitietnhapkhos`
 --
-ALTER TABLE `bangdiems`
+ALTER TABLE `chitietnhapkhos`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `chitietxuatkhos`
+--
+ALTER TABLE `chitietxuatkhos`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -325,27 +513,63 @@ ALTER TABLE `contacts`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `demo`
+-- Indexes for table `donvitinhs`
 --
-ALTER TABLE `demo`
+ALTER TABLE `donvitinhs`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `lophocs`
+-- Indexes for table `invoice_nhaps`
 --
-ALTER TABLE `lophocs`
+ALTER TABLE `invoice_nhaps`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `monhocs`
+-- Indexes for table `invoice_xuats`
 --
-ALTER TABLE `monhocs`
+ALTER TABLE `invoice_xuats`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `khos`
+--
+ALTER TABLE `khos`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `lydonhaps`
+--
+ALTER TABLE `lydonhaps`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `lydoxuats`
+--
+ALTER TABLE `lydoxuats`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `nhacungcaps`
+--
+ALTER TABLE `nhacungcaps`
   ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `permissons`
 --
 ALTER TABLE `permissons`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `phieunhapkhos`
+--
+ALTER TABLE `phieunhapkhos`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `phieuxuatkhos`
+--
+ALTER TABLE `phieuxuatkhos`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -374,12 +598,6 @@ ALTER TABLE `sinhviens`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `tintucdatxanhs`
---
-ALTER TABLE `tintucdatxanhs`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -392,14 +610,26 @@ ALTER TABLE `user_roles`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `vattus`
+--
+ALTER TABLE `vattus`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT for table `bangdiems`
+-- AUTO_INCREMENT for table `chitietnhapkhos`
 --
-ALTER TABLE `bangdiems`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `chitietnhapkhos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `chitietxuatkhos`
+--
+ALTER TABLE `chitietxuatkhos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `contacts`
@@ -408,28 +638,64 @@ ALTER TABLE `contacts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `demo`
+-- AUTO_INCREMENT for table `donvitinhs`
 --
-ALTER TABLE `demo`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+ALTER TABLE `donvitinhs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `lophocs`
+-- AUTO_INCREMENT for table `invoice_nhaps`
 --
-ALTER TABLE `lophocs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+ALTER TABLE `invoice_nhaps`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT for table `monhocs`
+-- AUTO_INCREMENT for table `invoice_xuats`
 --
-ALTER TABLE `monhocs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `invoice_xuats`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `khos`
+--
+ALTER TABLE `khos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `lydonhaps`
+--
+ALTER TABLE `lydonhaps`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `lydoxuats`
+--
+ALTER TABLE `lydoxuats`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `nhacungcaps`
+--
+ALTER TABLE `nhacungcaps`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `permissons`
 --
 ALTER TABLE `permissons`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `phieunhapkhos`
+--
+ALTER TABLE `phieunhapkhos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `phieuxuatkhos`
+--
+ALTER TABLE `phieuxuatkhos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -450,12 +716,6 @@ ALTER TABLE `sinhviens`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
--- AUTO_INCREMENT for table `tintucdatxanhs`
---
-ALTER TABLE `tintucdatxanhs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
@@ -466,6 +726,12 @@ ALTER TABLE `users`
 --
 ALTER TABLE `user_roles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `vattus`
+--
+ALTER TABLE `vattus`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
