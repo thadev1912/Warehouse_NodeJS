@@ -3,11 +3,11 @@ var { validationResult } = require('express-validator');
 const Sequelize = require('sequelize')
 let index = async (req, res) => {
     try {
-        let nhacungcap = await db.Nhacungcap.findAll();
-        if (nhacuncap) {
+        let phieunhapkho = await db.Phieunhapkho.findAll();
+        if (phieunhapkho) {
             res.status(200).json({
                 success: true,
-                data: nhacungcap,
+                data: phieunhapkho,
                 messege: 'Lấy dữ liệu thành công!!!'
             });
         }
@@ -29,10 +29,13 @@ let store = async (req, res) => {
             res.status(422).json({ errors: errors.array() });
             return;
         }
-        let vattu = await db.Nhacungcap.create({
-            ma_nhacc: req.body.ma_nhacc,
-            ten_nhacc: req.body.ten_nhacc,
-            diachi_nhacc: req.body.diachi_nhacc,
+        let vattu = await db.Phieunhapkho.create({
+            ma_phieu: req.body.ma_phieu,
+            id_nhanvien: req.body.id_nhanvien,
+            id_kho: req.body.id_kho,
+            id_nhacc: req.body.id_nhacc,
+            id_lydo: req.body.id_lydo,
+            ngaynhap:req.body.ngaynhap           
 
         }
         );
@@ -53,9 +56,9 @@ let store = async (req, res) => {
 }
 let edit = async (req, res) => {
     try {
-        //let ls_lop=await db.Nhacungcap.findAll();
+        //let ls_lop=await db.Phieunhapkho.findAll();
         let id = req.params.id;
-        let vattu = await db.Nhacungcap.findOne({
+        let vattu = await db.Phieunhapkho.findOne({
             where: { id: id },
             raw: true,
         });
@@ -86,14 +89,17 @@ let update = async (req, res) => {
         }
         let id = req.params.id;
         console.log(id);
-        exitsId = await db.Nhacungcap.findOne({
+        exitsId = await db.Phieunhapkho.findOne({
             where: { id: id },
         });
         if (exitsId) {
-            let vattu = await db.Nhacungcap.update({
-                ma_nhacc: req.body.ma_nhacc,
-                ten_nhacc: req.body.ten_nhacc,
-                diachi_nhacc: req.body.diachi_nhacc,
+            let vattu = await db.Phieunhapkho.update({
+                ma_phieu: req.body.ma_phieu,
+                id_nhanvien: req.body.id_nhanvien,
+                id_kho: req.body.id_kho,
+                id_nhacc: req.body.id_nhacc,
+                id_lydo: req.body.id_lydo,
+                ngaynhap:req.body.ngaynhap     
             }, { where: { id: id } });
             if (vattu) {
                 res.json({
@@ -116,11 +122,11 @@ let update = async (req, res) => {
 let destroy = async (req, res) => {
     try {
         let id = req.params.id;
-        exitsId = await db.Nhacungcap.findOne({
+        exitsId = await db.Phieunhapkho.findOne({
             where: { id: id },
         });
         if (exitsId) {
-            let vattu = await db.Nhacungcap.destroy({
+            let vattu = await db.Phieunhapkho.destroy({
                 where: { id: id },
             });
             res.status(200).json({
@@ -142,16 +148,16 @@ let search = async (req, res) => {
         let txtSearch = req.body.txt_search;
         console.log(txtSearch);
         const Op = Sequelize.Op;
-        let searchvattu = await db.Nhacungcap.findAll({
+        let searchphieunhapkho = await db.Phieunhapkho.findAll({
             where: {
-                ten_vattu: { [Op.like]: '%' + txtSearch + '%' },
+                ma_phieu: { [Op.like]: '%' + txtSearch + '%' },
             }
         });
-        if (searchvattu.length === 0) {
+        if (searchphieunhapkho.length === 0) {
             res.status(404).json({ message: 'Không tìm thấy dữ liệu nào cả!!!' });
         }
         else {
-            res.status(200).json({ success: true, data: searchvattu, message: 'Search data comepleted' });
+            res.status(200).json({ success: true, data: searchphieunhapkho, message: 'Search data comepleted' });
         }
 
     }
