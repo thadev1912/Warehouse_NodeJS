@@ -9,7 +9,8 @@ const lydoxuat=require('./lydoxuat');
 const donvitinh=require('./donvitinh');
 const phieunhapkho=require('./phieunhapkho');
 const phieuxuatkho=require('./phieuxuatkho');
-
+const chitietnhapkho=require('./chitietnhapkho');
+const chitietxuatkho=require('./chitietxuatkho');
 const middlewareAuthentication =require('../app/middlewares/auth')
 function route(app)
 {
@@ -23,6 +24,8 @@ app.use('/lydoxuat',lydoxuat);
 app.use('/donvitinh',donvitinh);
 app.use('/phieunhapkho',phieunhapkho);
 app.use('/phieuxuatkho',phieuxuatkho);
+app.use('/chitietnhapkho',chitietnhapkho);
+app.use('/chitietxuatkho',chitietxuatkho);
 }
 
 module.exports = route;

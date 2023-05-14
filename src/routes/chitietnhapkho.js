@@ -1,0 +1,11 @@
+var express = require('express');
+var router = express.Router();
+const chitietnhapkho = require('../app/Controllers/ChitietnhapkhoController');
+const validate=require('../../request/validate_chitietnhapkho');
+router.get('/',chitietnhapkho.index);
+router.post('/store',validate.validate_chitietnhapkho(),chitietnhapkho.store);
+router.get('/edit/:id',chitietnhapkho.edit);
+router.put('/update/:id',validate.validate_chitietnhapkho(),chitietnhapkho.update);
+router.delete('/delete/:id',chitietnhapkho.destroy);
+router.post('/search',chitietnhapkho.search);
+module.exports = router;

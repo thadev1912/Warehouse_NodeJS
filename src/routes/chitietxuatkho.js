@@ -1,0 +1,11 @@
+var express = require('express');
+var router = express.Router();
+const chitietxuatkho = require('../app/Controllers/ChitietxuatkhoController');
+const validate=require('../../request/validate_chitietxuatkho');
+router.get('/',chitietxuatkho.index);
+router.post('/store',validate.validate_chitietxuatkho(),chitietxuatkho.store);
+router.get('/edit/:id',chitietxuatkho.edit);
+router.put('/update/:id',validate.validate_chitietxuatkho(),chitietxuatkho.update);
+router.delete('/delete/:id',chitietxuatkho.destroy);
+router.post('/search',chitietxuatkho.search);
+module.exports = router;
