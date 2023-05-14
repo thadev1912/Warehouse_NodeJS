@@ -1,0 +1,11 @@
+var express = require('express');
+var router = express.Router();
+const nhacungcap = require('../app/Controllers/NhacungcapController');
+const validate=require('../../request/validate_nhacungcap');
+router.get('/',nhacungcap.index);
+router.post('/store',validate.validate_nhacungcap(),nhacungcap.store);
+router.get('/edit/:id',nhacungcap.edit);
+router.put('/update/:id',validate.validate_nhacungcap(),nhacungcap.update);
+router.delete('/delete/:id',nhacungcap.destroy);
+router.post('/search',nhacungcap.search);
+module.exports = router;
