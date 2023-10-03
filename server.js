@@ -24,7 +24,7 @@ app.use(session({
 
 app.use(flash());
 app.use(cookieParser());
-app.use(toastr());
+// app.use(toastr());
 app.use(express.static(path.join(__dirname, 'public'))); // cần check lại link css  
 //midleware
 
@@ -38,11 +38,11 @@ connectDB();
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })
-app.use(function (req, res, next)
-{
-    res.locals.toasts = req.toastr.render()
-    next()
-});
+// app.use(function (req, res, next)
+// {
+//     res.locals.toasts = req.toastr.render()
+//     next()
+// });
 //middleware cho trường hợp sai đường dẫn 
 app.all('*', (req, res) => {
   res.status(404);  
