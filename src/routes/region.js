@@ -4,5 +4,7 @@ const region = require('../app/Controllers/RegionController');
 // const validate=require('../../request/validate_chitietnhapkho');
 router.get('/',region.index);
 router.post('/create',region.create);
-router.delete('/delete/:id',region.destroy);
+router.get('/edit',region.edit);
+router.put('/update/:id',region.update);
+router.delete('/delete',region.destroy);
 module.exports = router;

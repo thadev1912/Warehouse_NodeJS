@@ -33,10 +33,10 @@ app.use(bodyParser.urlencoded({ extended: true }));  // dùng để res.body
 
 route(app);
 connectDB();
-
+const ipAddress = '192.168.48.31';
 // helper();
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+app.listen(port,ipAddress, () => {
+  console.log(`Example app listening at http://${ipAddress}:${port}`)
 })
 // app.use(function (req, res, next)
 // {
