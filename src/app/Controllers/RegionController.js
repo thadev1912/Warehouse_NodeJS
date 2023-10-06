@@ -1,5 +1,5 @@
 
-const Region = require('../../../models/region')
+const Region = require('../models/region')
 //Lấy danh sách khu vực
 let index = async (req, res) => {
     try {

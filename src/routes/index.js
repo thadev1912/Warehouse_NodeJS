@@ -2,12 +2,11 @@
 
 const user=require('./user');
 const region=require('./region');
-const middlewareAuthentication =require('../app/middlewares/auth')
+const checkLogin =require('../app/middlewares/auth')
 function route(app)
 {
-   
-app.use('/user',user); 
-app.use('/region',region);
+app.use('/account',user); 
+app.use('/region',checkLogin.verifyToken,region);
 }
 
 module.exports = route;
