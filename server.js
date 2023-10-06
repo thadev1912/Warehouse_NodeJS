@@ -24,7 +24,7 @@ app.use(session({
 app.use(flash());
 app.use(cookieParser());
 // app.use(toastr());
-app.use(express.static(path.join(__dirname, 'public'))); // cần check lại link css  
+app.use(express.static(path.join(__dirname, 'public'))); 
 //midleware
 
 app.use(express.json())  // hỗ trợ json

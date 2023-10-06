@@ -2,7 +2,6 @@
 const User = require('../models/user');
 var bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
-const { get } = require('mongoose');
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
