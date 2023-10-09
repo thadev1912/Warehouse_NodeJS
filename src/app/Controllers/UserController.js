@@ -23,6 +23,35 @@ let listUser = async (req, res) => {
     }
 
 }
+//Lấy danh sách user
+let listRoleUser = async (req, res) => {
+    try {
+        getData = await User.aggregate([
+            {
+                $lookup: {
+                    from: "roles", 
+                    localField: "user_id",
+                    foreignField: "user_id",
+                    as: "oles",
+                },
+            },
+            { $match: { 'user_id': 'UHP' } },
+        ]);    
+        if (getData) {
+            res.json({
+                status: 200,
+                getData,
+                messege: 'Đã lấy dữ liệu thành công!!!',
+    
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+
+}
 //Thêm mới user
 let register = async (req, res) => {
     try {
@@ -88,6 +117,7 @@ let hashpw = async (pw) => {
 module.exports =
 {
     listUser: listUser,
+    listRoleUser:listRoleUser,
     register: register,
     checkLogin: checkLogin,
     checkLogout: checkLogout,

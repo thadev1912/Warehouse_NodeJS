@@ -1,4 +1,5 @@
-const Department = require('../models/department')
+const Department = require('../models/department');
+const { checkDepartment } = require('../../request/DepartmentRequest')
 //Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {
@@ -24,23 +25,34 @@ let index = async (req, res) => {
 let create = async (req, res) => {
     try {
         const getDepartment = new Department(req.body);
-        let getData = await getDepartment.save();
-        if (getData) {
+        const result = await checkDepartment.validate(req.body);
+        if (result.error) {
             res.json({
-                status: 200,
-                messege: 'Đã thêm mới dữ liệu!!!',
-                data: getData,
+                status: 422,
+                messege: result.error.message,
+
             });
+
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            let getData = await getDepartment.save();
+            if (getData) {
+                res.json({
+                    status: 200,
+                    messege: 'Đã thêm mới dữ liệu!!!',
+                    data: getData,
+                });
+            }
+            else {
+                throw new Error('Error connecting Database on Server');
+            }
         }
+
     }
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });
     }
-
 }
 //Chỉnh sửa khu vực
 let edit = async (req, res) => {

@@ -1,6 +1,6 @@
 
 const Region = require('../models/region');
-const { validationResult } = require('express-validator');
+const { checkRegion } = require('../../request/RegionRequest')
 //Lấy danh sách khu vực
 let index = async (req, res) => {
     try {
@@ -26,24 +26,31 @@ let index = async (req, res) => {
 //Thêm mới khu vực
 let create = async (req, res) => {
     try {
-        const errors = validationResult(req);
-        console.log(errors);
-        if (!errors.isEmpty()) {
-            res.status(422).json({ errors: errors.array() });
-            return;
+        const result = await checkRegion.validate(req.body);
+        if (result.error) {
+            res.json({
+                status: 422,
+                messege: result.error.message,
+
+            });
+
         }
-        // const getRegion = new Region(req.body);
-        // let getData = await getRegion.save();
-        // if (getData) {
-        //     res.json({
-        //         status: 200,
-        //         messege: 'Đã thêm mới dữ liệu!!!',
-        //         data: getData,
-        //     });
-        // }
-        // else {
-        //     throw new Error('Error connecting Database on Server');
-        // }
+        else
+        {
+            const getRegion = new Region(req.body);
+            let getData = await getRegion.save();
+            if (getData) {
+                res.json({
+                    status: 200,
+                    messege: 'Đã thêm mới dữ liệu!!!',
+                    data: getData,
+                });
+            }
+            else {
+                throw new Error('Error connecting Database on Server');
+            }
+        }
+       
     }
     catch (err) {
         console.log(err);
