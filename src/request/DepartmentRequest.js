@@ -1,4 +1,4 @@
-//Department validate:
+
 const Joi = require("joi");
 const checkDepartment = Joi.object({ department_id: Joi.string() .min(6) .required().messages({ 
     'string.empty': `Mã phòng ban không được bỏ trống`,   

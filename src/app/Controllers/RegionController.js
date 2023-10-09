@@ -1,6 +1,6 @@
 
 const Region = require('../models/region');
-const { checkRegion } = require('../../request/RegionRequest')
+const { checkRegion } = require('../../request/RegionRequest');
 //Lấy danh sách khu vực
 let index = async (req, res) => {
     try {
@@ -8,8 +8,8 @@ let index = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Lấy dữ liệu thành công!!!',
-                data: getData,
+                message: 'Lấy dữ liệu thành công!!!',
+                data:getData,
             });
         }
         else {
@@ -21,37 +21,37 @@ let index = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 
-
 }
 //Thêm mới khu vực
 let create = async (req, res) => {
     try {
-        const result = await checkRegion.validate(req.body);
-        if (result.error) {
-            res.json({
-                status: 422,
-                messege: result.error.message,
-
-            });
-
+        const getRegion = new Region(req.body);
+        const result=await checkRegion.validate(req.body);
+        if(result.error)
+        {        res.json({
+                    status: 422,
+                    messege: result.error.message,
+                    
+                });
+            
         }
-        else
-        {
-            const getRegion = new Region(req.body);
+  
+         else{
+            
             let getData = await getRegion.save();
             if (getData) {
                 res.json({
                     status: 200,
-                    messege: 'Đã thêm mới dữ liệu!!!',
-                    data: getData,
+                    message: 'Đã thêm mới dữ liệu!!!',
+                    data:getData,
                 });
             }
             else {
                 throw new Error('Error connecting Database on Server');
             }
-        }
-       
-    }
+         }           
+ 
+     }
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });

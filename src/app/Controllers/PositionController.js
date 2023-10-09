@@ -6,7 +6,7 @@ let index = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Lấy dữ liệu thành công!!!',
+                message: 'Lấy dữ liệu thành công!!!',
                 data: getData,
             });
         }
@@ -28,7 +28,7 @@ let create = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Đã thêm mới dữ liệu!!!',
+                message: 'Đã thêm mới dữ liệu!!!',
                 data: getData,
             });
         }

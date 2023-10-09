@@ -29,10 +29,10 @@ let create = async (req, res) => {
         if (result.error) {
             res.json({
                 status: 422,
-                messege: result.error.message,
+                message: result.error.message,
 
             });
-
+         console.log(result);
         }
         else
        {

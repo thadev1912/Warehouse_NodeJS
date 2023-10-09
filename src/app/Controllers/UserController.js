@@ -9,7 +9,7 @@ let listUser = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Lấy dữ liệu thành công!!!',
+                message: 'Lấy dữ liệu thành công!!!',
                 data: getData,
             });
         }
@@ -41,7 +41,7 @@ let listRoleUser = async (req, res) => {
             res.json({
                 status: 200,
                 getData,
-                messege: 'Đã lấy dữ liệu thành công!!!',
+                message: 'Đã lấy dữ liệu thành công!!!',
     
             });
         }
@@ -66,7 +66,7 @@ let register = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Đã thêm mới dữ liệu!!!',
+                message: 'Đã thêm mới dữ liệu!!!',
                 data: getData,
             });
         }
@@ -95,7 +95,7 @@ let checkLogin = async (req, res) => {
     });
     getCookie=req.cookies.jwt;
     console.log('giá trị cookie của token là:',getCookie);
-    checkUser && checkPw ? res.json({ status: 200, messege: 'Đăng nhập thành công!!!', AccessToken }) : res.json({ status: 500, messege: 'Đăng nhập thất bại!!!' })
+    checkUser && checkPw ? res.json({ status: 200, message: 'Đăng nhập thành công!!!', AccessToken }) : res.json({ status: 500, message: 'Đăng nhập thất bại!!!' })
 
 }
 

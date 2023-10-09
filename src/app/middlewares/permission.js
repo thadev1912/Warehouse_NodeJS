@@ -1,18 +1,17 @@
 const jwt = require("jsonwebtoken");
-const middlewareAuthentication = {
-    checkLogin: (req, res, next) => {
-         const token = req.headers.token; //cách lấy từ header
+const middlewarePermission = {
+    checkPermision: (req, res, next) => {
+    const token = req.headers.token; //cách lấy từ header
       //  const token = req.cookies.jwt;
-        console.log('giá trị token nhận được là',token);
+      console.log('giá trị token từ header',token);     
         if (token != null) {
-            console.log(token);          
+                
             const AccessToken = token;
             jwt.verify(AccessToken, process.env.JWT_SECRET, (err, user) => {
                 if (err) {
                     res.status(403).json("Token không hợp lệ");
                 }
-                console.log('request user',user);
-               // req.user = user;  // giá trị một token đã được mã hóa lại
+                req.user = user;  // giá trị một token đã được mã hóa lại
                 next();
             })
         }
@@ -21,4 +20,4 @@ const middlewareAuthentication = {
         }
     }
 }
-module.exports = middlewareAuthentication
+module.exports = middlewarePermission
