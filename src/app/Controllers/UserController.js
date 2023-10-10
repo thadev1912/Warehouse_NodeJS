@@ -59,6 +59,8 @@ let register = async (req, res) => {
         const getUser = new User({
             user_id: req.body.user_id,
             username: req.body.username,
+            role:req.body.role,
+            email:req.body.email,
             password: getPw,
         });
         // console.log(getUser); 
@@ -87,14 +89,13 @@ let checkLogin = async (req, res) => {
     let checkPw = await bcrypt.compare(pws, checkUser.password);
     let AccessToken = jwt.sign({ id: checkUser.user_id, user: checkUser.username },
         process.env.JWT_SECRET,
-        { expiresIn: "2h" }  //thời gian token tồn tại
+        { expiresIn: "1h" } 
     );
     res.cookie("jwt", AccessToken, {
         httpOnly: true,
         maxAge: 200000, // 3hrs in ms
     });
-    getCookie=req.cookies.jwt;
-    console.log('giá trị cookie của token là:',getCookie);
+    getCookie=req.cookies.jwt;   
     checkUser && checkPw ? res.json({ status: 200, message: 'Đăng nhập thành công!!!', AccessToken }) : res.json({ status: 500, message: 'Đăng nhập thất bại!!!' })
 
 }
@@ -102,10 +103,8 @@ let checkLogin = async (req, res) => {
 let checkLogout = async (req, res) => {
     res.clearCookie("jwt", { maxAge: 1 })
     // res.redirect("/")  
-    getCookie=req.cookies;
-    console.log('giá trị cookie của token là:',getCookie);
-    res.json('bạn đã đăng xuất');
-
+    getCookie=req.cookies;   
+    res.json('Bạn đã đăng xuất!!!');
 }
 let hashpw = async (pw) => {
     const salt = await bcrypt.genSalt(10);

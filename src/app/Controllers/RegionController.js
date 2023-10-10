@@ -25,19 +25,7 @@ let index = async (req, res) => {
 //Thêm mới khu vực
 let create = async (req, res) => {
     try {
-        const getRegion = new Region(req.body);
-        const result=await checkRegion.validate(req.body);
-        if(result.error)
-        {        res.json({
-                    status: 422,
-                    messege: result.error.message,
-                    
-                });
-            
-        }
-  
-         else{
-            
+       const getRegion = new Region(req.body);            
             let getData = await getRegion.save();
             if (getData) {
                 res.json({
@@ -49,7 +37,7 @@ let create = async (req, res) => {
             else {
                 throw new Error('Error connecting Database on Server');
             }
-         }           
+             
  
      }
     catch (err) {
@@ -81,7 +69,7 @@ let edit = async (req, res) => {
 //Cập nhật khu vực
 let update = async (req, res) => {
     try {
-        let id = req.params.id;
+        let id = req.params.id;        
         getData = await Region.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {
             getNewData = await Region.findOne({ _id: id });

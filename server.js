@@ -35,7 +35,7 @@ connectDB();
 const ipAddress = '192.168.48.31';
 // helper();
 app.listen(port,ipAddress, () => {
-  console.log(`Example app listening at http://${ipAddress}:${port}`)
+  console.log(`Server đang chạy trên http://${ipAddress}:${port}`)
 })
 
 //middleware cho trường hợp sai đường dẫn 

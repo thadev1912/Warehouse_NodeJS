@@ -3,7 +3,7 @@ var router = express.Router();
 const region = require('../app/Controllers/RegionController');
 const validate=require('../request/RegionRequest');
 router.get('/',region.index);
-router.post('/create',region.create);
+router.post('/create',validate.checkValidate,region.create);
 router.get('/edit',region.edit);
 router.put('/update/:id',region.update);
 router.delete('/delete',region.destroy);
