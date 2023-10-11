@@ -42,7 +42,7 @@ app.listen(port,ipAddress, () => {
 app.all('*', (req, res) => {
   res.status(404);  
   if (req.accepts('json')) {
-      res.json({ "error": " Page 404 Not Found" });
+      res.json({ "error": "Incorrect in your url API! Please check again " });
   } else {
       res.type('txt').send(" Page 404 Not Found");
   }

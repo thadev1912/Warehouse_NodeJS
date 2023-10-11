@@ -9,7 +9,7 @@ function route(app)
 {
 app.use('/account',user); 
 app.use('/role',role); 
-app.use('/region',region);
+app.use('/region',Permision.checkPermision,region);
 app.use('/deparment',Permision.checkPermision,department);
 app.use('/position',position);
 }

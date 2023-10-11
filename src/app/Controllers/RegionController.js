@@ -25,19 +25,25 @@ let index = async (req, res) => {
 //Thêm mới khu vực
 let create = async (req, res) => {
     try {
-       const getRegion = new Region(req.body);            
-            let getData = await getRegion.save();
-            if (getData) {
-                res.json({
-                    status: 200,
-                    message: 'Đã thêm mới dữ liệu!!!',
-                    data:getData,
-                });
-            }
-            else {
-                throw new Error('Error connecting Database on Server');
-            }
-             
+        const getRegion = new Region(req.body);      
+        checkId = await Region.find({ region_id:req.body.region_id}).count();      
+        if (checkId>0) {
+            return res.status(200).json({
+                success: true, message: 'This ID exits!!',
+            });
+        }
+        let getData = await getRegion.save();       
+        if (getData) {
+            res.json({
+                status: 200,
+                messege: 'Đã thêm mới dữ liệu!!!',
+                data: getData,
+            });
+        }
+        else
+        {
+            throw new Error('Error connecting Database on Server');
+        }
  
      }
     catch (err) {

@@ -9,33 +9,39 @@ const middlewarePermision = {
         console.log('giá trị token nhận được là', token);
         if (token != null) {
             const AccessToken = token;
-            jwt.verify(AccessToken, process.env.JWT_SECRET, (err, user) => {
-                if (err) {
-                    res.status(403).json("Token không hợp lệ");
-                }
+            jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, user) => {
                 if (user) {
-                    getInfoUser = user;//thông tin user
-                    console.log('thông tin user', getInfoUser.id)
-                    User.findOne({ user_id: getInfoUser.id })
-                        .then((data) => {
-                            getRole = data.role;
-                            if (getRole === 'admin' &&getInfoUser) {
-                                console.log(getRole);
-                              return  next();
-                            }
-                            else {
-                                res.status(401).json("Bạn chưa có quyền truy cập vào danh mục này!!");
-                            }
-                        })
+                    getInfoUser = user;//thông tin user                   
+                     getRole = await User.findOne({ user_id: getInfoUser.id });
+                   // getRole = await middlewarePermision.getRoles(getInfoUser.id); 
+                    console.log(getRole);
+                    if (getRole.role !== 'admin') {
+                        res.status(401).json("Bạn chưa có quyền truy cập vào danh mục này!!");
+                    }
+                    next();
                 }
-                next();
+
             });
+
         }
-
-
         else {
             res.status(401).json("Bạn chưa có token! Vui lòng đăng nhập.....");
         }
+    },
+    getRoles: async (data) => {
+
+        getData = await User.aggregate([
+            {
+                $lookup: {
+                    from: "roles",
+                    localField: "user_id",
+                    foreignField: "user_id",
+                    as: "roles",
+                },
+            },
+            { $match: { 'user_id': data } },
+        ]);
+        return getData
     }
 
 }

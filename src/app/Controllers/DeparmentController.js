@@ -23,8 +23,15 @@ let index = async (req, res) => {
 //Thêm mới khu vực
 let create = async (req, res) => {
     try {
-        const getDepartment = new Department(req.body);
-        let getData = await getDepartment.save();
+
+        const getDepartment = new Department(req.body);      
+        checkId = await Department.find({ department_id:req.body.department_id}).count();      
+        if (checkId>0) {
+            return res.status(200).json({
+                success: true, message: 'This ID exits!!',
+            });
+        }
+        let getData = await getDepartment.save();       
         if (getData) {
             res.json({
                 status: 200,
@@ -32,14 +39,11 @@ let create = async (req, res) => {
                 data: getData,
             });
         }
-        else {
+        else
+        {
             throw new Error('Error connecting Database on Server');
         }
-
     }
-
-
-
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });

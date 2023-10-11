@@ -58,6 +58,7 @@ let register = async (req, res) => {
         getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
         const getUser = new User({
             user_id: req.body.user_id,
+            fullname: req.body.fullname,
             username: req.body.username,
             role:req.body.role,
             email:req.body.email,
@@ -84,8 +85,14 @@ let register = async (req, res) => {
 }
 let checkLogin = async (req, res) => {
     let user = req.body.username;
-    let pws = req.body.password;
+    let pws = req.body.password;  
     let checkUser = await User.findOne({ username: user });
+    if(!checkUser)
+    {
+        res.json({ status: 500, message: 'Tài khoản hoặc mật khẩu đúng!!!' });
+        return;
+    }
+    console.log('thông tin user',checkUser);
     let checkPw = await bcrypt.compare(pws, checkUser.password);
     let AccessToken = jwt.sign({ id: checkUser.user_id, user: checkUser.username },
         process.env.JWT_SECRET,

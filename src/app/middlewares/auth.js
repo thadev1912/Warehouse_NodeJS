@@ -16,11 +16,10 @@ const middlewareAuthentication = {
                 if (user)
                 {
                     console.log('request user',user);
-                    // req.user = user;  // giá trị một token đã được mã hóa lại
+                     req.user = user;  // giá trị một token đã được mã hóa lại
                      next();
-                }
-              
-            })
+                                    }
+                          })
         }
         else {
             res.status(401).json("Bạn chưa có token! Vui lòng đăng nhập.....");
