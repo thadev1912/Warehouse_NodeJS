@@ -5,6 +5,6 @@ const validate=require('../request/DepartmentRequest');
 router.get('/',department.index);
 router.post('/create',validate.checkValidate,department.create);
 router.get('/edit',department.edit);
-router.put('/update/:id',department.update);
+router.put('/update/:id',validate.checkValidate,department.update);
 router.delete('/delete',department.destroy);
 module.exports = router;

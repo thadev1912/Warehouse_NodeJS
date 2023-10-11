@@ -31,11 +31,11 @@ let listRoleUser = async (req, res) => {
                 $lookup: {
                     from: "roles", 
                     localField: "user_id",
-                    foreignField: "user_id",
-                    as: "oles",
+                    foreignField: "role_id",
+                    as: "roles",
                 },
             },
-            { $match: { 'user_id': 'UHP' } },
+            { $match: { 'user_id': '1' } },
         ]);    
         if (getData) {
             res.json({
@@ -55,6 +55,13 @@ let listRoleUser = async (req, res) => {
 //Thêm mới user
 let register = async (req, res) => {
     try {
+           
+        checkId = await User.find({user_id:req.body.user_id}).count();      
+        if (checkId>0) {
+            return res.status(200).json({
+                success: true, message: 'This User ID exits!!',
+            });
+        }
         getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
         const getUser = new User({
             user_id: req.body.user_id,
@@ -96,11 +103,11 @@ let checkLogin = async (req, res) => {
     let checkPw = await bcrypt.compare(pws, checkUser.password);
     let AccessToken = jwt.sign({ id: checkUser.user_id, user: checkUser.username },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" } 
+        { expiresIn: "2h" } 
     );
     res.cookie("jwt", AccessToken, {
         httpOnly: true,
-        maxAge: 200000, // 3hrs in ms
+        maxAge: 60*60*1000, // 2hrs in ms
     });
     getCookie=req.cookies.jwt;   
     checkUser && checkPw ? res.json({ status: 200, message: 'Đăng nhập thành công!!!', AccessToken }) : res.json({ status: 500, message: 'Đăng nhập thất bại!!!' })
@@ -110,7 +117,7 @@ let checkLogin = async (req, res) => {
 let checkLogout = async (req, res) => {
     res.clearCookie("jwt", { maxAge: 1 })
     // res.redirect("/")  
-    getCookie=req.cookies;   
+   // getCookie=req.cookies;   
     res.json('Bạn đã đăng xuất!!!');
 }
 let hashpw = async (pw) => {

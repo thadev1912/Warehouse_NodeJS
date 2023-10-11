@@ -5,6 +5,6 @@ const validate=require('../request/RegionRequest');
 router.get('/',region.index);
 router.post('/create',validate.checkValidate,region.create);
 router.get('/edit',region.edit);
-router.put('/update/:id',region.update);
+router.put('/update/:id',validate.checkValidate,region.update);
 router.delete('/delete',region.destroy);
 module.exports = router;

@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
 const position = require('../app/Controllers/PositionController');
-// const validate=require('../../request/validate_chitietnhapkho');
+const validate=require('../request/PostionRequest');
 router.get('/',position.index);
-router.post('/create',position.create);
+router.post('/create',validate.checkValidate,position.create);
 router.get('/edit',position.edit);
 router.put('/update/:id',position.update);
 router.delete('/delete',position.destroy);
