@@ -25,7 +25,7 @@ let create = async (req, res) => {
     try {
 
         const getDepartment = new Department(req.body);      
-        checkId = await Department.find({ department_id:req.body.department_id}).count();      
+        checkId = await Department.find({ department_code:req.body.department_code}).count();      
         if (checkId>0) {
             return res.status(200).json({
                 success: true, message: 'This ID exits!!',
@@ -75,7 +75,7 @@ let update = async (req, res) => {
         let id = req.params.id;
         getData = await Department.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {
-            console.log('cập nhật du lieu thanh cong!!');
+            console.log('cập nhật dữ liệu thành công!!');
             getNewData = await Department.findOne({ _id: id });
             return res.status(200).json({
                 success: true, data: getNewData, message: 'Cập nhật dữ liệu thành công!!!'

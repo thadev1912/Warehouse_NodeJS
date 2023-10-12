@@ -23,7 +23,13 @@ let index = async (req, res) => {
 //Thêm mới chức danh
 let create = async (req, res) => {
     try {
-        const getPosition = new Position(req.body);
+        const getPosition = new Position(req.body);      
+        checkId = await Position.find({ position_code:req.body.position_code}).count();      
+        if (checkId>0) {
+            return res.status(200).json({
+                success: true, message: 'This ID exits!!',
+            });
+        }        
         let getData = await getPosition.save();
         if (getData) {
             res.json({

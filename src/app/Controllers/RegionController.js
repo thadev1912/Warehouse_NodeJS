@@ -26,7 +26,7 @@ let index = async (req, res) => {
 let create = async (req, res) => {
     try {
         const getRegion = new Region(req.body);      
-        checkId = await Region.find({ region_id:req.body.region_id}).count();      
+        checkId = await Region.find({ region_code:req.body.region_code}).count();      
         if (checkId>0) {
             return res.status(200).json({
                 success: true, message: 'This ID exits!!',
@@ -74,9 +74,9 @@ let edit = async (req, res) => {
 }
 //Cập nhật khu vực
 let update = async (req, res) => {
-    try {
+    try {        
         let id = req.params.id;        
-        getData = await Region.findByIdAndUpdate(id, { $set: req.body })
+        getData = await Region.findByIdAndUpdate(id, { $set: req.body });        
         if (getData) {
             getNewData = await Region.findOne({ _id: id });
             return res.status(200).json({

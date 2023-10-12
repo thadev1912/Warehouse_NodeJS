@@ -11,14 +11,20 @@ const middlewarePermision = {
             const AccessToken = token;
             jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, user) => {
                 if (user) {
-                    getInfoUser = user;//thông tin user                   
-                     getRole = await User.findOne({ user_id: getInfoUser.id });
-                   // getRole = await middlewarePermision.getRoles(getInfoUser.id); 
-                    console.log(getRole);
-                    if (getRole.role !== 'admin') {
-                        res.status(401).json("Bạn chưa có quyền truy cập vào danh mục này!!");
-                    }
-                    next();
+                    getInfoUser = user;//thông tin user                  
+                    console.log('gia tri id',getInfoUser.id);
+                    getRole = await middlewarePermision.getRoles(getInfoUser.id);                  
+                    // res.status(401).json({                       
+                    //  getRole,
+                    // }); 
+                    console.log(getRole[0].roles[0].role_name);
+                    if(getRole[0].roles[0].role_name!=='admin')
+                    {
+                        res.status(401).json("Bạn chưa có quyền truy cập.....");
+                          return;
+                    }                                             
+                    
+                     next();
                 }
 
             });
@@ -33,16 +39,17 @@ const middlewarePermision = {
         getData = await User.aggregate([
             {
                 $lookup: {
-                    from: "roles",
+                    from: "roles", 
                     localField: "user_id",
-                    foreignField: "user_id",
-                    as: "roles",
+                    foreignField: "role_id",
+                    as: "roles",                    
                 },
             },
-            { $match: { 'user_id': data } },
-        ]);
+            { $match: { 'user_id':data } },
+        ]);    
         return getData
-    }
+    },
+    
 
 }
 module.exports = middlewarePermision
