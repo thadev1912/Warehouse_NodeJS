@@ -30,12 +30,12 @@ let listRoleUser = async (req, res) => {
             {
                 $lookup: {
                     from: "roles", 
-                    localField: "user_id",
+                    localField: "user_code",
                     foreignField: "role_id",
                     as: "roles",
                 },
             },
-            { $match: { 'user_id': '1' } },
+            { $match: { 'user_code': '1' } },
         ]);    
         if (getData) {
             res.json({
@@ -55,8 +55,8 @@ let listRoleUser = async (req, res) => {
 //Thêm mới user
 let register = async (req, res) => {
     try {
-           
-        checkId = await User.find({user_id:req.body.user_id}).count();      
+       // console.log(req.body);
+        checkId = await User.find({user_code:req.body.user_code}).count();      
         if (checkId>0) {
             return res.status(200).json({
                 success: true, message: 'This User ID exits!!',
@@ -64,11 +64,14 @@ let register = async (req, res) => {
         }
         getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
         const getUser = new User({
-            user_id: req.body.user_id,
+            user_code: req.body.user_code,
             fullname: req.body.fullname,
             username: req.body.username,
-            role:req.body.role,
+            role_id:req.body.role_id,
             email:req.body.email,
+            sex:req.body.sex,
+            address:req.body.address,
+            phone:req.body.phone,
             password: getPw,
         });
         // console.log(getUser); 
@@ -101,7 +104,7 @@ let checkLogin = async (req, res) => {
     }
     console.log('thông tin user',checkUser);
     let checkPw = await bcrypt.compare(pws, checkUser.password);
-    let AccessToken = jwt.sign({ id: checkUser.user_id, user: checkUser.username },
+    let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
         process.env.JWT_SECRET,
         { expiresIn: "2h" } 
     );

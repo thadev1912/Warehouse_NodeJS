@@ -74,8 +74,7 @@ let update = async (req, res) => {
     try {
         let id = req.params.id;
         getData = await Department.findByIdAndUpdate(id, { $set: req.body })
-        if (getData) {
-            console.log('cập nhật dữ liệu thành công!!');
+        if (getData) {           
             getNewData = await Department.findOne({ _id: id });
             return res.status(200).json({
                 success: true, data: getNewData, message: 'Cập nhật dữ liệu thành công!!!'

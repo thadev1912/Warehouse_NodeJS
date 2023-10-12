@@ -11,8 +11,7 @@ const middlewareValidate = {
       department_name: Joi.string().required().messages({
         'string.empty': `Tên phòng ban không được bỏ trống`,
       }),
-      department_note: Joi.string().max(100).required().messages({
-        'string.empty': `Ghi chú phòng ban không được bỏ trống`,
+      department_note: Joi.string().allow(null).allow('').max(100).required().messages({     
         'string.max': `Nội dung ghi chú không được vượt quá 100 ký tự`,
       }),
     });

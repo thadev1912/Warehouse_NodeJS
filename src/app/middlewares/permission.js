@@ -12,15 +12,13 @@ const middlewarePermision = {
             jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, user) => {
                 if (user) {
                     getInfoUser = user;//thông tin user                  
-                    console.log('gia tri id',getInfoUser.id);
-                    getRole = await middlewarePermision.getRoles(getInfoUser.id);                  
-                    // res.status(401).json({                       
-                    //  getRole,
-                    // }); 
+                   // console.log('gia tri id',getInfoUser);
+                    getRole = await middlewarePermision.getRoles(getInfoUser.user_code); 
                     console.log(getRole[0].roles[0].role_name);
-                    if(getRole[0].roles[0].role_name!=='admin')
+                   let _isRole=getRole[0].roles[0].role_name;
+                    if((_isRole!=='admin')&&(_isRole!=='qtv'))
                     {
-                        res.status(401).json("Bạn chưa có quyền truy cập.....");
+                        res.status(401).json("Bạn chưa có quyền truy cập chức năng này.....");
                           return;
                     }                                             
                     
@@ -31,7 +29,7 @@ const middlewarePermision = {
 
         }
         else {
-            res.status(401).json(" Vui lòng đăng nhập tài khoản hệ thống.....");
+            res.status(401).json("Vui lòng đăng nhập tài khoản hệ thống.....");
         }
     },
     getRoles: async (data) => {
@@ -40,12 +38,12 @@ const middlewarePermision = {
             {
                 $lookup: {
                     from: "roles", 
-                    localField: "user_id",
-                    foreignField: "role_id",
+                    localField: "role_id",
+                    foreignField: "role_code",
                     as: "roles",                    
                 },
             },
-            { $match: { 'user_id':data } },
+            { $match: { 'user_code':data } },
         ]);    
         return getData
     },
