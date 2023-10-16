@@ -7,7 +7,9 @@ const middlewareAuthentication = {
       // const token = req.cookies.jwt;
         console.log('giá trị token nhận được là',token);
         if (token != null) {
-            console.log(token);          
+           
+            console.log(token);    
+           //const AccessToken=token.split(" ")[1];      
             const AccessToken = token;
             jwt.verify(AccessToken, process.env.JWT_SECRET, (err, user) => {
                 if (err) {

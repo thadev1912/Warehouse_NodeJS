@@ -2,7 +2,7 @@ const Department = require('../models/department');
 //Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {
-        let getData = await Department.find({});
+        let getData = await Department.find({});       ;
         if (getData) {
             res.json({
                 status: 200,

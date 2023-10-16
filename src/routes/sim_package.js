@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const SimPackage = require('../app/Controllers/SimPackageComtroller');
+//const validate=require('../request/SimPackageRequest');
+router.get('/',SimPackage.index);
+router.post('/create',SimPackage.create);
+router.get('/edit',SimPackage.edit);
+router.put('/update/:id',SimPackage.update);
+router.delete('/delete',SimPackage.destroy);
+module.exports = router;

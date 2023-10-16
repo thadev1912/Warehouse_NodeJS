@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const ProductGroup = require('../app/Controllers/ProductGroupController');
+const validate=require('../request//ProductGroupRequest');
+router.get('/',ProductGroup.index);
+router.post('/create',validate.checkValidate,ProductGroup.create);
+router.get('/edit',ProductGroup.edit);
+router.put('/update/:id',validate.checkValidate,ProductGroup.update);
+router.delete('/delete',ProductGroup.destroy);
+module.exports = router;

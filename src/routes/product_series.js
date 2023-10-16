@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const ProductSeries = require('../app/Controllers/ProductSeriesController');
+const validate=require('../request//ProductSeriesRequest');
+router.get('/',ProductSeries.index);
+router.post('/create',validate.checkValidate,ProductSeries.create);
+router.get('/edit',ProductSeries.edit);
+router.put('/update/:id',validate.checkValidate,ProductSeries.update);
+router.delete('/delete',ProductSeries.destroy);
+module.exports = router;

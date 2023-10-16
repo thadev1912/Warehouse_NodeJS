@@ -1,15 +1,13 @@
-
-const Region = require('../models/region');
-const { checkRegion } = require('../../request/RegionRequest');
-//Lấy danh sách khu vực
+const ProductGroup = require('../models/product_group');
+//Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {
-        let getData = await Region.find({});
+        let getData = await ProductGroup.find({});
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Lấy dữ liệu thành công!!!',
-                data:getData,
+                data: getData,
             });
         }
         else {
@@ -25,14 +23,15 @@ let index = async (req, res) => {
 //Thêm mới khu vực
 let create = async (req, res) => {
     try {
-        const getRegion = new Region(req.body);      
-        checkId = await Region.find({ region_code:req.body.region_code}).count();      
+     console.log(req.body);
+        const getProductGroup = new ProductGroup(req.body);      
+        checkId = await ProductGroup.find({ product_group_code:req.body.product_group_code}).count();      
         if (checkId>0) {
             return res.status(200).json({
                 success: true, message: 'This ID exits!!',
             });
         }
-        let getData = await getRegion.save();       
+        let getData = await getProductGroup.save();       
         if (getData) {
             res.json({
                 status: 200,
@@ -44,19 +43,17 @@ let create = async (req, res) => {
         {
             throw new Error('Error connecting Database on Server');
         }
- 
-     }
+    }
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });
     }
-
 }
 //Chỉnh sửa khu vực
 let edit = async (req, res) => {
-    try {       
+    try {
         id = req.query.id;
-        getId = await Region.find({ _id:id });       
+        getId = await ProductGroup.findOne({ _id: id });
         if (getId) {
             return res.status(200).json({
                 success: true, message: 'Thông tin cần chỉnh sửa!!', data: getId,
@@ -74,11 +71,11 @@ let edit = async (req, res) => {
 }
 //Cập nhật khu vực
 let update = async (req, res) => {
-    try {        
-        let id = req.params.id;        
-        getData = await Region.findByIdAndUpdate(id, { $set: req.body });        
-        if (getData) {
-            getNewData = await Region.findOne({ _id: id });
+    try {
+        let id = req.params.id;
+        getData = await ProductGroup.findByIdAndUpdate(id, { $set: req.body })
+        if (getData) {           
+            getNewData = await ProductGroup.findOne({ _id: id });
             return res.status(200).json({
                 success: true, data: getNewData, message: 'Cập nhật dữ liệu thành công!!!'
             });
@@ -95,8 +92,9 @@ let update = async (req, res) => {
 let destroy = async (req, res) => {
     try {
         let id = req.query.id;
-        getId = await Region.findByIdAndRemove({ _id: id });
+        getId = await ProductGroup.findByIdAndRemove({ _id: id });
         if (getId) {
+
             return res.status(200).json({
                 success: true, message: 'Xóa dữ liệu thành công!!!',
             });
@@ -110,14 +108,11 @@ let destroy = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 
-
-
 }
-module.exports =
-{
+module.exports = {
     index: index,
     create: create,
+    edit: edit,
     update: update,
     destroy: destroy,
-    edit: edit,
 }

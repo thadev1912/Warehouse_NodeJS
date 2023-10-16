@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const CategoriesSim = require('../app/Controllers/CategoriesSimController');
+//const validate=require('../request/CategoriesSimRequest');
+router.get('/',CategoriesSim.index);
+router.post('/create',CategoriesSim.create);
+router.get('/edit',CategoriesSim.edit);
+router.put('/update/:id',CategoriesSim.update);
+router.delete('/delete',CategoriesSim.destroy);
+module.exports = router;

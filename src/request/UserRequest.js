@@ -1,7 +1,6 @@
 //Region validate:
 const Joi = require("joi");
 const passwordComplexity = require("joi-password-complexity");
-const phoneValid = Joi.extend(require('joi-phone-number'));
 const complexityOptions = {
     min: 10,
     max: 20,
@@ -20,16 +19,31 @@ const middlewareValidate = {
                 'string.empty': `Username không được bỏ trống`,
                 'string.min': `Username ít nhất 6 ký tự`,
             }),
-            fullname: Joi.string().min(6)
+            fullname: Joi.string().min(8)
                 .required().messages({
                     'string.empty': `Họ tên thông tin không được bỏ trống`,
                     'string.min': `Thông tin họ tên quá ngắn`,
                 }),
+
             sex: Joi.string()
                 .required().messages({
                     'string.empty': `Giới tính không được bỏ trống`,
 
                 }),
+            password: passwordComplexity(complexityOptions).messages({
+                'passwordComplexity.tooShort': `Mật khẩu của bản quá ngắn`,
+                'passwordComplexity.lowercase': `Mật khẩu phải có ít nhất một ký tự thường`,
+                'passwordComplexity.uppercase': `Mật khẩu phải có ít nhất một ký tự viết hoa`,
+                'passwordComplexity.numeric': `Mật khẩu phải chứa ít nhất một ký tự số`,
+                'passwordComplexity.symbol': `Mật khẩu phải chứa ít nhất một ký tự đặc biệt`,
+            }),
+            phone: Joi.number().integer().min(10 ** 9).max(10 ** 10 - 1).required().messages({
+                'number.base': `Số điện thoại không được bỏ trống hoặc chưa đúng định dạng`,
+                'number.min': `Số điện thoại chưa đủ ký tự số`,
+                'number.max': `Số điện thoại vượt qua 12 ký tự`,
+                'number.unsafe': `Số điện thoại vượt quá số ký tự an toàn`,
+                'number.empty': `Số điện thoại không được bỏ trống`,
+            }),
             sex: Joi.boolean()
                 .required().messages({
                     'boolean.base': `Giới tính phải là kiểu true/false`,
@@ -39,14 +53,8 @@ const middlewareValidate = {
                 .required().
                 messages({
                     'string.empty': `Địa chỉ không được bỏ trống`,
-
                 }),
-            // phone: Joi.string().regex(/^[0-9]{10}$/)
-            //     .required().messages({
-            //         'string.empty': `Số điện thoại không được bỏ trống`,
 
-
-            //     }),
             password: Joi.string()
                 .required().messages({
                     'string.empty': `Password không được bỏ trống`,
@@ -64,26 +72,7 @@ const middlewareValidate = {
             role_id: Joi.string().required().messages({
                 'string.empty': `Mã Role không được bỏ trống`,
             }),
-            password: passwordComplexity(complexityOptions).messages({
-                'passwordComplexity.tooShort': `Mật khẩu của bản quá ngắn`,
-                'passwordComplexity.lowercase': `Mật khẩu phải có ít nhất một ký tự thường`,
-                'passwordComplexity.uppercase': `Mật khẩu phải có ít nhất một ký tự viết hoa`,
-                'passwordComplexity.numeric': `Mật khẩu phải chứa ít nhất một ký tự số`,
-                'passwordComplexity.symbol': `Mật khẩu phải chứa ít nhất một ký tự đặc biệt`,
-            }),
-            // phone:phoneValid.string().phoneNumber().messages({
-            //     'phoneNumber.invalid': `Vui lòng nhập số điện thoại`,               
-            // }),
-            phone: Joi.number().integer().min(10**9).max(10**10 - 1).required().messages({
-                   'number.base': `Chưa đúng định dạng số điện thoại`,
-                   'number.min': `Số điện thoại chưa đủ`,
-                   'number.max': `Số điện thoại vượt qua 12 ký tự`,
-                   'number.unsafe': `Số điện thoại vượt quá số ký tự an toàn`,
-            }),
-            // phone: Joi.string().required().messages({
-            //     'string.empty': `Số điện thoại không được bỏ trống`,
 
-            // }),
         });
         const { error } = checkUser.validate(req.body, { abortEarly: false });
         if (error) {

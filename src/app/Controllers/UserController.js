@@ -29,20 +29,20 @@ let listRoleUser = async (req, res) => {
         getData = await User.aggregate([
             {
                 $lookup: {
-                    from: "roles", 
+                    from: "roles",
                     localField: "user_code",
                     foreignField: "role_id",
                     as: "roles",
                 },
             },
             { $match: { 'user_code': '1' } },
-        ]);    
+        ]);
         if (getData) {
             res.json({
                 status: 200,
                 getData,
                 message: 'Đã lấy dữ liệu thành công!!!',
-    
+
             });
         }
     }
@@ -55,9 +55,9 @@ let listRoleUser = async (req, res) => {
 //Thêm mới user
 let register = async (req, res) => {
     try {
-       // console.log(req.body);
-        checkId = await User.find({user_code:req.body.user_code}).count();      
-        if (checkId>0) {
+        console.log(req.body);
+        checkId = await User.find({ user_code: req.body.user_code }).count();
+        if (checkId > 0) {
             return res.status(200).json({
                 success: true, message: 'This User ID exits!!',
             });
@@ -67,11 +67,11 @@ let register = async (req, res) => {
             user_code: req.body.user_code,
             fullname: req.body.fullname,
             username: req.body.username,
-            role_id:req.body.role_id,
-            email:req.body.email,
-            sex:req.body.sex,
-            address:req.body.address,
-            phone:req.body.phone,
+            role_id: req.body.role_id,
+            email: req.body.email,
+            sex: req.body.sex,
+            address: req.body.address,
+            phone: req.body.phone,
             password: getPw,
         });
         // console.log(getUser); 
@@ -93,35 +93,49 @@ let register = async (req, res) => {
     }
 
 }
-let checkLogin = async (req, res) => {
+let checkLogin = async (req, res) => {    
     let user = req.body.username;
-    let pws = req.body.password;  
+    let pws = req.body.password;
     let checkUser = await User.findOne({ username: user });
-    if(!checkUser)
-    {
+    if (!checkUser) {
         res.json({ status: 500, message: 'Tài khoản hoặc mật khẩu đúng!!!' });
         return;
     }
-    console.log('thông tin user',checkUser);
+    console.log('thông tin user', checkUser);
     let checkPw = await bcrypt.compare(pws, checkUser.password);
     let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
         process.env.JWT_SECRET,
-        { expiresIn: "2h" } 
+        { expiresIn: "1h" }
     );
+
     res.cookie("jwt", AccessToken, {
         httpOnly: true,
-        maxAge: 60*60*1000, // 2hrs in ms
+        maxAge: 60 * 60 * 1000, // 2hrs in ms
     });
-    getCookie=req.cookies.jwt;   
-    checkUser && checkPw ? res.json({ status: 200, message: 'Đăng nhập thành công!!!', AccessToken }) : res.json({ status: 500, message: 'Đăng nhập thất bại!!!' })
-
+    getCookie = req.cookies.jwt;
+    checkUser && checkPw ? res.json({ status: 200, message: 'Đăng nhập thành công!!!', AccessToken }) : res.json({ status: 500, message: 'Tài khoản hoặc mật khẩu đúng!!!' })
 }
 
 let checkLogout = async (req, res) => {
-    res.clearCookie("jwt", { maxAge: 1 })
-    // res.redirect("/")  
-   // getCookie=req.cookies;   
-    res.json('Bạn đã đăng xuất!!!');
+
+    //const token = req.cookies.jwt;
+    const token = req.headers.token;
+    console.log('giá trị token để xóa',token);
+    jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
+        if (user) {
+            res.clearCookie("jwt", { maxAge: 1 })
+            // *********sử dụng cho set Cookie*****************
+            //   let NewToken=  await jwt.sign({ user_code: user.user_code, user: user.user },
+            //         process.env.JWT_SECRET,
+            //         { expiresIn: "10s" } 
+            //    );              
+            return res.json('Bạn đã đăng xuất!!!');
+        }
+        if (err) {
+            return res.json('Error!!!');
+        }
+    })
+
 }
 let hashpw = async (pw) => {
     const salt = await bcrypt.genSalt(10);
@@ -133,7 +147,7 @@ let hashpw = async (pw) => {
 module.exports =
 {
     listUser: listUser,
-    listRoleUser:listRoleUser,
+    listRoleUser: listRoleUser,
     register: register,
     checkLogin: checkLogin,
     checkLogout: checkLogout,
