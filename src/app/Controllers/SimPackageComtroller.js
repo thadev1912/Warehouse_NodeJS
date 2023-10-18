@@ -6,7 +6,7 @@ let index = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Lấy dữ liệu thành công!!!',
+                message: 'Get Data Completed!!',
                 data: getData,
             });
         }
@@ -22,8 +22,7 @@ let index = async (req, res) => {
 }
 //Thêm mới khu vực
 let create = async (req, res) => {
-    try {
-
+    try {       
         const getSimPackage = new SimPackage(req.body);      
         checkId = await SimPackage.find({ sim_package_expiration:req.body.sim_package_expiration}).count();      
         if (checkId>0) {
@@ -35,7 +34,7 @@ let create = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Đã thêm mới dữ liệu!!!',
+                messege: 'Add new field comleted!!!',
                 data: getData,
             });
         }
@@ -56,7 +55,7 @@ let edit = async (req, res) => {
         getId = await SimPackage.findOne({ _id: id });
         if (getId) {
             return res.status(200).json({
-                success: true, message: 'Thông tin cần chỉnh sửa!!', data: getId,
+                success: true, message: 'Infomation Field need to edit!!', data: getId,
             });
         }
         else {
@@ -77,7 +76,7 @@ let update = async (req, res) => {
         if (getData) {           
             getNewData = await SimPackage.findOne({ _id: id });
             return res.status(200).json({
-                success: true, data: getNewData, message: 'Cập nhật dữ liệu thành công!!!'
+                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
             });
         }
         else {
@@ -96,7 +95,7 @@ let destroy = async (req, res) => {
         if (getId) {
 
             return res.status(200).json({
-                success: true, message: 'Xóa dữ liệu thành công!!!',
+                success: true, message: 'This field has been removed!!!',
             });
         }
         else {

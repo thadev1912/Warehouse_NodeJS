@@ -15,21 +15,21 @@ const middlewarePermision = {
                     //console.log(getRole[0].roles[0].role_name);
                     let _isRole = getRole[0].roles[0].role_name;
                     if ((_isRole !== 'admin') && (_isRole !== 'user')) {
-                        res.status(401).json("Bạn chưa có quyền truy cập chức năng này.....");
+                        res.status(401).json("You haven't permision for this page.....");
                         return;
                     }
 
                     next();
                 }
                 else {
-                    return res.status(401).json("Vui lòng đăng nhập tài khoản hệ thống.....");
+                    return res.status(401).json("Please login acccount system.....");
                 }
 
             });
 
         }
         else {
-            res.status(401).json("Vui lòng đăng nhập tài khoản hệ thống.....");
+            res.status(401).json("Please login acccount system.....");
         }
     },
     getRoles: async (data) => {

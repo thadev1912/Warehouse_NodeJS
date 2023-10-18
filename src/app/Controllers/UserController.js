@@ -79,7 +79,7 @@ let register = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Đã thêm mới dữ liệu!!!',
+                message: 'Get Data Completed!!',
                 data: getData,
             });
         }
@@ -98,7 +98,7 @@ let checkLogin = async (req, res) => {
     let pws = req.body.password;
     let checkUser = await User.findOne({ username: user });
     if (!checkUser) {
-        res.json({ status: 500, message: 'Tài khoản hoặc mật khẩu đúng!!!' });
+        res.json({ status: 500, message: 'Username or passsword incorect!!!' });
         return;
     }
     console.log('thông tin user', checkUser);
@@ -113,14 +113,13 @@ let checkLogin = async (req, res) => {
         maxAge: 60 * 60 * 1000, // 2hrs in ms
     });
     getCookie = req.cookies.jwt;
-    checkUser && checkPw ? res.json({ status: 200, message: 'Đăng nhập thành công!!!', AccessToken }) : res.json({ status: 500, message: 'Tài khoản hoặc mật khẩu đúng!!!' })
+    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
 }
 
 let checkLogout = async (req, res) => {
 
     //const token = req.cookies.jwt;
     const token = req.headers.token;
-    console.log('giá trị token để xóa',token);
     jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
         if (user) {
             res.clearCookie("jwt", { maxAge: 1 })
@@ -129,7 +128,7 @@ let checkLogout = async (req, res) => {
             //         process.env.JWT_SECRET,
             //         { expiresIn: "10s" } 
             //    );              
-            return res.json('Bạn đã đăng xuất!!!');
+            return res.json('You has been sign out!!!');
         }
         if (err) {
             return res.json('Error!!!');

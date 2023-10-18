@@ -1,13 +1,15 @@
 const CategoriesSim = require('../models/categories_sim');
+const SimPackage = require('../models/sim_packages');
 //Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {
+        getSimPackage=await SimPackage.find({});        
         let getData = await CategoriesSim.find({});
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Lấy dữ liệu thành công!!!',
-                data: getData,
+                message: 'Get Data Completed!!',
+                data: getData,getSimPackage                ,
             });
         }
         else {
@@ -22,8 +24,7 @@ let index = async (req, res) => {
 }
 //Thêm mới khu vực
 let create = async (req, res) => {
-    try {
-
+    try {      
         const getCategoriesSim = new CategoriesSim(req.body);      
         checkId = await CategoriesSim.find({ serial_sim:req.body.serial_sim}).count();      
         if (checkId>0) {
@@ -35,7 +36,7 @@ let create = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Đã thêm mới dữ liệu!!!',
+                messege: 'Add new field comleted!!!',
                 data: getData,
             });
         }
@@ -56,7 +57,7 @@ let edit = async (req, res) => {
         getId = await CategoriesSim.findOne({ _id: id });
         if (getId) {
             return res.status(200).json({
-                success: true, message: 'Thông tin cần chỉnh sửa!!', data: getId,
+                success: true, message: 'Infomation Field need to edit!!', data: getId,
             });
         }
         else {
@@ -77,7 +78,7 @@ let update = async (req, res) => {
         if (getData) {           
             getNewData = await CategoriesSim.findOne({ _id: id });
             return res.status(200).json({
-                success: true, data: getNewData, message: 'Cập nhật dữ liệu thành công!!!'
+                success: true, data: getNewData, message: 'Infomation field has been updated !!'
             });
         }
         else {
@@ -96,7 +97,7 @@ let destroy = async (req, res) => {
         if (getId) {
 
             return res.status(200).json({
-                success: true, message: 'Xóa dữ liệu thành công!!!',
+                success: true, message: 'This field has been removed!!!',
             });
         }
         else {

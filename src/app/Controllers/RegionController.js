@@ -8,7 +8,7 @@ let index = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Lấy dữ liệu thành công!!!',
+                message: 'Get Data Completed!!',
                 data:getData,
             });
         }
@@ -36,7 +36,7 @@ let create = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Đã thêm mới dữ liệu!!!',
+                messege: 'Add new field comleted!!!',
                 data: getData,
             });
         }
@@ -59,7 +59,7 @@ let edit = async (req, res) => {
         getId = await Region.find({ _id:id });       
         if (getId) {
             return res.status(200).json({
-                success: true, message: 'Thông tin cần chỉnh sửa!!', data: getId,
+                success: true, message: 'Infomation Field need to edit!!', data: getId,
             });
         }
         else {
@@ -80,7 +80,7 @@ let update = async (req, res) => {
         if (getData) {
             getNewData = await Region.findOne({ _id: id });
             return res.status(200).json({
-                success: true, data: getNewData, message: 'Cập nhật dữ liệu thành công!!!'
+                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
             });
         }
         else {
@@ -98,7 +98,7 @@ let destroy = async (req, res) => {
         getId = await Region.findByIdAndRemove({ _id: id });
         if (getId) {
             return res.status(200).json({
-                success: true, message: 'Xóa dữ liệu thành công!!!',
+                success: true, message: 'This field has been removed!!!',
             });
         }
         else {

@@ -8,7 +8,7 @@ let listRole = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Lấy dữ liệu thành công!!!',
+                messege: 'Get Data Completed!!',
                 data: getData,
             });
         }
@@ -41,7 +41,7 @@ let create = async (req, res) => {
             if (getData) {
                 res.json({
                     status: 200,
-                    messege: 'Đã thêm mới dữ liệu!!!',
+                    messege: 'Add new role comleted!!!',
                     data: getData,
                 });
             }
