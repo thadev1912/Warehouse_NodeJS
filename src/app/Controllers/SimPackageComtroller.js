@@ -2,6 +2,7 @@ const SimPackage = require('../models/sim_packages');
 //Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {
+        
         let getData = await SimPackage.find({});
         if (getData) {
             res.json({

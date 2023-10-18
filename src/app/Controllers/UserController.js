@@ -141,7 +141,9 @@ let hashpw = async (pw) => {
     return await bcrypt.hash(pw, salt);
 
 }
-
+let uploadImage=async (req, res) => {
+    console.log('insert image');
+}
 
 module.exports =
 {
@@ -151,4 +153,5 @@ module.exports =
     checkLogin: checkLogin,
     checkLogout: checkLogout,
     hashpw: hashpw,
+    uploadImage:uploadImage,
 }

@@ -10,7 +10,7 @@ const middlewareValidate = {
       product_type_name: Joi.string().required().messages({
         'string.empty': `Tên loại sản xuất không được bỏ trống`,
       }),
-      product_type_note: Joi.string().allow(null).allow('').max(100).required().messages({     
+      product_type_note: Joi.string().allow(null).allow('').max(100).messages({     
         'string.max': `Nội dung ghi chú không được vượt quá 100 ký tự`,
       }),
     });

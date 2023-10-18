@@ -7,4 +7,5 @@ router.get('/listRoleUser',user.listRoleUser);
 router.post('/register',validate.checkValidate,user.register);
 router.post('/login',user.checkLogin);
 router.get('/logout',user.checkLogout);
+router.get('/import',user.uploadImage);
 module.exports = router;

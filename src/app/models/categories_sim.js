@@ -1,7 +1,8 @@
 //  src/models/PostModels.js
 const mongoose = require('mongoose')
+
 const Schema = mongoose.Schema
-const CategoriesSimSchema = new Schema({
+const CategoriesSimSchema = new Schema({    
     serial_sim: {type: String},
     board_lot_number: {type: String}, 
     board_name: {type: String}, 
@@ -17,4 +18,5 @@ const CategoriesSimSchema = new Schema({
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now}
 });
+
 module.exports = mongoose.model('categories_sims', CategoriesSimSchema)

@@ -1,13 +1,36 @@
 const SemiProduct = require('../models/semi_product');
+const SimPackage = require('../models/sim_packages');
+const CategoriesSim = require('../models/categories_sim');
 //Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {
-        let getData = await SemiProduct.find({});
+        let getSimPackage=await SimPackage.find({});
+        let getCategoriesSim=await CategoriesSim.find({});
+        // let getData = await SemiProduct.find({});
+         let getData = await SemiProduct.aggregate([
+            {
+                $addFields: {
+                  categories_sim_id: {
+                    $toObjectId: "$categories_sim_id"
+                  }
+                }
+              },
+              {
+                $lookup: {
+                  from: "categories_sims",
+                  localField: "categories_sim_id",
+                  foreignField: "_id",
+                  as: "category"
+                }
+              }
+                        
+        ]);
+        
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: getData,
+                data: getData,getSimPackage,getCategoriesSim
             });
         }
         else {
@@ -24,13 +47,13 @@ let index = async (req, res) => {
 let create = async (req, res) => {
     try {
      console.log(req.body);
-        const getSemiProduct = new SemiProduct(req.body);      
-        checkId = await SemiProduct.find({ semi_product_code:req.body.semi_product_code}).count();      
-        if (checkId>0) {
-            return res.status(200).json({
-                success: true, message: 'This ID exits!!',
-            });
-        }
+             const getSemiProduct = new SemiProduct(req.body);      
+        // checkId = await SemiProduct.find({ semi_product_code:req.body.semi_product_code}).count();      
+        // if (checkId>0) {
+        //     return res.status(200).json({
+        //         success: true, message: 'This ID exits!!',
+        //     });
+        // }
         let getData = await getSemiProduct.save();       
         if (getData) {
             res.json({

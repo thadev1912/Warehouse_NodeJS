@@ -14,6 +14,7 @@ const SemiProductSchema = new Schema({
     semi_product_result: {type: String}, 
     semi_product_note: {type: String}, 
     jobsheet_code:{type:Number},
+    categories_sim_id:{type:String},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now}
 });

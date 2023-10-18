@@ -37,6 +37,9 @@ const middlewareValidate = {
       jobsheet_code: Joi.string().required().messages({     
         'string.empty': `Mã jobsheet không được bỏ trống!!!`,
       }),
+      categories_sim_id: Joi.string().required().messages({     
+        'string.empty': `Mã danh mục không được bỏ trống!!!`,
+      }),
     });
     const { error } = checkSemiProduct.validate(req.body, { abortEarly: false });
     if (error) {

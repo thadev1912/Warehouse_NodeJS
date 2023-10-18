@@ -5,8 +5,9 @@ const middlewarePermision = {
         //   req.headers.token = req.cookies.jwt;
         const token = req.headers.token;
         //console.log('giá trị token nhận được là là', token);
-        const AccessToken = token.split(" ")[1];
+       
         if (token != null) {
+            const AccessToken = token.split(" ")[1];
             jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, user) => {
                 if (user) {
                     getInfoUser = user;//thông tin user                  

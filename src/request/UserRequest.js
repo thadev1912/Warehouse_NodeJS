@@ -1,5 +1,9 @@
 //Region validate:
-const Joi = require("joi");
+
+const joiBase = require('@hapi/joi')
+const joiDate = require('@hapi/joi-date');
+//const joi = joiBase.extend(joiDate);
+const Joi = joiBase.extend(joiDate);
 const passwordComplexity = require("joi-password-complexity");
 const complexityOptions = {
     min: 10,
@@ -25,7 +29,7 @@ const middlewareValidate = {
                     'string.min': `Thông tin họ tên quá ngắn`,
                 }),
 
-            sex: Joi.string()
+            gender: Joi.string()
                 .required().messages({
                     'string.empty': `Giới tính không được bỏ trống`,
 
@@ -44,11 +48,14 @@ const middlewareValidate = {
                 'number.unsafe': `Số điện thoại vượt quá số ký tự an toàn`,
                 'number.empty': `Số điện thoại không được bỏ trống`,
             }),
-            sex: Joi.boolean()
+            gender: Joi.boolean()
                 .required().messages({
                     'boolean.base': `Giới tính phải là kiểu true/false`,
 
                 }),
+            birthdate:Joi.string().allow(null).allow('').messages({
+               
+            }),
             address: Joi.string()
                 .required().
                 messages({
@@ -63,8 +70,6 @@ const middlewareValidate = {
             repeat_password: Joi.string().valid(Joi.ref('password')).required().messages({
                 'any.only': `Password chưa trùng khớp`,
             }),
-
-
             email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required().messages({
                 'string.empty': `Email không được bỏ trống`,
                 'string.email': `Email chưa đúng định dạng`,
@@ -73,6 +78,18 @@ const middlewareValidate = {
                 'string.empty': `Mã Role không được bỏ trống`,
             }),
 
+            position_id: Joi.string().required().messages({
+                'string.empty': `Mã Chức Vụ không được bỏ trống`,
+            }),
+            region_id: Joi.string().required().messages({
+                'string.empty': `Mã Khu Vực không được bỏ trống`,
+            }),
+            department_id: Joi.string().required().messages({
+                'string.empty': `Mã Phòng Ban không được bỏ trống`,
+            }),
+            avatar: Joi.string().allow(null).allow('').messages({
+              //
+            }),
         });
         const { error } = checkUser.validate(req.body, { abortEarly: false });
         if (error) {
