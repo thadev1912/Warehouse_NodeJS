@@ -292,22 +292,21 @@ let destroyUser = async (req, res) => {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });
     }
-
 }
 let updateUser=async(req,res)=>{
     try {
-        let id = req.params.id;
+        let id = req.query.id;
         console.log(id);
-        // getData = await User.findByIdAndUpdate(id, { $set: req.body })
-        // if (getData) {           
-        //     getNewData = await User.findOne({ _id: id });
-        //     return res.status(200).json({
-        //         success: true, data: getNewData, message: 'Infomation field has been updated !!!'
-        //     });
-        // }
-        // else {
-        //     throw new Error('Error connecting Database on Server');
-        // }
+        getData = await User.findByIdAndUpdate(id, { $set: req.body })
+        if (getData) {           
+            getNewData = await User.findOne({ _id: id });
+            return res.status(200).json({
+                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+            });
+        }
+        else {
+            throw new Error('Error connecting Database on Server');
+        }
     }
     catch (err) {
         console.log(err);
