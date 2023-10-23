@@ -19,14 +19,16 @@ const middlewareValidate = {
       }), 
       deadline_warning: Joi.string().allow(null).allow('').messages({       
       }),
-      emanage_sim_note: Joi.string().allow(null).allow('').messages({       
+      manage_sim_note: Joi.string().allow(null).allow('').messages({       
       }), 
       sim_package_id: Joi.string().allow(null).allow('').messages({        
       }), 
       semi_product_id: Joi.string().allow(null).allow('').messages({       
       }), 
-      sim_type: Joi.string().required().messages({
+      sim_type: Joi.string().allow(null).allow('').messages({
         'string.empty': ` Loại Sim không được bỏ trống`,
+      }), 
+      use_sim: Joi.string().allow(null).allow('').messages({        
       }), 
     });
     const { error } = checkCategoriesSim.validate(req.body, { abortEarly: false });

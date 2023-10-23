@@ -6,7 +6,7 @@ require('dotenv').config()
 const route = require('./src/routes/index');
 const path = require('path');
 const connectDB = require('./config');
-const helper = require('./src/helper');
+// const helper = require('./src/helper');
 const session = require('express-session')
 const flash = require('connect-flash');
 const cookieParser = require('cookie-parser')
@@ -62,12 +62,16 @@ socketIo.on("connection", (socket) => {
   });
 });
 //Test máy chủ chat SocetIO
-app.get("/", (req, res) => {
-  res.status(200).send({
-    success: true,
-    message: "Wellcome Chat System ",
-  });
+app.get("/",async (req, res) => {
+  await res.render('index');
+  // res.status(200).send({
+  //   success: true,
+  //   message: "Wellcome Chat System ",
+  // });
 });
+//Sử dụng cho 
+app.use(express.static('public'));
+app.set('view engine', 'ejs');
 //middleware cho trường hợp sai đường dẫn 
 app.all('*', (req, res) => {
   res.status(404);

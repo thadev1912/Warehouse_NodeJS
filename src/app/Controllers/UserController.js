@@ -1,11 +1,60 @@
 
 const User = require('../models/user');
+const Position = require('../models/position');
+const Region = require('../models/region');
+const Department = require('../models/department');
+const Role=require('../models/role');
 var bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
-        let getData = await User.find({});
+        // let getPosition = await Position.find({});
+        // let getRegion = await Region.find({});
+        // let getDepartment = await Department.find({});
+        //let getData = await User.find({});
+        let getData = await User.aggregate([
+            {
+                $addFields: {
+                    region_id: {
+                        $toObjectId: "$region_id"
+                    },
+                     position_id: {
+                        $toObjectId: "$position_id"
+                    },
+                      department_id: {
+                        $toObjectId: "$department_id"
+                    },
+                }
+            },
+            {
+                $lookup: {
+                    from: "regions",
+                    localField: "region_id",
+                    foreignField: "_id",
+                    as: "getRegion"
+                }
+            },
+             {
+                $lookup: {
+                    from: "positions",
+                    localField: "position_id",
+                    foreignField: "_id",
+                    as: "getPostion"
+                }
+            },
+              {
+                $lookup: {
+                    from: "departments",
+                    localField: "department_id",
+                    foreignField: "_id",
+                    as: "getDepartment"
+                }
+            },
+            
+            
+            
+        ]);
         if (getData) {
             res.json({
                 status: 200,
@@ -23,6 +72,70 @@ let listUser = async (req, res) => {
     }
 
 }
+let Infomation = async (req, res) => {
+     let dataPosition = await Position.find({});
+     let dataRegion = await Region.find({});
+     let dataDepartment = await Department.find({});
+     let dataRole = await Role.find({});
+    // let getData = await User.find({}, { password: 0, repeat_password: 0, username: 0, });
+    getData=await User.aggregate([
+        {           
+            $project: {
+              _id: 1,
+              password: 0,
+              username:0,
+            
+          }
+              },
+        {
+            $addFields: {
+                region_id: {
+                    $toObjectId: "$region_id"
+                },
+                 position_id: {
+                    $toObjectId: "$position_id"
+                },
+                  department_id: {
+                    $toObjectId: "$department_id"
+                },
+            }
+        },
+        {
+            $lookup: {
+                from: "regions",
+                localField: "region_id",
+                foreignField: "_id",
+                as: "getRegion"
+            }
+        },
+         {
+            $lookup: {
+                from: "positions",
+                localField: "position_id",
+                foreignField: "_id",
+                as: "getPostion"
+            }
+        },
+          {
+            $lookup: {
+                from: "departments",
+                localField: "department_id",
+                foreignField: "_id",
+                as: "getDepartment"
+            }
+        },
+        
+        
+            ])
+    if (getData) {
+        res.json({
+            status: 200,
+            message: 'Lấy dữ liệu thành công!!!',
+            data: getData,dataPosition,dataRegion,dataDepartment,dataRole
+        });
+    }
+}
+
 //Lấy danh sách user
 let listRoleUser = async (req, res) => {
     try {
@@ -56,23 +169,29 @@ let listRoleUser = async (req, res) => {
 let register = async (req, res) => {
     try {
         console.log(req.body);
-        checkId = await User.find({ user_code: req.body.user_code }).count();
-        if (checkId > 0) {
-            return res.status(200).json({
-                success: true, message: 'This User ID exits!!',
-            });
-        }
+        //     checkId = await User.find({ user_code: req.body.user_code }).count();
+        //     if (checkId > 0) {
+        //         return res.status(200).json({
+        //             success: true, message: 'This User ID exits!!',
+        //         });
+        //    }
         getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
         const getUser = new User({
             user_code: req.body.user_code,
             fullname: req.body.fullname,
             username: req.body.username,
             role_id: req.body.role_id,
-            email: req.body.email,
-            sex: req.body.sex,
+            email: req.body.email,           
             address: req.body.address,
             phone: req.body.phone,
             password: getPw,
+            position_id: req.body.position_id,
+            region_id: req.body.region_id,
+            department_id: req.body.department_id,
+            gender:req.body.gender,
+            birthday:req.body.birthday,
+            // avatar: req.file.originalname,
+            avatar: 'uploads/avatar.png',
         });
         // console.log(getUser); 
         let getData = await getUser.save();
@@ -93,7 +212,7 @@ let register = async (req, res) => {
     }
 
 }
-let checkLogin = async (req, res) => {    
+let checkLogin = async (req, res) => {
     let user = req.body.username;
     let pws = req.body.password;
     let checkUser = await User.findOne({ username: user });
@@ -104,6 +223,7 @@ let checkLogin = async (req, res) => {
     console.log('thông tin user', checkUser);
     let checkPw = await bcrypt.compare(pws, checkUser.password);
     let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
+        // let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
     );
@@ -141,10 +261,59 @@ let hashpw = async (pw) => {
     return await bcrypt.hash(pw, salt);
 
 }
-let uploadImage=async (req, res) => {
-    console.log('insert image');
-}
+let uploadImage = async (req, res) => {
+    console.log(req.file.originalname);
+    //console.log('insert image');
+    // console.log(req.body.image)
+    // var img = fs.readFileSync(req.file.path);
+    // var encode_image = img.toString('base64');
+    // Define a JSONobject for the image attributes for saving to database
 
+    // var finalImg = {
+    //   contentType: req.file.mimetype,
+    //   image:  new Buffer(encode_image, 'base64')
+    // };
+}
+let destroyUser = async (req, res) => {
+    try {
+        let id = req.query.id;
+        getId = await User.findByIdAndRemove({ _id: id });
+        if (getId) {
+
+            return res.status(200).json({
+                success: true, message: 'This field has been removed!!!',
+            });
+        }
+        else {
+            throw new Error('Error connecting Database on Server');
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+
+}
+let updateUser=async(req,res)=>{
+    try {
+        let id = req.params.id;
+        console.log(id);
+        // getData = await User.findByIdAndUpdate(id, { $set: req.body })
+        // if (getData) {           
+        //     getNewData = await User.findOne({ _id: id });
+        //     return res.status(200).json({
+        //         success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+        //     });
+        // }
+        // else {
+        //     throw new Error('Error connecting Database on Server');
+        // }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
 module.exports =
 {
     listUser: listUser,
@@ -153,5 +322,8 @@ module.exports =
     checkLogin: checkLogin,
     checkLogout: checkLogout,
     hashpw: hashpw,
-    uploadImage:uploadImage,
+    uploadImage: uploadImage,
+    Infomation: Infomation,
+    destroyUser:destroyUser,
+    updateUser:updateUser,
 }

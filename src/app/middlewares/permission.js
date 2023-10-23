@@ -11,7 +11,7 @@ const middlewarePermision = {
             jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, user) => {
                 if (user) {
                     getInfoUser = user;//thông tin user                  
-                    //console.log('gia tri id', getInfoUser);
+                    console.log('gia tri id', getInfoUser._id);
                     getRole = await middlewarePermision.getRoles(getInfoUser.user_code);
                     //console.log(getRole[0].roles[0].role_name);
                     let _isRole = getRole[0].roles[0].role_name;
@@ -37,6 +37,8 @@ const middlewarePermision = {
 
         getData = await User.aggregate([
             {
+               
+              
                 $lookup: {
                     from: "roles",
                     localField: "role_id",

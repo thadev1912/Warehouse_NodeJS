@@ -16,8 +16,8 @@ const complexityOptions = {
 const middlewareValidate = {
     checkValidate: (req, res, next) => {
         const checkUser = Joi.object({
-            user_code: Joi.string().required().messages({
-                'string.empty': `Id User không được bỏ trống`,
+            user_code: Joi.string().messages({
+               
             }),
             username: Joi.string().min(6).required().messages({
                 'string.empty': `Username không được bỏ trống`,
@@ -53,7 +53,7 @@ const middlewareValidate = {
                     'boolean.base': `Giới tính phải là kiểu true/false`,
 
                 }),
-            birthdate:Joi.string().allow(null).allow('').messages({
+            birthday:Joi.string().allow(null).allow('').messages({
                
             }),
             address: Joi.string()

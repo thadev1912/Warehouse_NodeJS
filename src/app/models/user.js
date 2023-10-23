@@ -1,12 +1,13 @@
 //  src/models/PostModels.js
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-const UserSchema = new Schema({
-    user_code: {type: String},
+const UserSchema = new Schema({  
+
+    user_code: {type: String}, 
     username: {type: String},  
     fullname: {type: String},  
     gender:{type: Boolean},
-    birthdate:{type: Date},    //new
+    birthday:{type: Date},    //new
     address:{type: String},
     phone:{type: Number},
     password: {type: String},
