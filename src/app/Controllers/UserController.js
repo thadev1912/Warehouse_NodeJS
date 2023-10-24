@@ -6,6 +6,7 @@ const Department = require('../models/department');
 const Role=require('../models/role');
 var bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
+const { ObjectId } = require('mongodb');
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
@@ -14,19 +15,19 @@ let listUser = async (req, res) => {
         // let getDepartment = await Department.find({});
         //let getData = await User.find({});
         let getData = await User.aggregate([
-            {
-                $addFields: {
-                    region_id: {
-                        $toObjectId: "$region_id"
-                    },
-                     position_id: {
-                        $toObjectId: "$position_id"
-                    },
-                      department_id: {
-                        $toObjectId: "$department_id"
-                    },
-                }
-            },
+            // {
+            //     $addFields: {
+            //         region_id: {
+            //             $toObjectId: "$region_id"
+            //         },
+            //          position_id: {
+            //             $toObjectId: "$position_id"
+            //         },
+            //           department_id: {
+            //             $toObjectId: "$department_id"
+            //         },
+            //     }
+            // },
             {
                 $lookup: {
                     from: "regions",
@@ -167,8 +168,7 @@ let listRoleUser = async (req, res) => {
 }
 //Thêm mới user
 let register = async (req, res) => {
-    try {
-        console.log(req.body);
+    try {      
         //     checkId = await User.find({ user_code: req.body.user_code }).count();
         //     if (checkId > 0) {
         //         return res.status(200).json({
@@ -176,8 +176,7 @@ let register = async (req, res) => {
         //         });
         //    }
         getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
-        const getUser = new User({
-            user_code: req.body.user_code,
+        const getUser = new User({           
             fullname: req.body.fullname,
             username: req.body.username,
             role_id: req.body.role_id,
@@ -214,16 +213,18 @@ let register = async (req, res) => {
 }
 let checkLogin = async (req, res) => {
     let user = req.body.username;
-    let pws = req.body.password;
-    let checkUser = await User.findOne({ username: user });
+    let pws = req.body.password;   
+    let checkUser = await User.findOne({ username: user });   
+    let idUser=checkUser._id;
+    console.log('giá trị user nhận được là',checkUser._id);  
     if (!checkUser) {
         res.json({ status: 500, message: 'Username or passsword incorect!!!' });
         return;
     }
     console.log('thông tin user', checkUser);
     let checkPw = await bcrypt.compare(pws, checkUser.password);
-    let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
-        // let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username },
+   // let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
+     let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
     );
@@ -233,7 +234,7 @@ let checkLogin = async (req, res) => {
         maxAge: 60 * 60 * 1000, // 2hrs in ms
     });
     getCookie = req.cookies.jwt;
-    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
+    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken,idUser }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
 }
 
 let checkLogout = async (req, res) => {
@@ -297,7 +298,8 @@ let updateUser=async(req,res)=>{
     try {
         let id = req.query.id;
         console.log(id);
-        getData = await User.findByIdAndUpdate(id, { $set: req.body })
+        console.log(req.body);      
+        getData = await User.findByIdAndUpdate(id, { $set: req.body });       
         if (getData) {           
             getNewData = await User.findOne({ _id: id });
             return res.status(200).json({

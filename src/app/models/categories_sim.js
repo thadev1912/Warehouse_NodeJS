@@ -3,9 +3,7 @@ const mongoose = require('mongoose')
 
 const Schema = mongoose.Schema
 const CategoriesSimSchema = new Schema({    
-    serial_sim: {type: String},
-    // board_lot_number: {type: String}, 
-    // board_name: {type: String}, 
+    serial_sim: {type: String},  
     sim_status: {type: String},
     activation_date: {type: String}, 
     expiration_date: {type: String},   
