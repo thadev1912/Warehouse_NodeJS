@@ -10,6 +10,7 @@ const semi_product=require('./semi_product');
 const sim_package=require('./sim_package');
 const categories_sim=require('./categories_sim');
 const product_order=require('./product_order');
+const import_excel=require('./importExcels');
 const detail_product_order=require('./detail_product_order');
 const Auth =require('../app/middlewares/auth')
 const Permision =require('../app/middlewares/permission')
@@ -28,5 +29,6 @@ app.use('/sim-package',sim_package);
 app.use('/categories-sim',categories_sim);
 app.use('/product-order',product_order);
 app.use('/detail-product-order',detail_product_order);
+app.use('/import-excel',import_excel);
 }
 module.exports = route;
