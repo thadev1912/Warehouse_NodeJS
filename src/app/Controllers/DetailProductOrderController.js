@@ -5,7 +5,17 @@ const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {
        
-        let getData = await DetailProductOrder.find({});       ;
+      //  let getData = await DetailProductOrder.find({});
+        let getData=await DetailProductOrder.aggregate([
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "production_order_receiver",
+                    foreignField: "_id",
+                    as: "infoUser"
+                }
+            },
+        ])
         if (getData) {
             res.json({
                 status: 200,
@@ -68,7 +78,9 @@ let update = async (req, res) => {
 }
 let destroy = async (req, res) => {
     try {
+        
         let id = req.query.id;
+        console.log(id);
         getId = await DetailProductOrder.findByIdAndRemove({ _id: id });        
         if (getId) {
 

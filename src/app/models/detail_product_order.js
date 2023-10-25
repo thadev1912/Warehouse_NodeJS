@@ -1,7 +1,8 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const DetailProductOrderSchema = new Schema({   
-    product_order_code:{type: Schema.Types.ObjectId},
+   // product_order_code:{type: Schema.Types.ObjectId},
+    product_order_code:{type:String},
     detail_product_order_name:{type:String},
     detail_product_order_quantity:{type:String},
     detail_product_order_unit:{type:String},

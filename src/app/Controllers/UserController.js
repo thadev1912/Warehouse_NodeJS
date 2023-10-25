@@ -214,9 +214,67 @@ let register = async (req, res) => {
 let checkLogin = async (req, res) => {
     let user = req.body.username;
     let pws = req.body.password;   
-    let checkUser = await User.findOne({ username: user });   
-    let idUser=checkUser._id;
-    console.log('giá trị user nhận được là',checkUser._id);  
+    let checkUser = await User.findOne({ username: user }); 
+   // let getInfo = await User.findOne({ username: user });    
+    getInfo=await User.aggregate([
+        {           
+            $project: {
+              _id: 1,             
+              username:1,
+              fullname:1,
+              region_id:1,
+              department_id:1,
+              position_id:1            
+          }
+              },
+        {
+            $addFields: {
+                region_id: {
+                    $toObjectId: "$region_id"
+                },
+                 position_id: {
+                    $toObjectId: "$position_id"
+                },
+                  department_id: {
+                    $toObjectId: "$department_id"
+                },
+            }
+        },
+        {
+            $lookup: {
+                from: "regions",
+                localField: "region_id",
+                foreignField: "_id",
+                as: "getRegion"
+            }
+        },
+         {
+            $lookup: {
+                from: "positions",
+                localField: "position_id",
+                foreignField: "_id",
+                as: "getPostion"
+            }
+        },
+          {
+            $lookup: {
+                from: "departments",
+                localField: "department_id",
+                foreignField: "_id",
+                as: "getDepartment"
+            }
+        },
+         {
+        $match: {
+            username: checkUser.username,
+        }
+    }
+        
+        
+            ]);
+            console.log(checkUser.username);
+   // let idUser=checkUser._id;
+   // console.log('giá trị user nhận được là',getInfo);  
     if (!checkUser) {
         res.json({ status: 500, message: 'Username or passsword incorect!!!' });
         return;
@@ -234,7 +292,7 @@ let checkLogin = async (req, res) => {
         maxAge: 60 * 60 * 1000, // 2hrs in ms
     });
     getCookie = req.cookies.jwt;
-    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken,idUser }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
+    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken,getInfo }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
 }
 
 let checkLogout = async (req, res) => {
@@ -296,8 +354,7 @@ let destroyUser = async (req, res) => {
 }
 let updateUser=async(req,res)=>{
     try {
-        let id = req.query.id;
-        console.log(id);
+        let id = req.query.id;       
         console.log(req.body);      
         getData = await User.findByIdAndUpdate(id, { $set: req.body });       
         if (getData) {           
