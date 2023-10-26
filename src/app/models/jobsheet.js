@@ -12,11 +12,11 @@ const JobSheetSchema = new Schema({
     BOM_code:{type: String},
     product_unit:{type: String},
     product_quantity:{type:Number},
-    product_type_id:{type: Schema.Types.ObjectId}, 
+    product_type_code:{type:String}, //loại thành phẩm hoặc bán thành phẩm
     product_range_id:{type: String}, 
     specification:{type: String},  //quy cách
     jobsheet_note:{type: String}, 
-    production_type:{type: String}, //loại sản phẩm
+    production_style:{type: String}, //kiểu sản xuất New or Fix
     jobsheet_status:{type: String}, 
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},

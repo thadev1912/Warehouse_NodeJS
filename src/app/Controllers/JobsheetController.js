@@ -1,5 +1,6 @@
 const JobSheet = require('../models/jobsheet');
-
+const Product = require('../models/product');
+const SemiProduct = require('../models/semi_product');
 let index = async (req, res) => {
     try {
         let getData = await JobSheet.find({});       ;
@@ -28,19 +29,50 @@ let store = async (req, res) => {
       //  console.log(req.body); công thức: 21A02     N    1     R     N     010
        //------------------------------------------------------------------------
        createQuantity= String(req.body.product_quantity).padStart(3, '0');  //lấy số lượng
-       createProductionType=req.body.production_type; //lấy loại sản xuất
+       createProductionStyle=req.body.production_style; //lấy loại sản xuất (N or F)
        createProductionRange=req.body.product_range_id; //lấy dòng sản phẩm    
-       createProductionType2=req.body.production_type; //lấy loại  sản phẩm sản xuất 
+       createProductionType=req.body.product_type_code; //lấy loại  sản phẩm sản xuất ( thành phẩm hoặc bán thành phẩm)      ;
        createQuantityProductRange='1';  //số lượng dòng sản phẩm trong 1 ngày 
        createDay=getDateTime.getDate();
        createMonth=month[getDateTime.getMonth()];      
        createYear=getDateTime.getFullYear();createYear = createYear.toString().substr(-2);       
-       mergeCodeJobshhet= createYear+createMonth+createDay+createProductionType2+createQuantityProductRange+createProductionRange+createProductionType+createQuantity;
+       mergeCodeJobsheet= createYear+createMonth+createDay+createProductionType+createQuantityProductRange+createProductionRange+createProductionStyle+createQuantity;
       //--------------------------------------- ---------
+      //*****************RUN LOOP******************** */
       
+      for(let i=0;i<req.body.product_quantity;i++)
+          {
+            if((createProductionType=='P')||(createProductionType=='R'))
+            {
+                const getProduct = new Product({
+                    product_code:mergeCodeJobsheet,
+                    product_serial:i,
+    
+                });   
+                await getProduct.save();   
+            }
+            else
+            {
+                const getSemiProduct = new SemiProduct({
+                    jobsheet_code:mergeCodeJobsheet,
+                    product_serial:i,
+    
+                });   
+                await getSemiProduct.save();   
+            }
+           
+            
+          }
+       
+
+
+
+
+
+      //--------------------------------------- ---------
            
         const getJobSheet = new JobSheet(req.body); 
-        getJobSheet.jobsheet_code= mergeCodeJobshhet;   
+        getJobSheet.jobsheet_code= mergeCodeJobsheet;   
         let getData = await getJobSheet.save();       
         if (getData) {
             res.json({
