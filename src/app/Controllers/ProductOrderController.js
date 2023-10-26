@@ -2,22 +2,20 @@ const ProductOrder = require('../models/product_order');
 const DetailProductOrder = require('../models//detail_product_order');
 const IncrementCode = require('../models/increment_code_product_order');
 const User = require('../models/user');
-const { ObjectId } = require('mongodb');
-
 let index = async (req, res) => {
     try {
 
-      //  let getData = await ProductOrder.find({});    
-      let getData=await ProductOrder.aggregate([
-        {
-            $lookup: {
-                from: "users",
-                localField: "production_order_receiver",
-                foreignField: "_id",
-                as: "infoUser"
-            }
-        },
-    ])   
+        //  let getData = await ProductOrder.find({});    
+        let getData = await ProductOrder.aggregate([
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "production_order_receiver",
+                    foreignField: "_id",
+                    as: "infoUser"
+                }
+            },
+        ])
         if (getData) {
             res.json({
                 status: 200,
@@ -38,10 +36,10 @@ let index = async (req, res) => {
 let store = async (req, res) => {
     try {
         //cần gắn mã phiếu vào
-       console.log(req.body);
+        console.log(req.body);
         const getProductOrder = new ProductOrder(req.body);
-        getProductOrder.production_order_status = 'Đã gửi';
-        getProductOrder.production_order_receiver = '';
+        getProductOrder.production_order_status = '0';
+        getProductOrder.production_order_receiver = null;
         let getData = await getProductOrder.save();
         runIncrementInvoice();
         if (getData) {
@@ -63,9 +61,9 @@ let store = async (req, res) => {
 let infotoCreate = async (req, res) => {
     try {
         //gửi thông id user lên
-     //   const getIdUser = new ObjectId(req.query.id); đã truyền thông tin sẵn rồi!
+        //   const getIdUser = new ObjectId(req.query.id); đã truyền thông tin sẵn rồi!
         lastInvoice = await IncrementCode.findOne().sort({ invoice_number: -1 }).select('invoice_number');
-        getDetailProductOrder=await DetailProductOrder.find({product_order_code:lastInvoice.invoice_number}); //lấy danh sách chi tiết phiếu theo mã phiếu hiện hành
+        getDetailProductOrder = await DetailProductOrder.find({ product_order_code: lastInvoice.invoice_number }); //lấy danh sách chi tiết phiếu theo mã phiếu hiện hành
         // getInfoCreate = await User.aggregate([
         //     {
         //         $project: {
@@ -112,7 +110,7 @@ let infotoCreate = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data:lastInvoice, getDetailProductOrder
+                data: lastInvoice, getDetailProductOrder
             });
         }
         else {
@@ -125,7 +123,32 @@ let infotoCreate = async (req, res) => {
     }
 
 }
+let edit=async (req,res) => {
+   getId=req.params.id; 
+     getData =await ProductOrder.aggregate([
+        {
+            $lookup: {
+                from: "detail_product_orders",
+                localField: "product_order_No",
+                foreignField: "product_order_code",
+                as: "dataDetail"
+            }
+        },
+        {
+            $match: {product_order_No:getId}
+        }
+     ]);
+     if (getData) {
+        return res.status(200).json({
+            success: true, message: 'Infomation Field need to edit!!', data: getData,
+        });
+    }
+    else {
+        throw new Error('Error connecting Database on Server');
 
+    }
+
+} 
 let update = async (req, res) => {
     try {
         let id = req.params.id;
@@ -145,17 +168,36 @@ let update = async (req, res) => {
     }
 
 }
-let approve = async (req, res) => {    
- // console.log(req.body);
+let showdetail = async (req, res) => {
+    try {
+        getId = req.params.id;
+        let getData = await DetailProductOrder.find({ product_order_code: getId });
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData
+            });
+        }
+        else {
+            throw new Error('Error connecting Database on Server');
+        }
+    }
+    catch (error) {
+
+    }
+
+
+}
+let approve = async (req, res) => {   
     id = req.params.id;
-    getdata = req.body.username;
-   // console.log('giá trị data nhận được là',getdata);
+    getdata = req.body.production_order_receiver;    
     updateInfo = new ProductOrder({
         _id: req.params.id,
-        production_order_status: 'Đã nhận',
+        production_order_status: '1',
         production_order_receiver: getdata,
     });
-    getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });   
+    getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
     if (getData) {
         return res.status(200).json({
             success: true, message: 'This field has been updated!!!',
@@ -165,10 +207,45 @@ let approve = async (req, res) => {
         throw new Error('Error connecting Database on Server');
     }
 }
+let reapprove =async(req,res) => {   
+    id = req.params.id;       
+    updateInfo = new ProductOrder({
+        _id: req.params.id,
+        production_order_status: '0',
+        production_order_receiver: null,
+    });
+    getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
+    if (getData) {
+        return res.status(200).json({
+            success: true, message: 'This field has been updated!!!',
+        });
+    }
+    else {
+        throw new Error('Error connecting Database on Server');
+    }
+
+}
+let cancel =async(req,res) => {   
+    id = req.params.id;       
+    updateInfo = new ProductOrder({
+        _id: req.params.id,
+        production_order_status: '2',
+        production_order_receiver: null,
+    });
+    getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
+    if (getData) {
+        return res.status(200).json({
+            success: true, message: 'This field has been updated!!!',
+        });
+    }
+    else {
+        throw new Error('Error connecting Database on Server');
+    }
+
+}
 let destroy = async (req, res) => {
     try {
         let id = req.query.id;
-        // getId = await ProductOrder.findByIdAndRemove({ _id: id });
         getIDDetail = await DetailProductOrder.findOne({ product_order_code: id });
         if (getIDDetail) {
             await DetailProductOrder.findByIdAndRemove({ _id: getIDDetail._id });
@@ -216,8 +293,12 @@ let runIncrementInvoice = async (req, res) => {
 module.exports = {
     index: index,
     store: store,
+    edit:edit,
     update: update,
+    showdetail: showdetail,
     approve: approve,
+    reapprove:reapprove,
+    cancel:cancel,
     destroy: destroy,
     infotoCreate: infotoCreate,
     runIncrementInvoice: runIncrementInvoice,

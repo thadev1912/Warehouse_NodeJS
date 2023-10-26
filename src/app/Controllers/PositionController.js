@@ -1,5 +1,4 @@
 const Position = require('../models/position')
-//Lấy danh sách chức danh
 let index = async (req, res) => {
     try {
         let getData = await Position.find({});
@@ -20,7 +19,6 @@ let index = async (req, res) => {
     }
 
 }
-//Thêm mới chức danh
 let create = async (req, res) => {
     try {
         const getPosition = new Position(req.body);      
@@ -48,7 +46,6 @@ let create = async (req, res) => {
     }
 
 }
-//Chỉnh sửa chức danh
 let edit = async (req, res) => {
     try {
         id = req.query.id;
@@ -68,7 +65,6 @@ let edit = async (req, res) => {
     }
 
 }
-//Cập nhật chức danh
 let update = async (req, res) => {
     try {
         let id = req.params.id;

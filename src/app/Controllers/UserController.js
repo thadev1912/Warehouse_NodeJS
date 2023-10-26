@@ -9,11 +9,7 @@ const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
 //Lấy danh sách user
 let listUser = async (req, res) => {
-    try {
-        // let getPosition = await Position.find({});
-        // let getRegion = await Region.find({});
-        // let getDepartment = await Department.find({});
-        //let getData = await User.find({});
+    try {       
         let getData = await User.aggregate([
             // {
             //     $addFields: {
@@ -77,8 +73,7 @@ let Infomation = async (req, res) => {
      let dataPosition = await Position.find({});
      let dataRegion = await Region.find({});
      let dataDepartment = await Department.find({});
-     let dataRole = await Role.find({});
-    // let getData = await User.find({}, { password: 0, repeat_password: 0, username: 0, });
+     let dataRole = await Role.find({});    
     getData=await User.aggregate([
         {           
             $project: {
@@ -131,7 +126,7 @@ let Infomation = async (req, res) => {
     if (getData) {
         res.json({
             status: 200,
-            message: 'Lấy dữ liệu thành công!!!',
+            message: 'Get Data Completed!!',
             data: getData,dataPosition,dataRegion,dataDepartment,dataRole
         });
     }
@@ -155,7 +150,7 @@ let listRoleUser = async (req, res) => {
             res.json({
                 status: 200,
                 getData,
-                message: 'Đã lấy dữ liệu thành công!!!',
+                message: 'Get Data Completed!!',
 
             });
         }

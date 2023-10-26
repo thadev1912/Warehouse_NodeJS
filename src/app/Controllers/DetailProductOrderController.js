@@ -5,17 +5,8 @@ const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {
        
-      //  let getData = await DetailProductOrder.find({});
-        let getData=await DetailProductOrder.aggregate([
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "production_order_receiver",
-                    foreignField: "_id",
-                    as: "infoUser"
-                }
-            },
-        ])
+       let getData = await DetailProductOrder.find({});
+       
         if (getData) {
             res.json({
                 status: 200,
@@ -103,7 +94,5 @@ module.exports = {
     index: index,
     store:store, 
     update:update,   
-    destroy:destroy,
-    // infotoCreate:infotoCreate, 
-    // runIncrementInvoice:runIncrementInvoice, 
+    destroy:destroy,   
 }

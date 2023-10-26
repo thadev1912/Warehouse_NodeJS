@@ -1,7 +1,6 @@
 
 const Region = require('../models/region');
 const { checkRegion } = require('../../request/RegionRequest');
-//Lấy danh sách khu vực
 let index = async (req, res) => {
     try {
         let getData = await Region.find({});
@@ -22,7 +21,7 @@ let index = async (req, res) => {
     }
 
 }
-//Thêm mới khu vực
+
 let create = async (req, res) => {
     try {
         const getRegion = new Region(req.body);      
@@ -52,7 +51,7 @@ let create = async (req, res) => {
     }
 
 }
-//Chỉnh sửa khu vực
+
 let edit = async (req, res) => {
     try {       
         id = req.query.id;
@@ -72,7 +71,7 @@ let edit = async (req, res) => {
     }
 
 }
-//Cập nhật khu vực
+
 let update = async (req, res) => {
     try {        
         let id = req.params.id;        

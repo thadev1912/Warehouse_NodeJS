@@ -1,7 +1,7 @@
 const SemiProduct = require('../models/semi_product');
 const SimPackage = require('../models/sim_packages');
 const CategoriesSim = require('../models/categories_sim');
-//Lấy danh sách phòng ban
+
 let index = async (req, res) => {
     try {
         let getSimPackage = await SimPackage.find({});
@@ -44,7 +44,7 @@ let index = async (req, res) => {
 
 
 }
-//Thêm mới khu vực
+
 let create = async (req, res) => {
     try {
         console.log('giá trị golabal',req.body);
@@ -83,7 +83,7 @@ let create = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
-//Chỉnh sửa khu vực
+
 let edit = async (req, res) => {
     try {
        
@@ -106,7 +106,7 @@ let edit = async (req, res) => {
     }
 
 }
-//Cập nhật khu vực
+
 const update = async (req, res) => {
     try {
         // Lấy dữ liệu từ yêu cầu

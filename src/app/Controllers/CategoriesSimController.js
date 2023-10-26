@@ -49,7 +49,7 @@ let index = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }   
 }
-//Thêm mới khu vực
+
 let create = async (req, res) => {
     try {
         const getCategoriesSim = new CategoriesSim(req.body);
@@ -79,7 +79,7 @@ let create = async (req, res) => {
     }
 }
 
-//Chỉnh sửa khu vực
+
 let edit = async (req, res) => {
     try {
         id = req.query.id;
@@ -99,7 +99,7 @@ let edit = async (req, res) => {
     }
 
 }
-//Cập nhật khu vực
+
 let update = async (req, res) => {
     try {
         let id = req.params.id;
@@ -149,28 +149,6 @@ const destroy = async (req, res) => {
     }
 };
 
-
-
-let destroy1 = async (req, res) => {
-    try {
-        const id = req.query.id;
-        getId = await CategoriesSim.findByIdAndRemove({ _id: id });
-        if (getId) {
-
-            return res.status(200).json({
-                success: true, message: 'This field has been removed!!!',
-            });
-        }
-        else {
-            throw new Error('Error connecting Database on Server');
-        }
-    }
-    catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-
-}
 module.exports = {
     index: index,
     create: create,

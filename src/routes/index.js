@@ -12,6 +12,7 @@ const categories_sim=require('./categories_sim');
 const product_order=require('./product_order');
 const import_excel=require('./importExcels');
 const detail_product_order=require('./detail_product_order');
+const jobsheet=require('./jobsheet');
 const Auth =require('../app/middlewares/auth')
 const Permision =require('../app/middlewares/permission')
 function route(app)
@@ -30,5 +31,6 @@ app.use('/categories-sim',categories_sim);
 app.use('/product-order',product_order);
 app.use('/detail-product-order',detail_product_order);
 app.use('/import-excel',import_excel);
+app.use('/jobsheet',jobsheet);
 }
 module.exports = route;

@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const jobsheet = require('../app/Controllers/JobsheetController');
+const validate=require('../request/PostionRequest');
+router.get('/',jobsheet.index);
+router.post('/store',jobsheet.store);
+// router.get('/edit',position.edit);
+// router.put('/update/:id',position.update);
+// router.delete('/delete',position.destroy);
+module.exports = router;

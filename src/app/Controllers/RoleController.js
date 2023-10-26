@@ -1,7 +1,6 @@
 
 const Role = require('../models/role');
 const {checkRole}=require('../../request/RoleRequest')
-//Lấy danh sách Role
 let listRole = async (req, res) => {
     try {
         let getData = await Role.find({});
@@ -22,7 +21,6 @@ let listRole = async (req, res) => {
     }
 
 }
-//Thêm mới Role
 let create = async (req, res) => {
     try {
         const result = await checkRole.validate(req.body);

@@ -1,5 +1,4 @@
 const ProductType = require('../models/product_type');
-//Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {
         let getData = await ProductType.find({});
@@ -20,7 +19,6 @@ let index = async (req, res) => {
     }
 
 }
-//Thêm mới khu vực
 let create = async (req, res) => {
     try {
 
@@ -49,7 +47,6 @@ let create = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
-//Chỉnh sửa khu vực
 let edit = async (req, res) => {
     try {
         id = req.query.id;
@@ -69,7 +66,6 @@ let edit = async (req, res) => {
     }
 
 }
-//Cập nhật khu vực
 let update = async (req, res) => {
     try {
         let id = req.params.id;
