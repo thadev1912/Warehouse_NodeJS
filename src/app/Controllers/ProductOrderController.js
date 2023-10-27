@@ -5,17 +5,17 @@ const User = require('../models/user');
 let index = async (req, res) => {
     try {
 
-        //  let getData = await ProductOrder.find({});    
-        let getData = await ProductOrder.aggregate([
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "production_order_receiver",
-                    foreignField: "_id",
-                    as: "infoUser"
-                }
-            },
-        ])
+         let getData = await ProductOrder.find({});    
+        // let getData = await ProductOrder.aggregate([
+        //     {
+        //         $lookup: {
+        //             from: "users",
+        //             localField: "production_order_receiver",
+        //             foreignField: "_id",
+        //             as: "infoUser"
+        //         }
+        //     },
+        // ])
         if (getData) {
             res.json({
                 status: 200,

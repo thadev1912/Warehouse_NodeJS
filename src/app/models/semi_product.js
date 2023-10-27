@@ -16,7 +16,7 @@ const SemiProductSchema = new Schema({
     semi_product_note: {type: String}, 
     activation_date:{type: Date},
     purpose:{type: String},
-    jobsheet_code:{type:Number},
+    jobsheet_code:{type:String},
     categories_sim_id:{type:String},
     sim_package_id:{type:String},
     created: {type: Date, default: Date.now},

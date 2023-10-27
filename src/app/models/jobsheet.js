@@ -6,17 +6,17 @@ const JobSheetSchema = new Schema({
     jobsheet_finish_date: {type: Date},
     jobsheet_purpose: {type: String},    
     production_order_code: {type: String},
-    user_id: {type: Schema.Types.ObjectId},
-    product_id: {type: Schema.Types.ObjectId},   // mã sản phẩm
+    user_id: {type: String},
+    product_id: {type: String},   // mã sản phẩm 
     product_name:{type: String},  // tên sản phẩm
     BOM_code:{type: String},
     product_unit:{type: String},
     product_quantity:{type:Number},
-    product_type_code:{type:String}, //loại thành phẩm hoặc bán thành phẩm
-    product_range_id:{type: String}, 
+    product_type_code:{type: String}, //loại thành phẩm hoặc bán thành phẩm  (obj)
+    product_series_code:{type: String}, //(obj)
     specification:{type: String},  //quy cách
     jobsheet_note:{type: String}, 
-    production_style:{type: String}, //kiểu sản xuất New or Fix
+    production_style:{type: String}, //kiểu sản xuất New or Fix (obj)
     jobsheet_status:{type: String}, 
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},

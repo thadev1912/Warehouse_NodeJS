@@ -5,7 +5,9 @@ const Schema = mongoose.Schema
 const ProductSchema = new Schema({    
     product_code:{type:String},
     product_serial:{type:String},
-    jobsheet_id :{type: Schema.Types.ObjectId},
+    jobsheet_code :{type:String},
+    product_id:{type:String},
+    product_name:{type:String},
     product_assembler:{type:String},
     product_tester:{type:String},
     product_assembly_date:{type:Date},
@@ -14,6 +16,7 @@ const ProductSchema = new Schema({
     product_status:{type:String},
     product_result:{type:String},
     product_note:{type:String},
+    product_unit:{type:String},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},
 });

@@ -2,10 +2,16 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const StudentSchema = new Schema({   
-    student_code: {type: String,require:true},  
-    student_name: {type: String,require:true},
-    class: {type: String,require:true},
+    Student_Code: {type: String,require:true},  
+    Student_LastName: {type: String,require:true},
+    Student_FirstName: {type: String,require:true},  
+    Student_LastName: {type: String,require:true},
+    Address: {type: String,require:true},
+    Phone: {type: String,require:true},  
+    Gender: {type: String,require:true},
+    Course: {type: String,require:true},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now}
 });
 module.exports = mongoose.model('students', StudentSchema)
+

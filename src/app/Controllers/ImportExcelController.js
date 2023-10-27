@@ -29,13 +29,17 @@ const StudentForm = async (filePath) => {
                 rows: 1
             },
             columnToKey: {
-                A: 'student_code',
-                B: 'student_name',
-                C: 'class'
+                A:'Student_Code',
+                B:'Student_LastName',
+                C:'Student_FirstName',
+                D:'Address',
+                E:'Phone',
+                F:'Gender',
+                G:'Course',
             }
         }]
     });   
-   // console.log('insert data', excelData);   
+    console.log('insert data', excelData);   
     return await Student.insertMany(excelData.Students);    
 }
 module.exports = {
