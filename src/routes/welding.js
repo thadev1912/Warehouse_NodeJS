@@ -1,0 +1,11 @@
+var express = require('express');
+var router = express.Router();
+const Welding = require('../app/Controllers/WeldingController');
+//const validate=require('../request/CategoriesSimRequest');
+router.get('/WeldingList',Welding.WeldingList);
+router.get('/showDetailWelding/:id',Welding.showDetailWelding);
+router.put('/approveWeldingOrder/:id',Welding.approveWeldingOrder);
+router.get('/infotoUpdate/:id',Welding.infotoUpdate);
+router.put('/updateWeldingOrder/:id',Welding.updateWeldingOrder);
+router.put('/checkWelding/:id',Welding.checkWelding);
+module.exports = router;

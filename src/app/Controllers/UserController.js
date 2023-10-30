@@ -3,13 +3,13 @@ const User = require('../models/user');
 const Position = require('../models/position');
 const Region = require('../models/region');
 const Department = require('../models/department');
-const Role=require('../models/role');
+const Role = require('../models/role');
 var bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
 //Lấy danh sách user
 let listUser = async (req, res) => {
-    try {       
+    try {
         let getData = await User.aggregate([
             // {
             //     $addFields: {
@@ -32,7 +32,7 @@ let listUser = async (req, res) => {
                     as: "getRegion"
                 }
             },
-             {
+            {
                 $lookup: {
                     from: "positions",
                     localField: "position_id",
@@ -40,7 +40,7 @@ let listUser = async (req, res) => {
                     as: "getPostion"
                 }
             },
-              {
+            {
                 $lookup: {
                     from: "departments",
                     localField: "department_id",
@@ -48,9 +48,9 @@ let listUser = async (req, res) => {
                     as: "getDepartment"
                 }
             },
-            
-            
-            
+
+
+
         ]);
         if (getData) {
             res.json({
@@ -70,28 +70,28 @@ let listUser = async (req, res) => {
 
 }
 let Infomation = async (req, res) => {
-     let dataPosition = await Position.find({});
-     let dataRegion = await Region.find({});
-     let dataDepartment = await Department.find({});
-     let dataRole = await Role.find({});    
-    getData=await User.aggregate([
-        {           
+    let dataPosition = await Position.find({});
+    let dataRegion = await Region.find({});
+    let dataDepartment = await Department.find({});
+    let dataRole = await Role.find({});
+    getData = await User.aggregate([
+        {
             $project: {
-              _id: 1,
-              password: 0,
-              username:0,
-            
-          }
-              },
+                _id: 1,
+                password: 0,
+                username: 0,
+
+            }
+        },
         {
             $addFields: {
                 region_id: {
                     $toObjectId: "$region_id"
                 },
-                 position_id: {
+                position_id: {
                     $toObjectId: "$position_id"
                 },
-                  department_id: {
+                department_id: {
                     $toObjectId: "$department_id"
                 },
             }
@@ -104,7 +104,7 @@ let Infomation = async (req, res) => {
                 as: "getRegion"
             }
         },
-         {
+        {
             $lookup: {
                 from: "positions",
                 localField: "position_id",
@@ -112,7 +112,7 @@ let Infomation = async (req, res) => {
                 as: "getPostion"
             }
         },
-          {
+        {
             $lookup: {
                 from: "departments",
                 localField: "department_id",
@@ -120,14 +120,14 @@ let Infomation = async (req, res) => {
                 as: "getDepartment"
             }
         },
-        
-        
-            ])
+
+
+    ])
     if (getData) {
         res.json({
             status: 200,
             message: 'Get Data Completed!!',
-            data: getData,dataPosition,dataRegion,dataDepartment,dataRole
+            data: getData, dataPosition, dataRegion, dataDepartment, dataRole
         });
     }
 }
@@ -163,7 +163,7 @@ let listRoleUser = async (req, res) => {
 }
 //Thêm mới user
 let register = async (req, res) => {
-    try {      
+    try {
         //     checkId = await User.find({ user_code: req.body.user_code }).count();
         //     if (checkId > 0) {
         //         return res.status(200).json({
@@ -171,19 +171,19 @@ let register = async (req, res) => {
         //         });
         //    }
         getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
-        const getUser = new User({           
+        const getUser = new User({
             fullname: req.body.fullname,
             username: req.body.username,
             role_id: req.body.role_id,
-            email: req.body.email,           
+            email: req.body.email,
             address: req.body.address,
             phone: req.body.phone,
             password: getPw,
             position_id: req.body.position_id,
             region_id: req.body.region_id,
             department_id: req.body.department_id,
-            gender:req.body.gender,
-            birthday:req.body.birthday,
+            gender: req.body.gender,
+            birthday: req.body.birthday,
             // avatar: req.file.originalname,
             avatar: 'uploads/avatar.png',
         });
@@ -206,31 +206,34 @@ let register = async (req, res) => {
     }
 
 }
-let checkLogin = async (req, res) => {
+let checkLogin = async (req, res) => {   
     let user = req.body.username;
-    let pws = req.body.password;   
-    let checkUser = await User.findOne({ username: user }); 
-   // let getInfo = await User.findOne({ username: user });    
-    getInfo=await User.aggregate([
-        {           
+    let pws = req.body.password;
+    let checkExits = await User.findOne({ username: user }).count();
+        if (checkExits <= 0) {
+        return res.json({ status: 500, message: 'Username or passsword incorect!!!' });
+    }
+    let checkUser = await User.findOne({ username: user });
+    getInfo = await User.aggregate([
+        {
             $project: {
-              _id: 1,             
-              username:1,
-              fullname:1,
-              region_id:1,
-              department_id:1,
-              position_id:1            
-          }
-              },
+                _id: 1,
+                username: 1,
+                fullname: 1,
+                region_id: 1,
+                department_id: 1,
+                position_id: 1
+            }
+        },
         {
             $addFields: {
                 region_id: {
                     $toObjectId: "$region_id"
                 },
-                 position_id: {
+                position_id: {
                     $toObjectId: "$position_id"
                 },
-                  department_id: {
+                department_id: {
                     $toObjectId: "$department_id"
                 },
             }
@@ -243,7 +246,7 @@ let checkLogin = async (req, res) => {
                 as: "getRegion"
             }
         },
-         {
+        {
             $lookup: {
                 from: "positions",
                 localField: "position_id",
@@ -251,7 +254,7 @@ let checkLogin = async (req, res) => {
                 as: "getPostion"
             }
         },
-          {
+        {
             $lookup: {
                 from: "departments",
                 localField: "department_id",
@@ -259,25 +262,24 @@ let checkLogin = async (req, res) => {
                 as: "getDepartment"
             }
         },
-         {
-        $match: {
-            username: checkUser.username,
+        {
+            $match: {
+                username: checkUser.username,
+            }
         }
-    }
-        
-        
-            ]);
-            console.log(checkUser.username);
-   // let idUser=checkUser._id;
-   // console.log('giá trị user nhận được là',getInfo);  
+
+
+    ]);   
+    // let idUser=checkUser._id;
+    // console.log('giá trị user nhận được là',getInfo);  
     if (!checkUser) {
         res.json({ status: 500, message: 'Username or passsword incorect!!!' });
         return;
     }
     console.log('thông tin user', checkUser);
     let checkPw = await bcrypt.compare(pws, checkUser.password);
-   // let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
-     let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username },
+    // let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
+    let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
     );
@@ -287,7 +289,7 @@ let checkLogin = async (req, res) => {
         maxAge: 60 * 60 * 1000, // 2hrs in ms
     });
     getCookie = req.cookies.jwt;
-    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken,getInfo }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
+    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken, getInfo }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
 }
 
 let checkLogout = async (req, res) => {
@@ -347,12 +349,12 @@ let destroyUser = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
-let updateUser=async(req,res)=>{
+let updateUser = async (req, res) => {
     try {
-        let id = req.query.id;       
-        console.log(req.body);      
-        getData = await User.findByIdAndUpdate(id, { $set: req.body });       
-        if (getData) {           
+        let id = req.query.id;
+        console.log(req.body);
+        getData = await User.findByIdAndUpdate(id, { $set: req.body });
+        if (getData) {
             getNewData = await User.findOne({ _id: id });
             return res.status(200).json({
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
@@ -377,6 +379,6 @@ module.exports =
     hashpw: hashpw,
     uploadImage: uploadImage,
     Infomation: Infomation,
-    destroyUser:destroyUser,
-    updateUser:updateUser,
+    destroyUser: destroyUser,
+    updateUser: updateUser,
 }

@@ -13,8 +13,11 @@ const product_order=require('./product_order');
 const import_excel=require('./importExcels');
 const detail_product_order=require('./detail_product_order');
 const jobsheet=require('./jobsheet');
-const Auth =require('../app/middlewares/auth')
-const Permision =require('../app/middlewares/permission')
+const welding=require('./welding');
+const assemble=require('./assemble');
+const dashboard=require('./dashboard');
+const Auth =require('../app/middlewares/auth');
+const Permision =require('../app/middlewares/permission');
 function route(app)
 {
 app.use('/account',user); 
@@ -32,5 +35,8 @@ app.use('/product-order',product_order);
 app.use('/detail-product-order',detail_product_order);
 app.use('/import-excel',import_excel);
 app.use('/jobsheet',jobsheet);
+app.use('/welding',welding);
+app.use('/assemble',assemble);
+app.use('/dashboard',dashboard);
 }
 module.exports = route;

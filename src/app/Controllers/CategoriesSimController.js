@@ -52,6 +52,7 @@ let index = async (req, res) => {
 
 let create = async (req, res) => {
     try {
+        
         const getCategoriesSim = new CategoriesSim(req.body);
         getCategoriesSim.use_sim = '0';
         checkId = await CategoriesSim.find({ serial_sim: req.body.serial_sim }).count();

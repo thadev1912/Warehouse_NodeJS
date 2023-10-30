@@ -3,16 +3,21 @@ const Product = require('../models/product');
 const SemiProduct = require('../models/semi_product');
 const ProductOrder = require('../models/product_order');
 const ProductType = require('../models/product_type');
-const ProductSeries = require('../models//product_series');
+const ProductSeries = require('../models/product_series');
+const Welding = require('../models/welding');
+const Assemble = require('../models/assemble');
 const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {
+        let getproductOrderNo = await ProductOrder.find().select('product_order_No');
+        let getproductType = await ProductType.find();
+        let getproductSeries = await ProductSeries.find();
         let getData = await JobSheet.find({});;
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: getData,
+                data: getData,getproductOrderNo,getproductType,getproductSeries
             });
         }
         else {
@@ -102,6 +107,7 @@ let store = async (req, res) => {
         //------------------End Run Loop--------------------- ---------           
         const getJobSheet = new JobSheet(req.body);
         getJobSheet.jobsheet_code = mergeCodeJobsheet;
+        getJobSheet.jobsheet_status = 'Mới tạo';
         let getData = await getJobSheet.save();
         if (getData) {
             res.json({
@@ -168,12 +174,19 @@ let edit = async (req, res) => {
 
 let update = async (req, res) => {
     try {
-        console.log(req.body);
+        //  console.log(req.body);
         let id = req.params.id;
-       let OldJobsheetCode = req.body.oldjobsheetcode;
+        let OldJobsheetCode = req.body.oldjobsheetcode;
+        checkId = await JobSheet.findOne({ _id: id });
+        if (checkId == null) {
+            res.json({
+                status: 400,
+                messege: 'This Id no exits!!!',
+
+            });
+        }
         //let OldJobsheetCode=req.body.old_jobsheet_code;
         let getQuantity = req.body.product_quantity;
-       
         if (getQuantity) {
             const getDateTime = new Date();
             const month = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
@@ -192,7 +205,6 @@ let update = async (req, res) => {
             if ((createProductionType == 'P') || (createProductionType == 'R')) {
                 //kiểm tra trước khi xóa                    
                 let checkExits = await Product.findOne({ jobsheet_code: OldJobsheetCode }).count();
-                //console.log(checkExits); 
                 if (checkExits > 0) {
                     await Product.deleteMany({ jobsheet_code: OldJobsheetCode });
                 }
@@ -216,6 +228,11 @@ let update = async (req, res) => {
 
             }
             else if ((createProductionType == 'N') || (createProductionType == 'S')) {
+                //kiểm tra trước khi xóa                    
+                let checkExits = await SemiProduct.findOne({ jobsheet_code: OldJobsheetCode }).count();
+                if (checkExits > 0) {
+                    await SemiProduct.deleteMany({ jobsheet_code: OldJobsheetCode });
+                }
                 for (let i = 1; i <= getQuantity; i++) {
                     let incrementQuantity = String(i).padStart(3, '0');
                     let IdSemiProduct = req.body.product_id
@@ -239,8 +256,9 @@ let update = async (req, res) => {
                 });
             }
         }
+        req.body.jobsheet_code = mergeCodeJobsheet;
         getData = await JobSheet.findByIdAndUpdate(id, { $set: req.body });
-        if (getData) {           
+        if (getData) {
             getNewData = await JobSheet.findOne({ _id: id });
             return res.status(200).json({
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
@@ -255,31 +273,169 @@ let update = async (req, res) => {
     }
 
 }
-// let destroy = async (req, res) => {
-//     try {
-//         let id = req.query.id;
-//         getId = await JobSheet.findByIdAndRemove({ _id: id });
-//         if (getId) {
+let cancel = async (req, res) => {
+    try {
+        id = req.params.id;
+        checkId = await JobSheet.findOne({ _id: id });
+        if (checkId == null) {
+            res.json({ status: 400, messege: 'This Id no exits!!!' });
+        }
+        getProductionType = req.body.product_type_code;
+        getJobSheetCode = req.body.oldjobsheetcode;
+        updateJobSheet = new JobSheet({
+            id: req.params.id,
+            jobsheet_status: 'Đã hủy',
+        })
+        getData = await JobSheet.findByIdAndUpdate(id, { $set: updateJobSheet });
+        if ((getProductionType == 'P') || (getProductionType == 'R')) {
+            await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: 'Đã hủy' })
 
-//             return res.status(200).json({
-//                 success: true, message: 'This field has been removed!!!',
-//             });
-//         }
-//         else {
-//             throw new Error('Error connecting Database on Server');
-//         }
-//     }
-//     catch (err) {
-//         console.log(err);
-//         res.status(500).json({ success: false, error: err.message });
-//     }
+        }
+        else if ((getProductionType == 'N') || (getProductionType == 'S')) {
+            await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, { semi_product_status: 'Đã hủy' })
+        }
+        if (getData) {
+            getNewData = await JobSheet.findOne({ _id: id });
+            return res.status(200).json({
+                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+            });
+        }
+        else {
+            throw new Error('Error connecting Database on Server');
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
 
-//}
+}
+let OrderExportMaterials = async (req, res) => {
+    try {
+        id = req.params.id;
+        checkId = await JobSheet.findOne({ _id: id });
+        if (checkId == null) {
+            res.json({ status: 400, messege: 'This Id no exits!!!' });
+        }
+        getProductionType = req.body.product_type_code;
+        getJobSheetCode = req.body.oldjobsheetcode;
+        updateJobSheet = new JobSheet({
+            id: req.params.id,
+            jobsheet_status: 'Đã yêu cầu xuất kho NVL',
+        })
+        getData = await JobSheet.findByIdAndUpdate(id, { $set: updateJobSheet });
+        if ((getProductionType == 'P') || (getProductionType == 'R')) {
+            await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: 'Đã yêu cầu xuất kho NVL' })
+
+        }
+        else if ((getProductionType == 'N') || (getProductionType == 'S')) {
+            await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, { semi_product_status: 'Đã yêu cầu xuất kho NVL' })
+        }
+        if (getData) {
+            getNewData = await JobSheet.findOne({ _id: id });
+            return res.status(200).json({
+                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+            });
+        }
+        else {
+            throw new Error('Error connecting Database on Server');
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+let ExportMaterials = async (req, res) => {
+    try {
+        id = req.params.id;
+        checkId = await JobSheet.findOne({ _id: id });
+        if (checkId == null) {
+            res.json({ status: 400, messege: 'This Id no exits!!!' });
+        }
+        getProductionType = req.body.product_type_code;
+        getJobSheetCode = req.body.oldjobsheetcode;
+        updateJobSheet = new JobSheet({
+            id: req.params.id,
+            jobsheet_status: 'Đã xuất kho NVL',
+        })
+        getData = await JobSheet.findByIdAndUpdate(id, { $set: updateJobSheet });
+        if ((getProductionType == 'P') || (getProductionType == 'R')) {
+            await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: 'Đã xuất kho NVL' })
+
+        }
+        else if ((getProductionType == 'N') || (getProductionType == 'S')) {
+            await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, { semi_product_status: 'Đã xuất kho NVL' })
+        }
+        if (getData) {
+            getNewData = await JobSheet.findOne({ _id: id });
+            return res.status(200).json({
+                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+            });
+        }
+        else {
+            throw new Error('Error connecting Database on Server');
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+let OrderWedling = async (req, res) => {
+    getJobSheetCode = req.body.oldjobsheetcode;
+    console.log(getJobSheetCode);
+    let today = new Date();
+    dd = String(today.getDate()).padStart(2, '0');
+    mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    yyyy = today.getFullYear();
+    createDay = mm + '/' + dd + '/' + yyyy;
+    getWelding =new Welding({
+        jobsheet_code:getJobSheetCode,
+        welding_create_date:createDay,
+        welding_status:'Mới tạo'
+    })   
+    await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, { semi_product_status: 'Đã gửi YCHM' });
+    await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: 'Đã gửi YCHM' });
+    getData=await getWelding.save();
+    if(getData)
+    {
+        return res.status(200).json({
+            success: true, message: 'Infomation field has been updated !!!'
+        });
+    }
+}
+let OrderAssemble =async(req,res) =>{
+    getJobSheetCode = req.body.oldjobsheetcode;    
+    let today = new Date();
+    dd = String(today.getDate()).padStart(2, '0');
+    mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    yyyy = today.getFullYear();
+    createDay = mm + '/' + dd + '/' + yyyy;
+    getAssemble =new Assemble({
+        jobsheet_code:getJobSheetCode,
+        assemble_create_date:createDay,
+        assemble_status:'Mới tạo'
+    });
+    await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: 'Đã gửi Lắp Ráp' });
+    await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: 'Đã gửi Lắp Ráp' });
+    getData=await getAssemble.save();
+    if(getData)
+    {
+        return res.status(200).json({
+            success: true, message: 'Infomation field has been updated !!!'
+        });
+    }
+}
 module.exports = {
     index: index,
     store: store,
     infotoCreate: infotoCreate,
     edit: edit,
     update: update,
-    // destroy: destroy,
+    cancel: cancel,
+    OrderExportMaterials: OrderExportMaterials,
+    ExportMaterials: ExportMaterials,
+    OrderWedling: OrderWedling,
+    OrderAssemble:OrderAssemble,
 }

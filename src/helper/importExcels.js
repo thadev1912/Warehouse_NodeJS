@@ -2,13 +2,11 @@
 var multer = require('multer');  
  
 var storage = multer.diskStorage({  
-    destination: function(req, file, cb) {
-        // cb(null, './uploads/');
+    destination: function(req, file, cb) {       
           cb(null, './public/excels/');
        },
     filename:function(req,file,cb){  
-       cb(null,file.filename + "-" +Date.now() + "-"+ file.originalname);  
-     //cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname);
+       cb(null,file.filename + "-" +Date.now() + "-"+ file.originalname);      
     }  
 });     
 const upload = multer({
