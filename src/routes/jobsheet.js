@@ -12,5 +12,6 @@ router.put('/OrderExportMaterials/:id',jobsheet.OrderExportMaterials);
 router.put('/ExportMaterials/:id',jobsheet.ExportMaterials);
 router.put('/OrderWedling/:id',jobsheet.OrderWedling);
 router.put('/OrderAssemble/:id',jobsheet.OrderAssemble);
-//router.delete('/delete',jobsheet.destroy);
+router.put('/OrderProductQC',jobsheet.OrderProductQC);
+router.put('/OrderSemiProductQC',jobsheet.OrderSemiProductQC);
 module.exports = router;

@@ -17,7 +17,7 @@ let index = async (req, res) => {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: getData,getproductOrderNo,getproductType,getproductSeries
+                data: getData, getproductOrderNo, getproductType, getproductSeries
             });
         }
         else {
@@ -47,6 +47,7 @@ let infotoCreate = async (req, res) => {
 }
 let store = async (req, res) => {
     try {
+        console.log(req.body);
         const getDateTime = new Date();
         const month = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
         //  console.log(req.body); công thức: 21A02     N    1     R     N     010
@@ -387,45 +388,73 @@ let OrderWedling = async (req, res) => {
     console.log(getJobSheetCode);
     let today = new Date();
     dd = String(today.getDate()).padStart(2, '0');
-    mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    mm = String(today.getMonth() + 1).padStart(2, '0');
     yyyy = today.getFullYear();
     createDay = mm + '/' + dd + '/' + yyyy;
-    getWelding =new Welding({
-        jobsheet_code:getJobSheetCode,
-        welding_create_date:createDay,
-        welding_status:'Mới tạo'
-    })   
+    getWelding = new Welding({
+        jobsheet_code: getJobSheetCode,
+        welding_create_date: createDay,
+        welding_status: 'Mới tạo'
+    })
     await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, { semi_product_status: 'Đã gửi YCHM' });
     await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: 'Đã gửi YCHM' });
-    getData=await getWelding.save();
-    if(getData)
-    {
+    getData = await getWelding.save();
+    if (getData) {
         return res.status(200).json({
             success: true, message: 'Infomation field has been updated !!!'
         });
     }
 }
-let OrderAssemble =async(req,res) =>{
-    getJobSheetCode = req.body.oldjobsheetcode;    
+let OrderAssemble = async (req, res) => {
+    getJobSheetCode = req.body.oldjobsheetcode;
     let today = new Date();
     dd = String(today.getDate()).padStart(2, '0');
-    mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    mm = String(today.getMonth() + 1).padStart(2, '0');
     yyyy = today.getFullYear();
     createDay = mm + '/' + dd + '/' + yyyy;
-    getAssemble =new Assemble({
-        jobsheet_code:getJobSheetCode,
-        assemble_create_date:createDay,
-        assemble_status:'Mới tạo'
+    getAssemble = new Assemble({
+        jobsheet_code: getJobSheetCode,
+        assemble_create_date: createDay,
+        assemble_status: 'Mới tạo'
     });
-    await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: 'Đã gửi Lắp Ráp' });
-    await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: 'Đã gửi Lắp Ráp' });
-    getData=await getAssemble.save();
-    if(getData)
-    {
+    await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: 'Đã gửi YCLR' });
+    await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: 'Đã gửi YCLR' });
+    getData = await getAssemble.save();
+    if (getData) {
         return res.status(200).json({
             success: true, message: 'Infomation field has been updated !!!'
         });
     }
+}
+let OrderProductQC = async (req, res) => {
+    getProductCode = req.body.product_code;
+    await Product.updateOne({ product_code: getProductCode }, { product_status: 'Đã gửi YCKT' });
+    getInfoProduct = await Product.find({ product_code: getProductCode });
+    const getValue = getInfoProduct[0];
+    //console.log('giá trị thông tin', getValue.jobsheet_code);
+    isCheckExits = await Product.findOne({
+        $and: [{ jobsheet_code: getValue.jobsheet_code }, {
+            $or: [
+                { product_status: { $exists: false } },
+                { product_status: { $ne: 'Đã gửi YCKT' } }
+            ]
+        }]
+    }).count();
+    if (isCheckExits === 0) {
+        await JobSheet.updateOne({ jobsheet_code: getInfoProduct.jobsheet_code }, { jobsheet_status: 'Hoàn Thành'});
+    }
+    else
+    {
+        await JobSheet.updateOne({ jobsheet_code: getInfoProduct.jobsheet_code }, { jobsheet_status: 'Đang kiểm tra'});
+    }
+    if (getInfoProduct) {
+        return res.status(200).json({
+            success: true, message: 'Infomation field has been updated !!!'
+        });
+    }
+}
+let OrderSemiProductQC =async(req,res)=>{
+   res.json('bạn đang gọi tôi à');
 }
 module.exports = {
     index: index,
@@ -437,5 +466,7 @@ module.exports = {
     OrderExportMaterials: OrderExportMaterials,
     ExportMaterials: ExportMaterials,
     OrderWedling: OrderWedling,
-    OrderAssemble:OrderAssemble,
+    OrderAssemble: OrderAssemble,
+    OrderProductQC: OrderProductQC,
+    OrderSemiProductQC:OrderSemiProductQC,
 }
