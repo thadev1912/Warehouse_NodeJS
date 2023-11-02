@@ -13,6 +13,8 @@ const cookieParser = require('cookie-parser')
 const toastr = require('express-toastr');
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
 app.use(cors());
 app.use(session({
   cookie: { maxAge: 60000 },
@@ -62,13 +64,35 @@ socketIo.on("connection", (socket) => {
   });
 });
 //Test máy chủ chat SocetIO
-app.get("/",async (req, res) => {
-  await res.render('index');
+// app.get("/",async (req, res) => {
+//   await res.render('index');
   // res.status(200).send({
   //   success: true,
   //   message: "Wellcome Chat System ",
   // });
-});
+//});
+//Swagger
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'My API',
+      version: '1.0.0',
+      description: 'A sample API for learning Swagger',
+    },
+    servers: [
+      {
+        url: 'http://192.168.48.31:8080',
+      },
+    ],
+  },
+  apis: ['./src/routes/*.js'],
+};
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs)); 
+app.get('/',(req,res)=>{
+  res.send('Wellcome to NodeJS');
+  });
 //Sử dụng cho 
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
