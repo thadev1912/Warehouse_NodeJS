@@ -16,6 +16,7 @@ const jobsheet=require('./jobsheet');
 const welding=require('./welding');
 const assemble=require('./assemble');
 const dashboard=require('./dashboard');
+const quality_control=require('./qualtity_control');
 const Auth =require('../app/middlewares/auth');
 const Permision =require('../app/middlewares/permission');
 function route(app)
@@ -38,5 +39,6 @@ app.use('/jobsheet',jobsheet);
 app.use('/welding',welding);
 app.use('/assemble',assemble);
 app.use('/dashboard',dashboard);
+app.use('/quality-control',quality_control);
 }
 module.exports = route;
