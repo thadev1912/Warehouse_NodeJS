@@ -207,6 +207,7 @@ let register = async (req, res) => {
 
 }
 let checkLogin = async (req, res) => {   
+    console.log(res.body);
     let user = req.body.username;
     let pws = req.body.password;
     let checkExits = await User.findOne({ username: user }).count();

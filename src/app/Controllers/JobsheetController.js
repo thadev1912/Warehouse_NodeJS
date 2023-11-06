@@ -78,7 +78,8 @@ let store = async (req, res) => {
                     product_id: req.body.product_id,
                     product_name: req.body.product_name,
                     product_unit: req.body.product_unit,
-                    product_status: '0'
+                    product_status: '0',
+                    product_assemble_status:'0',
                 });
                 await getProduct.save();
             }
@@ -96,6 +97,8 @@ let store = async (req, res) => {
                     semi_product_name: req.body.product_name,
                     semi_product_unit: req.body.product_unit,
                     semi_product_status: '0',
+                    semi_product_welding_status:'0',
+                    semi_product_used:'0',
                 });
                 await getSemiProduct.save();
             }
@@ -443,23 +446,59 @@ let ExportMaterials = async (req, res) => {
     }
 }
 let OrderProduct = async (req, res) => {
-    try {
-        console.log(req.body);
+    try {       
         getId = req.body.arrayProductID;
         getJobSheetCode = req.body.jobsheetCode;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
+          //tạo bảng Assemble (Thành phẩm)
+          isCheckJobsheetCode= await Assemble.findOne({jobsheet_code:getJobSheetCode}).count();
+          console.log('đếm được là',isCheckJobsheetCode);
+          let today = new Date();
+          dd = String(today.getDate()).padStart(2, '0');
+          mm = String(today.getMonth() + 1).padStart(2, '0');
+          yyyy = today.getFullYear();
+          createDay = mm + '/' + dd + '/' + yyyy;
 
-            for (let i = 0; i < getId.length; i++) {
-                await Product.findOneAndUpdate({ product_code: getId[i] }, { product_status: '3' })
-            }
+          for (let i = 0; i < getId.length; i++) {           
+                await Product.findOneAndUpdate({ product_code: getId[i] },{$set:{product_status: '3' ,semi_product_assemble_status: '1'}});
+          }
+          isCheckJobsheetCode= await Assemble.find({jobsheet_code:getJobSheetCode}).count();
+          if(isCheckJobsheetCode===0)
+          {
+            getAssemble = new Assemble({
+                jobsheet_code: getJobSheetCode,
+                assemble_create_date: createDay,
+                assemble_status: '0'
+            });
+            getData = await getAssemble.save();
+          }
+         
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
-            for (let i = 0; i < getId.length; i++) {
-                await SemiProduct.findOneAndUpdate({ semi_product_lot: getId[i] }, { semi_product_status: '3' });
-            }
-
+              //tạo bảng Prduct ( Bán Thành phẩm)
+              let today = new Date();
+              dd = String(today.getDate()).padStart(2, '0');
+              mm = String(today.getMonth() + 1).padStart(2, '0');
+              yyyy = today.getFullYear();
+              createDay = mm + '/' + dd + '/' + yyyy;  
+             
+             
+              for (let i = 0; i < getId.length; i++) {
+                await SemiProduct.findOneAndUpdate({ semi_product_lot: getId[i] }, { $set:{ semi_product_status: '3',semi_product_welding_status: '1'}});                 
+              }
+              isCheckJobsheetCode= await Welding.find({jobsheet_code:getJobSheetCode}).count();
+              console.log('đếm được là',isCheckJobsheetCode);
+              if(isCheckJobsheetCode===0)
+              {
+                getWelding = new Welding({
+                    jobsheet_code: getJobSheetCode,
+                    welding_create_date: createDay,
+                    welding_status: '0'
+                });
+                getData = await getWelding.save();
+              }
         }
         if (getInfo) {
             res.json({
@@ -475,55 +514,6 @@ let OrderProduct = async (req, res) => {
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });
-    }
-}
-let OrderWedling = async (req, res) => {
-    console.log(req.body);
-    getJobSheetCode = req.body.oldjobsheetcode;
-    getId = req.body.arrayProductID;
-    console.log(getJobSheetCode);
-    let today = new Date();
-    dd = String(today.getDate()).padStart(2, '0');
-    mm = String(today.getMonth() + 1).padStart(2, '0');
-    yyyy = today.getFullYear();
-    createDay = mm + '/' + dd + '/' + yyyy;
-    getWelding = new Welding({
-        jobsheet_code: getJobSheetCode,
-        welding_create_date: createDay,
-        welding_status: '0'
-    })
-
-
-    await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, { semi_product_status: '3' });
-
-    await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: '3' });
-    getData = await getWelding.save();
-    if (getData) {
-        return res.status(200).json({
-            success: true, message: 'Infomation field has been updated !!!'
-        });
-    }
-}
-let OrderAssemble = async (req, res) => {
-    console.log(req.body);
-    getJobSheetCode = req.body.oldjobsheetcode;
-    let today = new Date();
-    dd = String(today.getDate()).padStart(2, '0');
-    mm = String(today.getMonth() + 1).padStart(2, '0');
-    yyyy = today.getFullYear();
-    createDay = mm + '/' + dd + '/' + yyyy;
-    getAssemble = new Assemble({
-        jobsheet_code: getJobSheetCode,
-        assemble_create_date: createDay,
-        assemble_status: '0'
-    });
-    await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: '3' });
-    await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: '3' });
-    getData = await getAssemble.save();
-    if (getData) {
-        return res.status(200).json({
-            success: true, message: 'Infomation field has been updated !!!'
-        });
     }
 }
 let infoCreatOrderQC = async (req, res) => {
@@ -544,7 +534,7 @@ let OrderProductQC = async (req, res) => {
     var start = new Date();
     start.setHours(0, 0, 0, 0);
     var end = new Date();
-    end.setHours(23, 59, 59, 999);   
+    end.setHours(23, 59, 59, 999);
     const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
     createDay = String(getDateTime.getDate()).padStart(2, '0');
     createMonth = month[getDateTime.getMonth()];
@@ -566,7 +556,7 @@ let OrderProductQC = async (req, res) => {
         jobsheet_code: getValue.jobsheet_code,
         quality_control_specification: req.body.quality_control_specification,
     });
-    getData = await getQuantityControl.save();    
+    getData = await getQuantityControl.save();
     isCheckExits = await Product.findOne({
         $and: [{ jobsheet_code: getValue.jobsheet_code }, {
             $or: [
@@ -766,9 +756,7 @@ module.exports = {
     showDetail: showDetail,
     OrderExportMaterials: OrderExportMaterials,
     ExportMaterials: ExportMaterials,
-    OrderProduct: OrderProduct,
-    OrderWedling: OrderWedling,
-    OrderAssemble: OrderAssemble,
+    OrderProduct: OrderProduct,    
     infoCreatOrderQC: infoCreatOrderQC,
     OrderProductQC: OrderProductQC,
     OrderSemiProductQC: OrderSemiProductQC,

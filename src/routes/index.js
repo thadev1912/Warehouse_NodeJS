@@ -24,7 +24,7 @@ function route(app)
 app.use('/account',user); 
 app.use('/role',role); 
 app.use('/region',Permision.checkPermision,region);
-app.use('/deparment',Permision.checkPermision,department);
+app.use('/deparment',department);
 app.use('/position',position);
 app.use('/product-type',product_type);
 app.use('/product-series',product_series);

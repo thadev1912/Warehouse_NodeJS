@@ -6,16 +6,16 @@ const SemiProduct = require('../models/semi_product');
 let index = async (req, res) => {
     try {      
         let getSemiProduct = await CategoriesSim.aggregate([
-            {
-                $addFields: {
-                    semi_product_id: {
-                        $toObjectId: "$semi_product_id"
-                    },
-                    sim_package_id: {
-                        $toObjectId: "$sim_package_id"
-                    }
-                }
-            },
+            // {
+            //     $addFields: {
+            //         semi_product_id: {
+            //             $toObjectId: "$semi_product_id"
+            //         },
+            //         sim_package_id: {
+            //             $toObjectId: "$sim_package_id"
+            //         }
+            //     }
+            // },
             {
                 $lookup: {
                     from: "semi_products",

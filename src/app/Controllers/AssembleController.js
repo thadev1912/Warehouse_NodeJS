@@ -3,9 +3,20 @@ const JobSheet = require('../models/jobsheet');
 const Product = require('../models/product');
 const SemiProduct = require('../models/semi_product');
 const CategoriesSim = require('../models/categories_sim');
+const SimPackage = require('../models/sim_packages');
 let AssembleList = async (req, res) => {
     try {
-        getData = await Assemble.find();
+      //  getData = await Assemble.find();
+      getData=await Assemble.aggregate([
+        {
+            $lookup: {
+                from: "jobsheets",
+                localField: "jobsheet_code",
+                foreignField: "jobsheet_code",
+                as: "getDetail" 
+            }
+        }
+      ])
         if (getData) {
             return res.status(200).json({
                 success: true,
@@ -22,7 +33,39 @@ let AssembleList = async (req, res) => {
 }
 let showDetailAssemble = async (req, res) => {
     try {
+        getCategoriesSim=await CategoriesSim.find({use_sim:'0'});
+        getSimPackage=await SimPackage.find();
         getJobSheetCode = req.params.id;
+        //code lấy danh sách select semiproductLot
+        getProductLot=await SemiProduct.aggregate([
+            {
+                $addFields: {
+                    categories_sim_id: {
+                        $toObjectId: "$categories_sim_id"
+                    }
+                }
+            },
+            {
+                $lookup: {
+                    from: "categories_sims",
+                    localField: "categories_sim_id",
+                    foreignField: "_id",
+                    as: "getDetail"
+                }
+            },           
+            {
+                $match: {
+                  $and: [
+                    {
+                        semi_product_used: "0"
+                    },
+                    {
+                        semi_product_status: "5"
+                    }
+                  ]
+                }
+              },
+        ])
         getData = await JobSheet.aggregate([
             {
                 $lookup: {
@@ -39,7 +82,7 @@ let showDetailAssemble = async (req, res) => {
         if (getData) {
             return res.status(200).json({
                 success: true,
-                data: getData,
+                data: getData,getCategoriesSim,getJobSheetCode,getProductLot,
                 message: 'Get Data Completed!!!'
             });
         }
@@ -60,11 +103,11 @@ let approveAssembleOrder = async (req, res) => {
         console.log(getProductCode);
         isCheck = await Product.updateOne({ product_code: getProductCode }, {
             $set: {
-                product_assembler: getUser, product_status: 'Đang lắp ráp'
+                product_assembler: getUser, product_status: '4'
             }
         });
         getJobSheetCode = await Product.findOne({ product_code: getProductCode });
-        await JobSheet.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { jobsheet_status: 'Đang lắp ráp' });
+      //  await JobSheet.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { jobsheet_status: 'Đang lắp ráp' });
         await Assemble.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { assemble_status: 'Đang lắp ráp' });
         if (isCheck) {
 

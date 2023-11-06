@@ -60,8 +60,7 @@ let create = async (req, res) => {
             purpose: req.body.purpose,
             sim_package_id: req.body.sim_package_id,
             expiration_date:req.body.expiration_date,
-            semi_product_id:getNha,
-            
+            semi_product_id:getNha,            
         })
        
         console.log(PassInfo);        

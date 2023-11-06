@@ -4,149 +4,133 @@ const department = require('../app/Controllers/DeparmentController');
 const validate=require('../request/DepartmentRequest');
 /**
  * @swagger
- * tags:
-  - name: Current Weather Data
-    description: "Get current weather details"
-    
- * /getAll Department/:
- *   get:
- *     summary: Retrieve a single JSONPlaceholder user.
- *     description: Retrieve a single JSONPlaceholder user. Can be used to populate a user profile when prototyping or testing an API.
+ * '/deparment/':
+ *  get:
+ *     tags:
+ *     - Department
+ *     summary: Get all department
  *     responses:
  *       200:
- *         description: A single user.
+ *         description: Get Data Completed!!
  *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       description: The user ID.
- *                       example: 0
- *                     name:
- *                       type: string
- *                       description: The user's name.
- *                       example: Leanne Graham
-*/
+ *         application/json:    
+ *       
+ *       400:
+ *         description: Error connecting Database on Server
+ * 
+ *       403:
+ *         description: Authertication
+ */
 router.get('/',department.index);
 /**
  * @swagger
- * /Store Department:
- *   post:
- *     summary: Retrieve a list of JSONPlaceholder users.
- *     description: Retrieve a list of users from JSONPlaceholder. Can be used to populate a list of fake users when prototyping or testing an API.
+ * '/deparment/create':
+ *  post:
+ *     tags:
+ *     - Department
+ *     summary: Store data department
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            required:
+ *              - department_code
+ *              - department_name
+ *            properties:
+ *              department_code:
+ *                type: string
+ *                default: S
+ *              department_name:
+ *                type: string
+ *                default: Salse
  *     responses:
- *       200:
- *         description: A list of users.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         description: The user ID.
- *                         example: 0
- *                       name:
- *                         type: string
- *                         description: The user's name.
- *                         example: Leanne Graham
+ *      200:
+ *        description: Add new field comleted!!!
+ *      409:
+ *        description: Conflict
+ *      404:
+ *        description: Error connecting Database on Server
  */
 router.post('/create',department.create);
 /**
  * @swagger
- * /Edit Department:
- *   get:
- *     summary: Retrieve a list of JSONPlaceholder users.
- *     description: Retrieve a list of users from JSONPlaceholder. Can be used to populate a list of fake users when prototyping or testing an API.
+ * '/deparment/edit/{id}':
+ *  get:
+ *     tags:
+ *     - Department
+ *     summary: Get department by Id Department
+ *     parameters:
+ *      - name: id
+ *        in: path
+ *        description: Get department by Id Department
+ *        required: true
  *     responses:
- *       200:
- *         description: A list of users.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         description: The user ID.
- *                         example: 0
- *                       name:
- *                         type: string
- *                         description: The user's name.
- *                         example: Leanne Graham
+ *      200:
+ *        description: Infomation Field need to edit!!
+ *      400:
+ *        description: Error connecting Database on Server
+ *      404:
+ *        description: Error connecting Database on Server
  */
-router.get('/edit',department.edit);
+router.get('/edit/:id',department.edit);
 /**
  * @swagger
- * /Put Department:
- *   put:
- *     summary: Retrieve a list of JSONPlaceholder users.
- *     description: Retrieve a list of users from JSONPlaceholder. Can be used to populate a list of fake users when prototyping or testing an API.
+ * '/deparment/update/{id}':
+ *  put:
+ *     tags:
+ *     - Department
+ *     summary: Update data department
+ *     parameters:
+ *      - name: id
+ *        in: path
+ *        description: The unique id of the hero
+ *        required: true
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            required:
+ *              - department_code
+ *              - department_name
+ *            properties:
+ *              department_code:
+ *                type: string
+ *                default: S
+ *              department_name:
+ *                type: string
+ *                default: Salse
  *     responses:
- *       200:
- *         description: A list of users.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         description: The user ID.
- *                         example: 0
- *                       name:
- *                         type: string
- *                         description: The user's name.
- *                         example: Leanne Graham
+ *      200:
+ *        description: Add new field comleted!!!
+ *      409:
+ *        description: Conflict
+ *      404:
+ *        description: Error connecting Database on Server
  */
 router.put('/update/:id',department.update);
 /**
  * @swagger
- * /Delete Department:
- *   @delete:
- *     summary: Retrieve a list of JSONPlaceholder users.
- *     description: Retrieve a list of users from JSONPlaceholder. Can be used to populate a list of fake users when prototyping or testing an API.
+ * '/deparment/delete/{id}':
+ *  delete:
+ *     tags:
+ *     - Department
+ *     summary: Delete department by Id
+ *     parameters:
+ *      - name: id
+ *        in: path
+ *        description: The unique id of the hero
+ *        required: true
  *     responses:
- *       200:
- *         description: A list of users.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         description: The user ID.
- *                         example: 0
- *                       name:
- *                         type: string
- *                         description: The user's name.
- *                         example: Leanne Graham
+ *      200:
+ *        description: Removed
+ *      400:
+ *        description: Bad request
+ *      404:
+ *        description: Not Found
  */
-router.delete('/delete',department.destroy);
+router.delete('/delete/:id',department.destroy);
 module.exports = router;

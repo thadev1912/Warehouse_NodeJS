@@ -12,8 +12,6 @@ router.get('/showDetail/:id',jobsheet.showDetail);
 router.put('/OrderExportMaterials',jobsheet.OrderExportMaterials);
 router.put('/ExportMaterials',jobsheet.ExportMaterials);
 router.put('/OrderProduct',jobsheet.OrderProduct);
-router.put('/OrderWedling',jobsheet.OrderWedling);
-router.put('/OrderAssemble',jobsheet.OrderAssemble);
 router.get('/infoCreatOrderQC',jobsheet.infoCreatOrderQC);
 router.put('/OrderProductQC/:id',jobsheet.OrderProductQC);
 router.put('/OrderSemiProductQC/:id',jobsheet.OrderSemiProductQC);

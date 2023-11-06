@@ -52,7 +52,7 @@ let create = async (req, res) => {
 
 let edit = async (req, res) => {
     try {
-        id = req.query.id;
+        id = req.params.id;
         getId = await Department.findOne({ _id: id });
         if (getId) {
             return res.status(200).json({
@@ -91,7 +91,7 @@ let update = async (req, res) => {
 }
 let destroy = async (req, res) => {
     try {
-        let id = req.query.id;
+        let id = req.params.id;
         getId = await Department.findByIdAndRemove({ _id: id });
         if (getId) {
 
