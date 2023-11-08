@@ -20,6 +20,7 @@ const SemiProductSchema = new Schema({
     categories_sim_id:{type:String},
     sim_package_id:{type:String},
     semi_product_welding_status:{type:String},
+    semi_product_qc_status:{type:String},
     quality_control_id:{type:String},
     semi_product_used:{type:String},
     created: {type: Date, default: Date.now},

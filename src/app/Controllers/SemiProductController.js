@@ -17,13 +17,13 @@ let index = async (req, res) => {
             },
             {
                 $lookup: {
-                    from: "categories_sims",
+                    from: "categories_sims",                    
                     localField: "categories_sim_id",
                     foreignField: "_id",
                     as: "category"
                 }
             },
-          
+            {$match:{semi_product_status:'9'}}
     
         ]);
         if (getData) {
@@ -60,7 +60,8 @@ let create = async (req, res) => {
             purpose: req.body.purpose,
             sim_package_id: req.body.sim_package_id,
             expiration_date:req.body.expiration_date,
-            semi_product_id:getNha,            
+            semi_product_id:getNha,  
+            semi_product_used:'0',          
         })
        
         console.log(PassInfo);        

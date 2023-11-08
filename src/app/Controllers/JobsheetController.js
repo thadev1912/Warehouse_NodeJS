@@ -8,6 +8,7 @@ const Welding = require('../models/welding');
 const Assemble = require('../models/assemble');
 const ProductGroup = require('../models/product_group');
 const QualityControl = require('../models/quality_control');
+const Department = require('../models/department');
 const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {
@@ -79,7 +80,8 @@ let store = async (req, res) => {
                     product_name: req.body.product_name,
                     product_unit: req.body.product_unit,
                     product_status: '0',
-                    product_assemble_status:'0',
+                    product_assemble_status: '0',
+                    product_qc_status: '0',
                 });
                 await getProduct.save();
             }
@@ -97,8 +99,9 @@ let store = async (req, res) => {
                     semi_product_name: req.body.product_name,
                     semi_product_unit: req.body.product_unit,
                     semi_product_status: '0',
-                    semi_product_welding_status:'0',
-                    semi_product_used:'0',
+                    semi_product_welding_status: '0',
+                    semi_product_used: '0',
+                    semi_product_qc_status: '0',
                 });
                 await getSemiProduct.save();
             }
@@ -280,7 +283,11 @@ let update = async (req, res) => {
 
 }
 let showDetail = async (req, res) => {
+    let getProductGroup = await ProductGroup.find();
+    let getDepartment = await Department.find();
     getJobSheetCode = req.params.id;
+    isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
+    _isCheckQuantityControl = isCheckQuantityControl > 0 ? 1 : 0;
     const index = 6 - 1;
     if (index >= 0 && index < getJobSheetCode.length) {
         const createProductionType = getJobSheetCode.charAt(index);
@@ -302,7 +309,7 @@ let showDetail = async (req, res) => {
             ])
 
             return res.status(200).json({
-                success: true, data: getshowDetail, message: 'Infomation field has been updated !!!'
+                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl, message: 'Infomation field has been updated !!!'
             });
 
         }
@@ -324,7 +331,7 @@ let showDetail = async (req, res) => {
             ])
 
             return res.status(200).json({
-                success: true, data: getshowDetail, message: 'Infomation field has been updated !!!'
+                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl, message: 'Infomation field has been updated !!!'
             });
         }
 
@@ -446,59 +453,56 @@ let ExportMaterials = async (req, res) => {
     }
 }
 let OrderProduct = async (req, res) => {
-    try {       
+    try {
         getId = req.body.arrayProductID;
         getJobSheetCode = req.body.jobsheetCode;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
-          //tạo bảng Assemble (Thành phẩm)
-          isCheckJobsheetCode= await Assemble.findOne({jobsheet_code:getJobSheetCode}).count();
-          console.log('đếm được là',isCheckJobsheetCode);
-          let today = new Date();
-          dd = String(today.getDate()).padStart(2, '0');
-          mm = String(today.getMonth() + 1).padStart(2, '0');
-          yyyy = today.getFullYear();
-          createDay = mm + '/' + dd + '/' + yyyy;
+            //tạo bảng Assemble (Thành phẩm)
+            isCheckJobsheetCode = await Assemble.findOne({ jobsheet_code: getJobSheetCode }).count();
+            console.log('đếm được là', isCheckJobsheetCode);
+            let today = new Date();
+            dd = String(today.getDate()).padStart(2, '0');
+            mm = String(today.getMonth() + 1).padStart(2, '0');
+            yyyy = today.getFullYear();
+            createDay = mm + '/' + dd + '/' + yyyy;
+            for (let i = 0; i < getId.length; i++) {
+                await Product.findOneAndUpdate({ product_code: getId[i] }, { $set: { product_status: '3', product_assemble_status: '1' } });
+            }
+            isCheckJobsheetCode = await Assemble.find({ jobsheet_code: getJobSheetCode }).count();
+            if (isCheckJobsheetCode === 0) {
+                getAssemble = new Assemble({
+                    jobsheet_code: getJobSheetCode,
+                    assemble_create_date: createDay,
+                    assemble_status: '0'
+                });
+                getData = await getAssemble.save();
+            }
 
-          for (let i = 0; i < getId.length; i++) {           
-                await Product.findOneAndUpdate({ product_code: getId[i] },{$set:{product_status: '3' ,semi_product_assemble_status: '1'}});
-          }
-          isCheckJobsheetCode= await Assemble.find({jobsheet_code:getJobSheetCode}).count();
-          if(isCheckJobsheetCode===0)
-          {
-            getAssemble = new Assemble({
-                jobsheet_code: getJobSheetCode,
-                assemble_create_date: createDay,
-                assemble_status: '0'
-            });
-            getData = await getAssemble.save();
-          }
-         
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
-              //tạo bảng Prduct ( Bán Thành phẩm)
-              let today = new Date();
-              dd = String(today.getDate()).padStart(2, '0');
-              mm = String(today.getMonth() + 1).padStart(2, '0');
-              yyyy = today.getFullYear();
-              createDay = mm + '/' + dd + '/' + yyyy;  
-             
-             
-              for (let i = 0; i < getId.length; i++) {
-                await SemiProduct.findOneAndUpdate({ semi_product_lot: getId[i] }, { $set:{ semi_product_status: '3',semi_product_welding_status: '1'}});                 
-              }
-              isCheckJobsheetCode= await Welding.find({jobsheet_code:getJobSheetCode}).count();
-              console.log('đếm được là',isCheckJobsheetCode);
-              if(isCheckJobsheetCode===0)
-              {
+            //tạo bảng Prduct ( Bán Thành phẩm)
+            let today = new Date();
+            dd = String(today.getDate()).padStart(2, '0');
+            mm = String(today.getMonth() + 1).padStart(2, '0');
+            yyyy = today.getFullYear();
+            createDay = mm + '/' + dd + '/' + yyyy;
+
+
+            for (let i = 0; i < getId.length; i++) {
+                await SemiProduct.findOneAndUpdate({ semi_product_lot: getId[i] }, { $set: { semi_product_status: '3', semi_product_welding_status: '1' } });
+            }
+            isCheckJobsheetCode = await Welding.find({ jobsheet_code: getJobSheetCode }).count();
+            console.log('đếm được là', isCheckJobsheetCode);
+            if (isCheckJobsheetCode === 0) {
                 getWelding = new Welding({
                     jobsheet_code: getJobSheetCode,
                     welding_create_date: createDay,
                     welding_status: '0'
                 });
                 getData = await getWelding.save();
-              }
+            }
         }
         if (getInfo) {
             res.json({
@@ -525,113 +529,296 @@ let infoCreatOrderQC = async (req, res) => {
         });
     }
 }
+let OrderQC = async (req, res) => {
+    try {
+        // Example Generate ............//
+        console.log(req.body);
+        let today = new Date();
+        dd = String(today.getDate()).padStart(2, '0');
+        mm = String(today.getMonth() + 1).padStart(2, '0');
+        yyyy = today.getFullYear();
+        CurrentDay = mm + '/' + dd + '/' + yyyy;
+        const getDateTime = new Date();
+        var start = new Date();
+        start.setHours(0, 0, 0, 0);
+        var end = new Date();
+        end.setHours(23, 59, 59, 999);
+        const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+        createDay = String(getDateTime.getDate()).padStart(2, '0');
+        createMonth = month[getDateTime.getMonth()];
+        createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
+        createTypeQualityControl = req.body.type_quality_control   //loại kiểm tra (T or R)
+        createTypeProducttoCheck = req.body.type_product_to_check  //loại sản phẩm cần test ( M/S/P)
+        createTypeProductGroup = req.body.type_product_group//mã dòng sản phẩm
+        createDepartment = req.body.department//mã dòng sản phẩm
+        getCount = await QualityControl.find({ created: { $gte: start, $lt: end } }).count();
+        getCount += 1;
+        createQuantity = String(getCount).padStart(3, '0');  //lấy số lượng
+        console.log('đếm được là:', createQuantity);
+        mergeCodeQualityControl = 'QC' + createYear + createMonth + createDay + createTypeQualityControl + createTypeProducttoCheck + createTypeProductGroup + createDepartment + createQuantity;
+        console.log(mergeCodeQualityControl);
+        //Data get form body.../
+        isCheckStatus = true;
+        getQCArray = req.body.arrayProductID;
+        getJobSheetCode = req.body.jobsheetCode;
+        getUSer = req.body.fullname;
+        getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
+        getProductionType = getInfo.product_type_code;
+        if ((getProductionType == 'P') || (getProductionType == 'R')) {
+            //Loop here..........//
+            for (let i = 0; i < getQCArray.length; i++) {
+                console.log(i);
+                isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
+                console.log('kiem tra ton tai', isCheckQuantityControl)
+                if (isCheckQuantityControl === 0) {
+                    getQuantityControl = new QualityControl({
+                        quality_control_code: mergeCodeQualityControl,
+                        jobsheet_code: getJobSheetCode,
+                        quality_control_create_date: CurrentDay,
+                        user_id: getUSer,
+                    });
+                    getData = await getQuantityControl.save();
+                }
+
+
+                isCompleted = await Product.updateOne({ product_code: getQCArray[i] }, { $set: { product_status: '6', product_qc_status: '1' } });
+                isCheckStatus = isCompleted ? true : false;
+            }
+            //thông báo
+            if (isCheckStatus) {
+                res.json({
+                    status: 200,
+                    message: 'Update Completed!!',
+                });
+            }
+            else {
+                throw new Error('Error connecting Database on Server');
+            }
+        }
+        else if ((getProductionType == 'N') || (getProductionType == 'S')) {
+            //Loop here..........//
+            for (let i = 0; i < getQCArray.length; i++) {
+                isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
+                console.log('kiem tra ton tai', isCheckQuantityControl)
+                if (isCheckQuantityControl === 0) {
+                    getQuantityControl = new QualityControl({
+                        quality_control_code: mergeCodeQualityControl,
+                        jobsheet_code: getJobSheetCode,
+                        quality_control_create_date: CurrentDay,
+                        user_id: getUSer,
+                    });
+                    getData = await getQuantityControl.save();
+                }
+                isCompleted = await SemiProduct.updateOne({ semi_product_lot: getQCArray[i] }, { $set: { semi_product_status: '6', semi_product_qc_status: '1' } });
+                isCheckStatus = isCompleted ? true : false;            }
+            //thông báo
+            if (isCheckStatus) {
+                res.json({
+                    status: 200,
+                    message: 'Update Completed!!',
+                });
+            }
+            else {
+                throw new Error('Error connecting Database on Server');
+            }
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
 let OrderProductQC = async (req, res) => {
     //   Công thức : QC   28  E 23  R   M  50  P 001
-    console.log(req.body);
-    getProductCode = req.params.id;
-    console.log(getProductCode);
-    const getDateTime = new Date();
-    var start = new Date();
-    start.setHours(0, 0, 0, 0);
-    var end = new Date();
-    end.setHours(23, 59, 59, 999);
-    const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-    createDay = String(getDateTime.getDate()).padStart(2, '0');
-    createMonth = month[getDateTime.getMonth()];
-    createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
-    createTypeQualityControl = req.body.type_quality_control   //loại kiểm tra (T or R)
-    createTypeProducttoCheck = req.body.type_product_to_check  //loại sản phẩm cần test ( M/S/P)
-    createTypeProductGroup = req.body.type_product_group   //mã dòng sản phẩm
-    getCount = await QualityControl.find({ created: { $gte: start, $lt: end } }).count();
-    getCount += 1;
-    createQuantity = String(getCount).padStart(3, '0');  //lấy số lượng
-    console.log('đếm được là:', createQuantity);
-    mergeCodeQualityControl = 'QC' + createYear + createMonth + createDay + createTypeQualityControl + createTypeProducttoCheck + createTypeProductGroup + createQuantity;
-    console.log(mergeCodeQualityControl);
-    await Product.updateOne({ product_code: getProductCode }, { product_status: 'Đã gửi YCKT' });
-    getInfoProduct = await Product.find({ product_code: getProductCode });
-    const getValue = getInfoProduct[0];
-    getQuantityControl = new QualityControl({
-        quality_control_code: mergeCodeQualityControl,
-        jobsheet_code: getValue.jobsheet_code,
-        quality_control_specification: req.body.quality_control_specification,
-    });
-    getData = await getQuantityControl.save();
-    isCheckExits = await Product.findOne({
-        $and: [{ jobsheet_code: getValue.jobsheet_code }, {
-            $or: [
-                { product_status: { $exists: false } },
-                { product_status: { $ne: 'Đã gửi YCKT' } }
-            ]
-        }]
-    }).count();
-    console.log(isCheckExits);
-    if (isCheckExits === 0) {
-        await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đã kiểm tra' });
-    }
-    else {
-        await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đang kiểm tra' });
-    }
-    if (getData) {
-        return res.status(200).json({
-            success: true, message: 'Infomation field has been updated !!!'
-        });
-    }
+
+    // await Product.updateOne({ product_code: getProductCode }, { product_status: 'Đã gửi YCKT' });
+    // getInfoProduct = await Product.find({ product_code: getProductCode });
+    // const getValue = getInfoProduct[0];
+    // getQuantityControl = new QualityControl({
+    //     quality_control_code: mergeCodeQualityControl,
+    //     jobsheet_code: getValue.jobsheet_code,
+    //     quality_control_specification: req.body.quality_control_specification,
+    // });
+    // getData = await getQuantityControl.save();
+    // isCheckExits = await Product.findOne({
+    //     $and: [{ jobsheet_code: getValue.jobsheet_code }, {
+    //         $or: [
+    //             { product_status: { $exists: false } },
+    //             { product_status: { $ne: 'Đã gửi YCKT' } }
+    //         ]
+    //     }]
+    // }).count();
+    // console.log(isCheckExits);
+    // if (isCheckExits === 0) {
+    //     await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đã kiểm tra' });
+    // }
+    // else {
+    //     await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đang kiểm tra' });
+    // }
+    // if (getData) {
+    //     return res.status(200).json({
+    //         success: true, message: 'Infomation field has been updated !!!'
+    //     });
+    // }
 }
 let OrderSemiProductQC = async (req, res) => {
     //   Công thức : QC   28  E 23  R   M  50  P 001
-    console.log(req.body);
-    getSemiProductLot = req.params.id;
-    console.log(getSemiProductLot);
-    const getDateTime = new Date();
-    var start = new Date();
-    start.setHours(0, 0, 0, 0);
-    var end = new Date();
-    end.setHours(23, 59, 59, 999);
-    // const curentDay = Date.now();
-    // console.log(curentDay);
-    const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-    createDay = getDateTime.getDate();
-    createMonth = month[getDateTime.getMonth()];
-    createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
-    createTypeQualityControl = req.body.type_quality_control   //loại kiểm tra (T or R)
-    createTypeProducttoCheck = req.body.type_product_to_check  //loại sản phẩm cần test ( M/S/P)
-    createTypeProductGroup = req.body.type_product_group   //mã dòng sản phẩm
-    getCount = await QualityControl.find({ created: { $gte: start, $lt: end } }).count();
-    getCount += 1;
-    createQuantity = String(getCount).padStart(3, '0');  //lấy số lượng
-    console.log('đếm được là:', createQuantity);
-    mergeCodeQualityControl = 'QC' + createYear + createMonth + createDay + createTypeQualityControl + createTypeProducttoCheck + createTypeProductGroup + createQuantity;
-    console.log(mergeCodeQualityControl);
-    await SemiProduct.updateOne({ semi_product_lot: getSemiProductLot }, { semi_product_status: 'Đã gửi YCKT' });
-    getInfoSemiProduct = await SemiProduct.find({ semi_product_lot: getSemiProductLot });
-    const getValue = getInfoSemiProduct[0];
-    getQuantityControl = new QualityControl({
-        quality_control_code: mergeCodeQualityControl,
-        jobsheet_code: getValue.jobsheet_code,
-        quality_control_specification: req.body.quality_control_specification,
-    });
-    getData = await getQuantityControl.save();
-    //console.log('giá trị thông tin', getValue.jobsheet_code);
-    isCheckExits = await SemiProduct.findOne({
-        $and: [{ jobsheet_code: getValue.jobsheet_code }, {
-            $or: [
-                { semi_product_status: { $exists: false } },
-                { semi_product_status: { $ne: 'Đã gửi YCKT' } }
-            ]
-        }]
-    }).count();
-    console.log(isCheckExits);
-    if (isCheckExits === 0) {
-        await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đã kiểm tra' });
+    // console.log(req.body);
+    // getSemiProductLot = req.params.id;
+    // console.log(getSemiProductLot);
+    // const getDateTime = new Date();
+    // var start = new Date();
+    // start.setHours(0, 0, 0, 0);
+    // var end = new Date();
+    // end.setHours(23, 59, 59, 999);
+    // // const curentDay = Date.now();
+    // // console.log(curentDay);
+    // const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+    // createDay = getDateTime.getDate();
+    // createMonth = month[getDateTime.getMonth()];
+    // createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
+    // createTypeQualityControl = req.body.type_quality_control   //loại kiểm tra (T or R)
+    // createTypeProducttoCheck = req.body.type_product_to_check  //loại sản phẩm cần test ( M/S/P)
+    // createTypeProductGroup = req.body.type_product_group   //mã dòng sản phẩm
+    // getCount = await QualityControl.find({ created: { $gte: start, $lt: end } }).count();
+    // getCount += 1;
+    // createQuantity = String(getCount).padStart(3, '0');  //lấy số lượng
+    // console.log('đếm được là:', createQuantity);
+    // mergeCodeQualityControl = 'QC' + createYear + createMonth + createDay + createTypeQualityControl + createTypeProducttoCheck + createTypeProductGroup + createQuantity;
+    // console.log(mergeCodeQualityControl);
+    // await SemiProduct.updateOne({ semi_product_lot: getSemiProductLot }, { semi_product_status: 'Đã gửi YCKT' });
+    // getInfoSemiProduct = await SemiProduct.find({ semi_product_lot: getSemiProductLot });
+    // const getValue = getInfoSemiProduct[0];
+    // getQuantityControl = new QualityControl({
+    //     quality_control_code: mergeCodeQualityControl,
+    //     jobsheet_code: getValue.jobsheet_code,
+    //     quality_control_specification: req.body.quality_control_specification,
+    // });
+    // getData = await getQuantityControl.save();
+    // //console.log('giá trị thông tin', getValue.jobsheet_code);
+    // isCheckExits = await SemiProduct.findOne({
+    //     $and: [{ jobsheet_code: getValue.jobsheet_code }, {
+    //         $or: [
+    //             { semi_product_status: { $exists: false } },
+    //             { semi_product_status: { $ne: 'Đã gửi YCKT' } }
+    //         ]
+    //     }]
+    // }).count();
+    // console.log(isCheckExits);
+    // if (isCheckExits === 0) {
+    //     await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đã kiểm tra' });
+    // }
+    // else {
+    //     await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đang kiểm tra' });
+    // }
+    // if (getData) {
+    //     return res.status(200).json({
+    //         success: true, message: 'Infomation field has been updated !!!'
+    //     });
+    // }
+}
+let OrderStore = async (req, res) => {
+    try {
+        getJobSheetCode = req.body.jobsheetCode;
+        console.log(req.body);
+        getOrderStoreArray = req.body.arrayProductID;
+        getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
+        getProductionType = getInfo.product_type_code;
+        if ((getProductionType == 'P') || (getProductionType == 'R')) {
+            for (let i = 0; i < getOrderStoreArray.length; i++) {
+                isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '8' });
+            }
+
+            if (isCompleted) {
+                res.json({
+                    status: 200,
+                    message: 'Update Completed!!',
+                });
+            } else {
+                throw new Error('Error connecting Database on Server');
+            }
+        }
+        else if ((getProductionType == 'N') || (getProductionType == 'S')) {
+            for (let i = 0; i < getOrderStoreArray.length; i++) {
+                isCompleted = await SemiProduct.findOneAndUpdate({ semi_product_lot: getOrderStoreArray[i] }, { semi_product_status: '8' });
+            }
+            if (isCompleted) {
+                res.json({
+                    status: 200,
+                    message: 'Update Completed!!',
+                });
+            } else {
+                throw new Error('Error connecting Database on Server');
+            }
+        }
     }
-    else {
-        await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đang kiểm tra' });
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
     }
-    if (getData) {
-        return res.status(200).json({
-            success: true, message: 'Infomation field has been updated !!!'
-        });
+}
+let Store = async (req, res) => {
+    try {
+        getJobSheetCode = req.body.jobsheetCode;
+        console.log(req.body);
+        getOrderStoreArray = req.body.arrayProductID;
+        getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
+        getProductionType = getInfo.product_type_code;
+        if ((getProductionType == 'P') || (getProductionType == 'R')) {
+            for (let i = 0; i < getOrderStoreArray.length; i++) {
+                isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '9' });
+            }
+            //cập nhật trạng thái Jobsheet           
+            isCheckExits = await Product.findOne({
+                $and: [{ jobsheet_code: getJobSheetCode }, {
+                    $or: [
+                        { product_status: { $exists: false } },
+                        { product_status: { $ne: '9' } }
+                    ]
+                }]
+            }).count();
+            console.log('giá trị tồn tại cuối cùng là', isCheckExits);
+            if (isCheckExits === 0) {
+                await JobSheet.updateOne({ jobsheet_code: getInfoProduct.jobsheet_code }, { jobsheet_status: '2' });
+            }
+            if (isCompleted) {
+                res.json({
+                    status: 200,
+                    message: 'Update Completed!!',
+                });
+            } else {
+                throw new Error('Error connecting Database on Server');
+            }
+        }
+        else if ((getProductionType == 'N') || (getProductionType == 'S')) {
+            for (let i = 0; i < getOrderStoreArray.length; i++) {
+                isCompleted = await SemiProduct.findOneAndUpdate({ semi_product_lot: getOrderStoreArray[i] }, { semi_product_status: '9' });
+            }
+            isCheckExits = await SemiProduct.findOne({
+                $and: [{ jobsheet_code: getInfoSemiProduct.jobsheet_code }, {
+                    $or: [
+                        { semi_product_status: { $exists: false } },
+                        { semi_product_status: { $ne: '9' } }
+                    ]
+                }]
+            }).count();
+            console.log('giá trị tồn tại cuối cùng là', isCheckExits);
+            if (isCheckExits === 0) {
+                await JobSheet.updateOne({ jobsheet_code: getInfoSemiProduct.jobsheet_code }, { jobsheet_status: '9' });
+            }
+            if (isCompleted) {
+                res.json({
+                    status: 200,
+                    message: 'Update Completed!!',
+                });
+            } else {
+                throw new Error('Error connecting Database on Server');
+            }
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
     }
 }
 let OrderStoreProduct = async (req, res) => {
@@ -690,6 +877,7 @@ let OrderStoreSemiProduct = async (req, res) => {
         });
     }
 }
+
 let StoreProduct = async (req, res) => {
     getProductCode = req.params.id;
     console.log(getProductCode);
@@ -756,7 +944,7 @@ module.exports = {
     showDetail: showDetail,
     OrderExportMaterials: OrderExportMaterials,
     ExportMaterials: ExportMaterials,
-    OrderProduct: OrderProduct,    
+    OrderProduct: OrderProduct,
     infoCreatOrderQC: infoCreatOrderQC,
     OrderProductQC: OrderProductQC,
     OrderSemiProductQC: OrderSemiProductQC,
@@ -764,4 +952,7 @@ module.exports = {
     OrderStoreSemiProduct: OrderStoreSemiProduct,
     StoreProduct: StoreProduct,
     StoreSemiProduct: StoreSemiProduct,
+    OrderQC: OrderQC,
+    OrderStore: OrderStore,
+    Store: Store,
 }

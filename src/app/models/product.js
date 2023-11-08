@@ -18,6 +18,7 @@ const ProductSchema = new Schema({
     product_note:{type:String},
     product_unit:{type:String},
     product_assemble_status:{type:String},
+    product_qc_status:{type:String},
     quality_control_id:{type:String},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},
