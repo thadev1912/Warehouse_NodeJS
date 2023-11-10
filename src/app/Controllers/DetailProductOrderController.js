@@ -1,7 +1,5 @@
 const DetailProductOrder = require('../models/detail_product_order');
 const User = require('../models/user');
-const { ObjectId } = require('mongodb');
-//Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {
        
@@ -23,7 +21,7 @@ let index = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
-//Thêm mới khu vực
+
 let store = async (req, res) => {
     try {
         console.log(req.body);
@@ -47,7 +45,7 @@ let store = async (req, res) => {
     }
 }
 
-//Cập nhật khu vực
+
 let update = async (req, res) => {
     try {
         let id = req.params.id;

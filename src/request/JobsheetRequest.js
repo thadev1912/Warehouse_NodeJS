@@ -44,16 +44,14 @@ const middlewareValidate = {
         'string.empty': `Quy cách sản xuất không được bỏ trống`,       
       }),
       jobsheet_note: Joi.string().required().messages({
-        'string.empty': ` Ghi chú sản xuất phòng ban không được bỏ trống`,       
+        'string.empty': ` Ghi chú sản xuất không được bỏ trống`,       
       }),
-      jobsheet_note: Joi.string().required().messages({
-        'string.empty': `Mã phòng ban không được bỏ trống`,       
+      jobsheet_note: Joi.string().allow(null).allow('').messages({             
       }),
-      production_style: Joi.string().required().messages({
-        
+      production_style: Joi.string().required().messages({   
+        'string.empty': ` Loại sản xuất không được bỏ trống`,   
       }),
-      jobsheet_status: string().allow(null).allow('').messages({
-              
+      jobsheet_status: Joi.string().allow(null).allow('').messages({              
       }),    
     });
     const { error } = checkJobsheet.validate(req.body, { abortEarly: false });

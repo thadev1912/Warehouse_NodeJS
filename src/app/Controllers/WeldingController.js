@@ -156,10 +156,7 @@ let showDetailWelding = async (req, res) => {
                                     $toObjectId: "$sim_package_id"
                                 },
                             },
-
-
                         },
-
                         {
                             $lookup: {
                                 from: "categories_sims",
@@ -244,7 +241,7 @@ let approveWeldingOrder = async (req, res) => {
 
             return res.status(200).json({
                 success: true,
-                data: getData,
+               // data: getData,
                 message: 'Get Data Completed!!!'
             });
         }
@@ -299,7 +296,7 @@ let approveWeldingOrder = async (req, res) => {
 let updateWeldingOrder = async (req, res) => {
     try {
         console.log('giá trị chuẩn bị cập nhật', req.body);
-        req.body.semi_product_used = '1';
+      //  req.body.semi_product_used = '1';
         getSemiProductLot = req.params.id;
         getOldSim = req.body.old_sim;
         getNewSim = req.body.categories_sim_id;
@@ -316,7 +313,8 @@ let updateWeldingOrder = async (req, res) => {
                 semi_product_id: '',
                 manage_sim_note: '',
             });          
-            await CategoriesSim.findByIdAndUpdate(getOldSim, { use_sim: '0', $set: getCancelCategoriesSim });
+            await CategoriesSim.findByIdAndUpdate(getOldSim, { use_sim: '0', $set: getCancelCategoriesSim });   
+            await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_status:'10' });// (req.body);         
             isExits=await SemiProduct.findOne({ semi_product_lot: getSemiProductLot}).count();
             if(isExits>0)
             {
@@ -324,21 +322,24 @@ let updateWeldingOrder = async (req, res) => {
             }
                }     
         
-    
-        infoOldSim = await CategoriesSim.findOne({ _id: getOldSim });  
-        const OldId= infoOldSim._id;            
-        getClearCategoriesSim = new CategoriesSim({
-            _id: OldId,
-            activation_date: '',
-            purpose: '',
-            sim_package_id: '',
-            expiration_date: '',
-            semi_product_id: '',
-            manage_sim_note: '',
-        })
-        await CategoriesSim.findByIdAndUpdate(OldId, { use_sim: '0', $set: getClearCategoriesSim });
-        const getId = new ObjectId(InfoSemiProduct.categories_sim_id);       
+        if(getOldSim)
+        {
+            infoOldSim = await CategoriesSim.findOne({ _id: getOldSim });         
+            const OldId= infoOldSim._id;            
+            getClearCategoriesSim = new CategoriesSim({
+                _id: OldId,
+                activation_date: '',
+                purpose: '',
+                sim_package_id: '',
+                expiration_date: '',
+                semi_product_id: '',
+                manage_sim_note: '',
+            })
+            await CategoriesSim.findByIdAndUpdate(OldId, { use_sim: '0', $set: getClearCategoriesSim });           
+        }
+            
         if (getNewSim) {
+            const getId = new ObjectId(InfoSemiProduct.categories_sim_id);  
             getUpdateCategoriesSim = new CategoriesSim({    
                 _id: getId,                
                 activation_date: req.body.activation_date,
@@ -368,7 +369,6 @@ let updateWeldingOrder = async (req, res) => {
             //     await CategoriesSim.findByIdAndUpdate(getOldSim, { use_sim: '0', $set: getCategoriesSim });
             // }
         }
-
         await QualityControl.findOneAndUpdate({ jobsheet_code: InfoSemiProduct.jobsheet_code }, { quality_control_status: 'Đang hàn mạch' });
         if (getData) {
             return res.status(200).json({

@@ -5,13 +5,13 @@ const middlewareValidate = {
     // const token = req.headers.token; //cách lấy từ header
     const checkAssemble = Joi.object({    
         jobsheet_code: Joi.string().required().messages({
-        'string.empty': `Tên phòng ban không được bỏ trống`,
+        'string.empty': `Mã jobsheet được bỏ trống`,
       }),
       assemble_create_date: Joi.string().required().messages({
-        'string.empty': `Tên phòng ban không được bỏ trống`,
+        'string.empty': `Ngày tạo jobsheet không được bỏ trống`,
       }),
       assemble_status: Joi.string().required().messages({
-        'string.empty': `Tên phòng ban không được bỏ trống`,
+        'string.empty': `Trạng thái jobsheet không được bỏ trống`,
       }),    
     });
     const { error } = checkAssemble.validate(req.body, { abortEarly: false });

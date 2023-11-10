@@ -1,5 +1,4 @@
 //Region validate:
-
 const joiBase = require('@hapi/joi')
 const joiDate = require('@hapi/joi-date');
 //const joi = joiBase.extend(joiDate);
@@ -15,9 +14,8 @@ const complexityOptions = {
 };
 const middlewareValidate = {
     checkValidate: (req, res, next) => {
-        const checkUser = Joi.object({
-            user_code: Joi.string().messages({
-               
+        const checkUser = Joi.object({          
+            user_code: Joi.string().messages({               
             }),
             username: Joi.string().min(6).required().messages({
                 'string.empty': `Username không được bỏ trống`,

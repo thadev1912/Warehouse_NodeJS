@@ -1,30 +1,29 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {    
     const checkDetailProductOrder = Joi.object({       
       product_order_code: Joi.string().required().messages({  
-        'string.empty': `Số series Sim không được bỏ trống`,         
+        'string.empty': `Mã yêu cầu sản xuất không được bỏ trống`,         
       }),  
       detail_product_order_name: Joi.string().required().messages({  
-        'string.empty': `Số series Sim không được bỏ trống`,         
+        'string.empty': `Tên sản phẩm không được bỏ trống`,         
       }),  
       detail_product_order_quantity: Joi.string().required().messages({  
-        'string.empty': `Số series Sim không được bỏ trống`,         
+        'string.empty': `Số lượng yêu cầu không được bỏ trống`,         
       }),  
       detail_product_order_unit: Joi.string().required().messages({  
-        'string.empty': `Số series Sim không được bỏ trống`,         
+        'string.empty': `Đơn vị tính không được bỏ trống`,         
       }),  
       detail_product_order_finish: Joi.string().required().messages({  
-        'string.empty': `Số series Sim không được bỏ trống`,         
+        'string.empty': `Ngày dự kiến hoàn thành không được bỏ trống`,         
       }),  
       detail_product_order_packing: Joi.string().required().messages({  
-        'string.empty': `Số series Sim không được bỏ trống`,         
+        'string.empty': `Quy cách đóng gói không được bỏ trống`,         
       }),  
       detail_product_order_detail: Joi.string().required().messages({  
-        'string.empty': `Số series Sim không được bỏ trống`,         
-      }),  
+        'string.empty': `Yêu cầu chi tiết không được bỏ trống`,         
+      }), 
       
     });
     const { error } = checkDetailProductOrder.validate(req.body, { abortEarly: false });

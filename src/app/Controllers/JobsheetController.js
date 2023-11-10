@@ -488,8 +488,6 @@ let OrderProduct = async (req, res) => {
             mm = String(today.getMonth() + 1).padStart(2, '0');
             yyyy = today.getFullYear();
             createDay = mm + '/' + dd + '/' + yyyy;
-
-
             for (let i = 0; i < getId.length; i++) {
                 await SemiProduct.findOneAndUpdate({ semi_product_lot: getId[i] }, { $set: { semi_product_status: '3', semi_product_welding_status: '1' } });
             }
@@ -628,95 +626,8 @@ let OrderQC = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
-let OrderProductQC = async (req, res) => {
-    //   Công thức : QC   28  E 23  R   M  50  P 001
 
-    // await Product.updateOne({ product_code: getProductCode }, { product_status: 'Đã gửi YCKT' });
-    // getInfoProduct = await Product.find({ product_code: getProductCode });
-    // const getValue = getInfoProduct[0];
-    // getQuantityControl = new QualityControl({
-    //     quality_control_code: mergeCodeQualityControl,
-    //     jobsheet_code: getValue.jobsheet_code,
-    //     quality_control_specification: req.body.quality_control_specification,
-    // });
-    // getData = await getQuantityControl.save();
-    // isCheckExits = await Product.findOne({
-    //     $and: [{ jobsheet_code: getValue.jobsheet_code }, {
-    //         $or: [
-    //             { product_status: { $exists: false } },
-    //             { product_status: { $ne: 'Đã gửi YCKT' } }
-    //         ]
-    //     }]
-    // }).count();
-    // console.log(isCheckExits);
-    // if (isCheckExits === 0) {
-    //     await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đã kiểm tra' });
-    // }
-    // else {
-    //     await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đang kiểm tra' });
-    // }
-    // if (getData) {
-    //     return res.status(200).json({
-    //         success: true, message: 'Infomation field has been updated !!!'
-    //     });
-    // }
-}
-let OrderSemiProductQC = async (req, res) => {
-    //   Công thức : QC   28  E 23  R   M  50  P 001
-    // console.log(req.body);
-    // getSemiProductLot = req.params.id;
-    // console.log(getSemiProductLot);
-    // const getDateTime = new Date();
-    // var start = new Date();
-    // start.setHours(0, 0, 0, 0);
-    // var end = new Date();
-    // end.setHours(23, 59, 59, 999);
-    // // const curentDay = Date.now();
-    // // console.log(curentDay);
-    // const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-    // createDay = getDateTime.getDate();
-    // createMonth = month[getDateTime.getMonth()];
-    // createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
-    // createTypeQualityControl = req.body.type_quality_control   //loại kiểm tra (T or R)
-    // createTypeProducttoCheck = req.body.type_product_to_check  //loại sản phẩm cần test ( M/S/P)
-    // createTypeProductGroup = req.body.type_product_group   //mã dòng sản phẩm
-    // getCount = await QualityControl.find({ created: { $gte: start, $lt: end } }).count();
-    // getCount += 1;
-    // createQuantity = String(getCount).padStart(3, '0');  //lấy số lượng
-    // console.log('đếm được là:', createQuantity);
-    // mergeCodeQualityControl = 'QC' + createYear + createMonth + createDay + createTypeQualityControl + createTypeProducttoCheck + createTypeProductGroup + createQuantity;
-    // console.log(mergeCodeQualityControl);
-    // await SemiProduct.updateOne({ semi_product_lot: getSemiProductLot }, { semi_product_status: 'Đã gửi YCKT' });
-    // getInfoSemiProduct = await SemiProduct.find({ semi_product_lot: getSemiProductLot });
-    // const getValue = getInfoSemiProduct[0];
-    // getQuantityControl = new QualityControl({
-    //     quality_control_code: mergeCodeQualityControl,
-    //     jobsheet_code: getValue.jobsheet_code,
-    //     quality_control_specification: req.body.quality_control_specification,
-    // });
-    // getData = await getQuantityControl.save();
-    // //console.log('giá trị thông tin', getValue.jobsheet_code);
-    // isCheckExits = await SemiProduct.findOne({
-    //     $and: [{ jobsheet_code: getValue.jobsheet_code }, {
-    //         $or: [
-    //             { semi_product_status: { $exists: false } },
-    //             { semi_product_status: { $ne: 'Đã gửi YCKT' } }
-    //         ]
-    //     }]
-    // }).count();
-    // console.log(isCheckExits);
-    // if (isCheckExits === 0) {
-    //     await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đã kiểm tra' });
-    // }
-    // else {
-    //     await JobSheet.updateOne({ jobsheet_code: getValue.jobsheet_code }, { jobsheet_status: 'Đang kiểm tra' });
-    // }
-    // if (getData) {
-    //     return res.status(200).json({
-    //         success: true, message: 'Infomation field has been updated !!!'
-    //     });
-    // }
-}
+
 let OrderStore = async (req, res) => {
     try {
         getJobSheetCode = req.body.jobsheetCode;
@@ -779,7 +690,7 @@ let Store = async (req, res) => {
             }).count();
             console.log('giá trị tồn tại cuối cùng là', isCheckExits);
             if (isCheckExits === 0) {
-                await JobSheet.updateOne({ jobsheet_code: getInfoProduct.jobsheet_code }, { jobsheet_status: '2' });
+                await JobSheet.updateOne({ jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }
             if (isCompleted) {
                 res.json({
@@ -795,7 +706,7 @@ let Store = async (req, res) => {
                 isCompleted = await SemiProduct.findOneAndUpdate({ semi_product_lot: getOrderStoreArray[i] }, { semi_product_status: '9' });
             }
             isCheckExits = await SemiProduct.findOne({
-                $and: [{ jobsheet_code: getInfoSemiProduct.jobsheet_code }, {
+                $and: [{ jobsheet_code: getJobSheetCode }, {
                     $or: [
                         { semi_product_status: { $exists: false } },
                         { semi_product_status: { $ne: '9' } }
@@ -821,119 +732,7 @@ let Store = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
-let OrderStoreProduct = async (req, res) => {
-    getProductCode = req.params.id;
-    console.log(getProductCode);
-    getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { product_status: 'Đã gửi YC Nhập Kho' });
-    getInfoProduct = await Product.findOne({ product_code: getProductCode });
-    console.log(getInfoProduct);
-    //cập nhật trạng thái Jobsheet
-    isCheckExits = await Product.findOne({
-        $and: [{ jobsheet_code: getInfoProduct.jobsheet_code }, {
-            $or: [
-                { product_status: { $exists: false } },
-                { product_status: { $ne: 'Đã gửi YC Nhập Kho' } }
-            ]
-        }]
-    }).count();
-    if (isCheckExits === 0) {
-        await JobSheet.updateOne({ jobsheet_code: getInfoProduct.jobsheet_code }, { jobsheet_status: 'Đã gửi YC Nhập Kho' });
-    }
-    else {
-        /////
-    }
-    if (getData) {
-        res.json({
-            status: 200,
-            message: 'Get Data Completed!!',
-        });
-    }
 
-}
-let OrderStoreSemiProduct = async (req, res) => {
-    getSemiProductLot = req.params.id;
-    console.log(getSemiProductLot);
-    getData = await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_status: 'Đã gửi YC Nhập Kho' });
-    getInfoSemiProduct = await SemiProduct.findOne({ semi_product_code: getSemiProductLot });
-    //cập nhật trạng thái Jobsheet
-    isCheckExits = await SemiProduct.findOne({
-        $and: [{ jobsheet_code: getInfoSemiProduct.jobsheet_code }, {
-            $or: [
-                { semi_product_status: { $exists: false } },
-                { semi_product_status: { $ne: 'Đã gửi YC Nhập Kho' } }
-            ]
-        }]
-    }).count();
-    if (isCheckExits === 0) {
-        await JobSheet.updateOne({ jobsheet_code: getInfoSemiProduct.jobsheet_code }, { jobsheet_status: 'Đã gửi YC Nhập Kho' });
-    }
-    else {
-        ///
-    }
-    if (getData) {
-        res.json({
-            status: 200,
-            message: 'Get Data Completed!!',
-        });
-    }
-}
-
-let StoreProduct = async (req, res) => {
-    getProductCode = req.params.id;
-    console.log(getProductCode);
-    getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { product_status: 'Đã Nhập Kho' });
-    getInfoProduct = await Product.findOne({ product_code: getProductCode });
-    console.log(getInfoProduct);
-    //cập nhật trạng thái Jobsheet
-    isCheckExits = await Product.findOne({
-        $and: [{ jobsheet_code: getInfoProduct.jobsheet_code }, {
-            $or: [
-                { product_status: { $exists: false } },
-                { product_status: { $ne: 'Đã Nhập Kho' } }
-            ]
-        }]
-    }).count();
-    if (isCheckExits === 0) {
-        await JobSheet.updateOne({ jobsheet_code: getInfoProduct.jobsheet_code }, { jobsheet_status: 'Đã Nhập Kho' });
-    }
-    else {
-        /////
-    }
-    if (getData) {
-        res.json({
-            status: 200,
-            message: 'Get Data Completed!!',
-        });
-    }
-
-}
-let StoreSemiProduct = async (req, res) => {
-    getSemiProductLot = req.params.id;
-    console.log(getSemiProductLot);
-    getData = await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_status: 'Đã Nhập Kho' });
-    getInfoSemiProduct = await SemiProduct.findOne({ semi_product_lot: getSemiProductLot });
-    //cập nhật trạng thái Jobsheet
-    isCheckExits = await SemiProduct.findOne({
-        $and: [{ jobsheet_code: getInfoSemiProduct.jobsheet_code }, {
-            $or: [
-                { semi_product_status: { $exists: false } },
-                { semi_product_status: { $ne: 'Đã Nhập Kho' } }
-            ]
-        }]
-    }).count();
-    if (isCheckExits === 0) {
-        await JobSheet.updateOne({ jobsheet_code: getInfoSemiProduct.jobsheet_code }, { jobsheet_status: 'Đã Nhập Kho' });
-    }
-    else {
-        ///
-    }
-    if (getData) {
-        res.json({
-            status: 200,
-            message: 'Get Data Completed!!',
-        });
-    }
-}
 module.exports = {
     index: index,
     store: store,
@@ -945,13 +744,7 @@ module.exports = {
     OrderExportMaterials: OrderExportMaterials,
     ExportMaterials: ExportMaterials,
     OrderProduct: OrderProduct,
-    infoCreatOrderQC: infoCreatOrderQC,
-    OrderProductQC: OrderProductQC,
-    OrderSemiProductQC: OrderSemiProductQC,
-    OrderStoreProduct: OrderStoreProduct,
-    OrderStoreSemiProduct: OrderStoreSemiProduct,
-    StoreProduct: StoreProduct,
-    StoreSemiProduct: StoreSemiProduct,
+    infoCreatOrderQC: infoCreatOrderQC,    
     OrderQC: OrderQC,
     OrderStore: OrderStore,
     Store: Store,

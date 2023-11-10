@@ -5,17 +5,25 @@ const SemiProduct = require('../models/semi_product');
 //Lấy danh sách phòng ban
 let index = async (req, res) => {
     try {      
-        let getSemiProduct = await CategoriesSim.aggregate([
-            // {
-            //     $addFields: {
-            //         semi_product_id: {
-            //             $toObjectId: "$semi_product_id"
-            //         },
-            //         sim_package_id: {
-            //             $toObjectId: "$sim_package_id"
-            //         }
-            //     }
-            // },
+        let getSemiProduct = await CategoriesSim.aggregate([           
+            {
+                $addFields: {
+                    semi_product_id: {
+                        $cond: {
+                            if: { $eq: ["$semi_product_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$semi_product_id" }
+                        }
+                    },
+                    sim_package_id: {
+                        $cond: {
+                            if: { $eq: ["$sim_package_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$sim_package_id" }
+                        }
+                    },
+                },
+            },
             {
                 $lookup: {
                     from: "semi_products",
@@ -31,8 +39,7 @@ let index = async (req, res) => {
                     foreignField: "_id",
                     as: "sim_package"
                 }
-            },
-          
+            },        
     
         ]);
         if (getSemiProduct) {
@@ -51,8 +58,7 @@ let index = async (req, res) => {
 }
 
 let create = async (req, res) => {
-    try {
-        
+    try {        
         const getCategoriesSim = new CategoriesSim(req.body);
         getCategoriesSim.use_sim = '0';
         checkId = await CategoriesSim.find({ serial_sim: req.body.serial_sim }).count();
@@ -79,7 +85,6 @@ let create = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
-
 
 let edit = async (req, res) => {
     try {

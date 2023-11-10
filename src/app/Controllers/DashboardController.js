@@ -8,32 +8,23 @@ let HeaderReport = async (req, res) => {
         let quantityJobSheet = await JobSheet.find().count();
         let ProcessingJobSheet = await JobSheet.find({ jobsheet_status: '4' }).count();
         let CompletedJobSheet = await JobSheet.find({ jobsheet_status: '5' }).count();
-        let CancelJobSheet = await JobSheet.find({ jobsheet_status: '6' }).count();
-     //   let infoJobSheet = await JobSheet.find();
-    //  //  let selectDayJobSheet =await JobSheet.aggregate([
-    //     {
-    //         $group: {
-    //           _id: { created: '$created' }, // Nhóm theo ngày
-    //           totalProductQuantity: { $sum: '$product_quantity' }, // Tính tổng product_quantity
-    //         },
-    //       },
-    //    ])
+        let CancelJobSheet = await JobSheet.find({ jobsheet_status: '6' }).count();    
         //ProductOrder
         let quantityProductOrder = await ProductOrder.find().count();
         let acceptProductOrder = await ProductOrder.find({ production_order_status: 1 }).count();
         let cancelProductOrder = await ProductOrder.find({ production_order_status: 2 }).count();
         //Product       
         let QuantityProduct = await Product.find().count();
-        let CancelProduct = await Product.find({ product_status: '0' }).count();
-        let ProcessingProduct = await Product.find({ product_status: '1' }).count();
-        let CompletedProduct = await Product.find({ product_status: '2' }).count();
+        let CancelProduct = await Product.find({ product_status: '10' }).count();
+        let ProcessingProduct = await Product.find({ product_status: '4' }).count();
+        let CompletedProduct = await Product.find({ product_status: '9' }).count();
         let PassProduct = await Product.find({ product_result: '1' }).count();
         let FailProduct = await Product.find({ product_result: '0' }).count();
         //SemiProduct      
         let QuantitySemiProduct = await SemiProduct.find().count();
-        let CancelSemiProduct = await SemiProduct.find({ semi_product_status: '0' }).count();
-        let ProcessingSemiProduct = await SemiProduct.find({ semi_product_status: '1' }).count();
-        let CompletedSemiProduct = await SemiProduct.find({ semi_product_status: '2' }).count();
+        let CancelSemiProduct = await SemiProduct.find({ semi_product_status: '10' }).count();
+        let ProcessingSemiProduct = await SemiProduct.find({ semi_product_status: '4' }).count();
+        let CompletedSemiProduct = await SemiProduct.find({ semi_product_status: '9' }).count();
         let PassSemiProduct = await SemiProduct.find({ semi_product_result: '1' }).count();
         let FailSemiProduct = await SemiProduct.find({ semi_product_result: '0' }).count();
         if ((quantityJobSheet)&&(QuantityProduct)&&(QuantitySemiProduct)) {
@@ -45,7 +36,6 @@ let HeaderReport = async (req, res) => {
                 ProductOrder: { quantityProductOrder, acceptProductOrder, cancelProductOrder,FailProduct },
                 Product: { QuantityProduct, CancelProduct, ProcessingProduct, CompletedProduct,PassProduct,FailProduct },
                 SemiProduct: { QuantitySemiProduct, CancelSemiProduct, ProcessingSemiProduct, CompletedSemiProduct,PassSemiProduct,FailSemiProduct },
-
             });
         }
         else {
@@ -116,14 +106,14 @@ let BarChartReport =async (req,res) => {
                 $filter: {
                   input: "$dataProduct",
                   as: "product",
-                  cond: { $eq: ["$product.product_status", "Mới tạo"] }
+                  cond: { $eq: ["$product.product_status", "10"] }
                 }
               },
               dataSemiProduct: {
                 $filter: {
                   input: "$dataSemiProduct",
                   as: "semiProduct",
-                  cond: { $eq: ["$semiProduct.semi_product_status", "Mới tạo"] }
+                  cond: { $eq: ["$semiProduct.semi_product_status", "10"] }
                 }
               }
             }
@@ -271,7 +261,7 @@ else {
 }
 let PerformanceReport =async(req,res)=>
 {
-  res.json('bạn gọi tôi à');
+  //
 }
 
 module.exports = {

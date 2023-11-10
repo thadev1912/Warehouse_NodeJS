@@ -2,17 +2,113 @@ const ProductOrder = require('../models/product_order');
 const DetailProductOrder = require('../models//detail_product_order');
 const IncrementCode = require('../models/increment_code_product_order');
 const User = require('../models/user');
+const jwt = require("jsonwebtoken");
+const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {
+        // check middleware
+        const token = req.headers.token;
+        if (token != null) {
+            const AccessToken = token.split(" ")[1];
+            jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, user) => {
+                if (user) {
+                    getInfoUser = user;//thông tin user  
+                    console.log('thông tin user sau khi verify',getInfoUser);
+                    const _id = new ObjectId(getInfoUser._id);
+                    getRole = await getRoles(_id);
+                    //console.log(getRole[0].roles[0].role_name);
+                    let _isRole = getRole[0].roles[0].role_name;
+                    if (_isRole === 'admin') {
+                    // let getData = await ProductOrder.find({}).sort({ product_order_No: -1 });
+                     console.log(getData);
+                      getData=await ProductOrder.aggregate([
+                        {
+                            $addFields: {
+                                user_create_by: {
+                                    $toObjectId: "$user_create_by"
+                                },
+                              
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                pipeline:[
+                                    {
+                                        $project: {_id:1,fullname:1}
+                                       }
+                                ],
+                                localField: "user_create_by",
+                                foreignField: "_id",
+                                as: "detail_user"
+                            }
+                        },
+                      ]);
+                        if (getData) {
+                            res.json({
+                                status: 200,
+                                message: 'Get Data Completed!!',
+                                data: getData
+                            });
+                        }
+                    }
+                    else if (_isRole === 'user') {
+                        getIdUser=getInfoUser._id;
+                        getInfoUser=await User.findOne({_id:getIdUser}).select('_id');
+                        console.log(getInfoUser);
+                      // let getData = await ProductOrder.find({fullname:getInfoUser.fullname}).sort({ product_order_No: -1 });
+                       getData=await ProductOrder.aggregate([
+                        {
+                            $addFields: {
+                                user_create_by: {
+                                    $toObjectId: "$user_create_by"
+                                },
+                              
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                pipeline:[
+                                    {
+                                        $project: {_id:1,fullname:1}
+                                       }
+                                ],
+                                localField: "user_create_by",
+                                foreignField: "_id",
+                                as: "detail_user"
+                            }
+                        },
+                        {
+                            $match:{user_create_by:getInfoUser._id}
+                        }
+                       
+                    ]);
 
-         let getData = await ProductOrder.find({}).sort({product_order_No:-1}); 
-            if (getData) {
-            res.json({
-                status: 200,
-                message: 'Get Data Completed!!',
-                data: getData
-            });
-        }
+
+                        if (getData) {
+                            res.json({
+                                status: 200,
+                                message: 'Get Data Completed!!',
+                                data: getData
+                            });
+                        }
+
+
+                    }
+                } 
+                else
+                {
+                    res.json({
+                        status: 401,
+                        message: 'Token has been expried',                       
+                    });
+                }              
+                  
+                
+               
+            })
+        }        
         else {
             throw new Error('Error connecting Database on Server');
         }
@@ -113,9 +209,29 @@ let infotoCreate = async (req, res) => {
     }
 
 }
-let edit=async (req,res) => {
-   getId=req.params.id; 
-     getData =await ProductOrder.aggregate([
+let edit = async (req, res) => {
+    getId = req.params.id;
+    getData = await ProductOrder.aggregate([
+        {
+            $addFields: {
+                user_create_by: {
+                    $toObjectId: "$user_create_by"
+                },              
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                pipeline:[
+                    {
+                        $project: {_id:1,fullname:1}
+                       }
+                ],
+                localField: "user_create_by",
+                foreignField: "_id",
+                as: "detail_user"
+            }
+        },
         {
             $lookup: {
                 from: "detail_product_orders",
@@ -125,10 +241,10 @@ let edit=async (req,res) => {
             }
         },
         {
-            $match: {product_order_No:getId}
+            $match: { product_order_No: getId }
         }
-     ]);
-     if (getData) {
+    ]);
+    if (getData) {
         return res.status(200).json({
             success: true, message: 'Infomation Field need to edit!!', data: getData,
         });
@@ -138,7 +254,7 @@ let edit=async (req,res) => {
 
     }
 
-} 
+}
 let update = async (req, res) => {
     try {
         let id = req.params.id;
@@ -161,7 +277,7 @@ let update = async (req, res) => {
 let showdetail = async (req, res) => {
     try {
         getId = req.params.id;
-        let getData = await DetailProductOrder.find({ product_order_code: getId });
+       let getData = await DetailProductOrder.find({ product_order_code: getId });     
         if (getData) {
             res.json({
                 status: 200,
@@ -179,9 +295,9 @@ let showdetail = async (req, res) => {
 
 
 }
-let approve = async (req, res) => {   
+let approve = async (req, res) => {
     id = req.params.id;
-    getdata = req.body.production_order_receiver;    
+    getdata = req.body.production_order_receiver;
     updateInfo = new ProductOrder({
         _id: req.params.id,
         production_order_status: '1',
@@ -197,8 +313,8 @@ let approve = async (req, res) => {
         throw new Error('Error connecting Database on Server');
     }
 }
-let reapprove =async(req,res) => {   
-    id = req.params.id;       
+let reapprove = async (req, res) => {
+    id = req.params.id;
     updateInfo = new ProductOrder({
         _id: req.params.id,
         production_order_status: '0',
@@ -215,8 +331,8 @@ let reapprove =async(req,res) => {
     }
 
 }
-let cancel =async(req,res) => {   
-    id = req.params.id;       
+let cancel = async (req, res) => {
+    id = req.params.id;
     updateInfo = new ProductOrder({
         _id: req.params.id,
         production_order_status: '2',
@@ -279,17 +395,34 @@ let runIncrementInvoice = async (req, res) => {
         await getInvoice.save();
     }
 }
+let getRoles= async (data) => {
 
+    getData = await User.aggregate([
+        {
+
+
+            $lookup: {
+                from: "roles",
+                localField: "role_id",
+                foreignField: "role_code",
+                as: "roles",
+            },
+        },
+        { $match: { '_id': data } },
+    ]);
+    return getData
+}
 module.exports = {
     index: index,
     store: store,
-    edit:edit,
+    edit: edit,
     update: update,
     showdetail: showdetail,
     approve: approve,
-    reapprove:reapprove,
-    cancel:cancel,
+    reapprove: reapprove,
+    cancel: cancel,
     destroy: destroy,
     infotoCreate: infotoCreate,
     runIncrementInvoice: runIncrementInvoice,
+    getRoles:getRoles
 }

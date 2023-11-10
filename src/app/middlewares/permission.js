@@ -14,28 +14,24 @@ const middlewarePermision = {
                     //console.log(getRole[0].roles[0].role_name);
                     let _isRole = getRole[0].roles[0].role_name;
                     if (_isRole !== 'admin') {
-                        res.status(401).json("You haven't permision for this page.....");
+                        res.status(403).json("You haven't permision for this page.....");
                         return;
                     }
                     next();
                 }
                 else {
-                    return res.status(403).json("Please login acccount system.....");
+                    return res.status(401).json("Please login acccount system.....");
                 }
-
             });
-
         }
         else {
-            res.status(403).json("Please login acccount system.....");
+            res.status(401).json("Please login acccount system.....");
         }
     },
     getRoles: async (data) => {
 
         getData = await User.aggregate([
             {
-
-
                 $lookup: {
                     from: "roles",
                     localField: "role_id",
@@ -47,7 +43,5 @@ const middlewarePermision = {
         ]);
         return getData
     },
-
-
 }
 module.exports = middlewarePermision

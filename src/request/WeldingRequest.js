@@ -11,7 +11,7 @@ const middlewareValidate = {
         'string.empty': `Ngày tạo hàn mạch không được bỏ trống`,
       }),
       welding_status: Joi.string().required().messages({
-        'string.empty': `Tên phòng ban không được bỏ trống`,
+        'string.empty': `Trạng thái hàn mạch không được bỏ trống`,
       }),    
     });
     const { error } = checkWelding.validate(req.body, { abortEarly: false });
@@ -21,7 +21,6 @@ const middlewareValidate = {
         error: error,
 
       });
-
     }
     else {
       next();

@@ -23,6 +23,7 @@ app.use(session({
   resave: 'true',
   secret: 'secret'
 }));
+
 const server = http.createServer(app);
 const socketIo = require("socket.io")(server, {
   cors: {
@@ -49,6 +50,8 @@ server.listen(5000, ipAddress, () => {
   console.log('Chat System already open on port 5000');
 });
 //***********Socket IO*******************//
+//lấy token từ api
+//cấp token cho socket..
 socketIo.on("connection", (socket) => {
   console.log("User " + socket.id + " connected into room");
 
