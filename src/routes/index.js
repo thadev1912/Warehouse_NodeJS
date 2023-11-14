@@ -17,13 +17,14 @@ const welding=require('./welding');
 const assemble=require('./assemble');
 const dashboard=require('./dashboard');
 const quality_control=require('./qualtity_control');
-const Auth =require('../app/middlewares/auth');
-const Permision =require('../app/middlewares/permission');
+const permission=require('./role_permission');
+const Auth =require('../app/middlewares/authenticatetion');
+const Permision =require('../app/middlewares/authorization');
 function route(app)
 {
 app.use('/account',user); 
 app.use('/role',role); 
-app.use('/region',Permision.checkPermision,region);
+app.use('/region',region);
 app.use('/deparment',department);
 app.use('/position',position);
 app.use('/product-type',product_type);
@@ -40,5 +41,6 @@ app.use('/welding',welding);
 app.use('/assemble',assemble);
 app.use('/dashboard',dashboard);
 app.use('/quality-control',quality_control);
+app.use('/permission',permission);
 }
 module.exports = route;

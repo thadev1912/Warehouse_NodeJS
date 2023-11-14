@@ -21,7 +21,7 @@ const validate=require('../request/DepartmentRequest');
  *       403:
  *         description: Authertication
  */
-router.get('/',department.index);
+router.get('/listDepartment',department.index);
 /**
  * @swagger
  * '/deparment/create':
@@ -53,7 +53,7 @@ router.get('/',department.index);
  *      404:
  *        description: Error connecting Database on Server
  */
-router.post('/create',department.create);
+router.post('/storeDepartment',department.create);
 /**
  * @swagger
  * '/deparment/edit/{id}':
@@ -74,7 +74,7 @@ router.post('/create',department.create);
  *      404:
  *        description: Error connecting Database on Server
  */
-router.get('/edit/:id',department.edit);
+router.get('/editDepartment/:id',department.edit);
 /**
  * @swagger
  * '/deparment/update/{id}':
@@ -111,7 +111,7 @@ router.get('/edit/:id',department.edit);
  *      404:
  *        description: Error connecting Database on Server
  */
-router.put('/update/:id',department.update);
+router.put('/updateDepartment/:id',department.update);
 /**
  * @swagger
  * '/deparment/delete/{id}':
@@ -132,5 +132,5 @@ router.put('/update/:id',department.update);
  *      404:
  *        description: Not Found
  */
-router.delete('/delete/:id',department.destroy);
+router.delete('/deleteDepartment/:id',department.destroy);
 module.exports = router;

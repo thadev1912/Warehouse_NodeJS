@@ -21,7 +21,40 @@ let index = async (req, res) => {
                             then: '',
                             else: { $toObjectId: "$sim_package_id" }
                         }
-                    },
+                    },                  
+                    sim_status: {
+                        $cond: {
+                            if: {
+                                $gte: ["$activation_date",new Date()] 
+                            },
+                            then: { $cond: { if: { $eq: ["$activation_date", ""] }, then: "", else: "Chưa Kích hoạt" } },
+                          //  else: "Đã kích hoạt"
+                            else:{
+                                $cond:{
+                                    if:{$eq: [ { $ifNull: ["$activation_date", null] }, null]},
+                                    then:'',
+                                    else: "Đã kích hoạt"
+                                }
+                            }
+                        }
+                    },                 
+                    // deadline_warning: {
+                    //     $cond: {
+                    //         if: {
+                    //             $lte: [
+                    //                 {
+                    //                     $subtract: [
+                    //                         "$expiration_date",
+                    //                         30 * 24 * 60 * 60 * 1000,
+                    //                     ],
+                    //                 },
+                    //                 new Date(),
+                    //             ],
+                    //         },
+                    //         then: "Sắp hết hạn",
+                    //         else: "",
+                    //     },
+                    // },
                 },
             },
             {
@@ -39,8 +72,7 @@ let index = async (req, res) => {
                     foreignField: "_id",
                     as: "sim_package"
                 }
-            },        
-    
+            },
         ]);
         if (getSemiProduct) {
             res.json({
@@ -128,10 +160,8 @@ let update = async (req, res) => {
 const destroy = async (req, res) => {
     try {
         const id = req.query.id;
-
         // Kiểm tra xem có liên kết với semi_product không
         const semiProductCount = await SemiProduct.countDocuments({ categories_sim_id: id });
-
         if (semiProductCount > 0) {
             // Nếu có liên kết, không thực hiện xóa
             return res.status(400).json({

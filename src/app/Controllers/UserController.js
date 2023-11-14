@@ -10,23 +10,27 @@ const { ObjectId } = require('mongodb');
 const mailer = require('../../helper/sendmail');
 const crypto = require('crypto');
 const StoreToken = require('../models/store_token');
+const TestImage = require('../models/test_image');
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
+        let dataPosition = await Position.find({});
+        let dataRegion = await Region.find({});
+        let dataDepartment = await Department.find({});
         let getData = await User.aggregate([
-            // {
-            //     $addFields: {
-            //         region_id: {
-            //             $toObjectId: "$region_id"
-            //         },
-            //          position_id: {
-            //             $toObjectId: "$position_id"
-            //         },
-            //           department_id: {
-            //             $toObjectId: "$department_id"
-            //         },
-            //     }
-            // },
+            {
+                $addFields: {
+                    region_id: {
+                        $toObjectId: "$region_id"
+                    },
+                     position_id: {
+                        $toObjectId: "$position_id"
+                    },
+                      department_id: {
+                        $toObjectId: "$department_id"
+                    },
+                }
+            },
             {
                 $lookup: {
                     from: "regions",
@@ -52,11 +56,12 @@ let listUser = async (req, res) => {
                 }
             },
         ]);
+       
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Lấy dữ liệu thành công!!!',
-                data: getData,
+                data: getData,dataPosition,dataDepartment,dataRegion
             });
         }
         else {
@@ -172,6 +177,8 @@ let register = async (req, res) => {
             //         success: true, message: 'This User ID exits!!',
             //     });           }
             getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
+            reqName=new Date().toISOString().split('T')[0]+req.file.originalname
+            getNameImage='uploads/'+reqName;          
             const getUser = new User({
                 fullname: req.body.fullname,
                 username: req.body.username,
@@ -185,8 +192,8 @@ let register = async (req, res) => {
                 department_id: req.body.department_id,
                 gender: req.body.gender,
                 birthday: req.body.birthday,
-                //  avatar: req.file.originalname,
-                avatar: 'uploads/avatar.png',
+                // avatar: req.file.originalname,
+                avatar: getNameImage,
             });
             let getData = await getUser.save();
             if (getData) {
@@ -222,6 +229,65 @@ let checkLogin = async (req, res) => {
         return res.json({ status: 500, message: 'Username or passsword incorect!!!' });
     }
     let checkUser = await User.findOne({ username: user });
+    getRoleUser = await User.aggregate([
+        {
+
+            $match: {
+                _id: checkUser._id,
+            },
+        },
+        {
+            $lookup: {
+                from: 'user_roles',
+                localField: '_id',
+                foreignField: 'user_id',
+                as: 'userRole',
+            },
+        },
+        {
+            $unwind: '$userRole',
+        },
+        {
+            $lookup: {
+                from: 'role_permissions',
+                localField: 'userRole.role_permission_id',
+                foreignField: '_id',
+                as: 'rolePermission',
+            },
+        },
+        {
+            $unwind: {
+                path: '$rolePermission',
+                preserveNullAndEmptyArrays: true,
+            },
+        },
+        {
+            $group: {
+                _id: null,
+                role_permission_name: { $addToSet: '$rolePermission.role_permission_name' },
+            },
+        },
+        {
+            $project: {
+                _id: 0, // Exclude _id from the output
+                role_permission_name: 1,
+            },
+        },
+        // {
+
+
+        //     $lookup: {
+        //         from: "role_permissions",
+        //         localField: "role_id",
+        //         foreignField: "role_permission_id",
+        //         as: "getPermissionGroup",
+        //     },
+        // },
+        // { $match: { '_id': data } },
+    ]);
+    //console.log('lấy được thông tin role của User là:',getRoleUser);
+    const isAdmin = getRoleUser.length > 0 && getRoleUser[0].role_permission_name.includes('admin')?'admin':'';
+    console.log('user này có quyền admin:',isAdmin);
     getInfo = await User.aggregate([
         {
             $project: {
@@ -294,40 +360,50 @@ let checkLogin = async (req, res) => {
     console.log('thông tin user', checkUser);
     let checkPw = await bcrypt.compare(pws, checkUser.password);
     // let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
-    let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username },
-        process.env.JWT_SECRET,
-      //  { expiresIn: "1h" }
-      { expiresIn: "1m" }
-    );
-
-    // res.cookie("jwt", AccessToken, {
-    //     httpOnly: true,
-    //     maxAge: 60 * 60 * 1000, // 2hrs in ms
-    // });
-    // getCookie = req.cookies.jwt;
+    let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username,isAdmin},
+        process.env.JWT_SECRET,       
+        { expiresIn: "1h" }
+    );    
     checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken, getInfo }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
 }
-let checkLogout = async (req, res) => {
-    //const token = req.cookies.jwt;
+let checkLogout = async (req, res) => {   
     const token = req.headers.token;
     jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
         if (user) {
-            res.clearCookie("jwt", { maxAge: 1 })                      
+            res.clearCookie("jwt", { maxAge: 1 })
             return res.json('You has been sign out!!!');
         }
         if (err) {
             return res.json('Error!!!');
         }
     })
-
 }
 let hashpw = async (pw) => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(pw, salt);
-
 }
-let uploadImage = async (req, res) => {
-    console.log(req.file.originalname);
+let uploadImage = async (req, res) => { 
+   console.log(req.file.originalname);
+  // var currentDate = new Date().toISOString().split('T')[0];
+ //  var getFileName = currentDate + file.originalname;
+   reqName=new Date().toISOString().split('T')[0]+req.file.originalname
+     getNameImage='uploads/'+reqName;
+   StoreTestImage =new TestImage({
+    username:req.body.username,
+    email:req.body.email,
+    image_path:reqName,
+   })
+   isComplete=await StoreTestImage.save();
+   if (isComplete) {
+    res.json({
+        status: 200,
+        messege: 'Update data Image successfully',     
+    });
+}
+else {
+    throw new Error('Error connecting Database on Server');
+}
+    
     //console.log('insert image');
     // console.log(req.body.image)
     // var img = fs.readFileSync(req.file.path);
@@ -344,7 +420,6 @@ let destroyUser = async (req, res) => {
         let id = req.query.id;
         getId = await User.findByIdAndRemove({ _id: id });
         if (getId) {
-
             return res.status(200).json({
                 success: true, message: 'This field has been removed!!!',
             });
@@ -361,17 +436,59 @@ let destroyUser = async (req, res) => {
 let updateUser = async (req, res) => {
     try {
         let id = req.query.id;
+       
+        // if(req.file.originalname)
+        // {
+        //     reqName=new Date().toISOString().split('T')[0]+req.file.originalname
+        //     getNameImage='uploads/'+reqName;
+        // }
+        // else
+        // {
+        //     getNameImage=req.body.avatar;
+        // }
         console.log(req.body);
-        getData = await User.findByIdAndUpdate(id, { $set: req.body });
-        if (getData) {
-            getNewData = await User.findOne({ _id: id });
-            return res.status(200).json({
-                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
-            });
-        }
-        else {
-            throw new Error('Error connecting Database on Server');
-        }
+       
+        if(req.file)
+          {
+            if (req.file.originalname !== undefined)
+            {
+                getName='uploads/'+new Date().toISOString().split('T')[0]+req.file.originalname;
+                req.body.avatar=getName;
+                getData = await User.findByIdAndUpdate(id, { $set: req.body });
+                if (getData) {
+                    getNewData = await User.findOne({ _id: id });
+                    return res.status(200).json({
+                        success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                    });
+                }
+                else {
+                    throw new Error('Error connecting Database on Server');
+                }
+            }
+          }
+          else
+          {
+            if(req.body.old_avatar)
+            {
+                getOldAvatar=req.body.old_avatar;
+                req.body.avatar= getOldAvatar;    
+                getData = await User.findByIdAndUpdate(id, { $set:req.body });
+                avatar=req.body.old_avatar;
+                if (getData) {
+                    getNewData = await User.findOne({ _id: id });
+                    return res.status(200).json({
+                        success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                    });
+                }
+                else {
+                    throw new Error('Error connecting Database on Server');
+                }
+                        }                   
+          }
+              
+       // req.body.avatar= (req.file.originalname)?'uploads/'+new Date().toISOString().split('T')[0]+req.file.originalname:req.body.old_avatar;   
+           
+       
     }
     catch (err) {
         console.log(err);
@@ -432,37 +549,39 @@ let changePassword = async (req, res) => {
 ///***********Mail****************
 let sendMail = async (req, res) => {
     try {
-        const { to, subject, body } = req.body;
-        //ghép chuổi
-        const htmlString = `
-  <div>
-    <h1>XÁC MINH TÀI KHOẢN</h1>
-    <p>
-      Yêu cầu xác minh tài khoản của bạn đã được nhận, vui lòng nhấp vào liên kết bên dưới để xác nhận tài khoản.
-    </p>
-    <a href="">Xác nhận tài khoản</a>
-    <p>
-      Liên kết của bạn sẽ hết hạn trong 3 phút 
-    </p>
-  </div>
-`;     
-       
+        const randomToken = await generateRandomToken(32); 
         getMail = req.body.to;
-        console.log(getMail);
-        isSendMail = await mailer.sendMail(to, subject, body);     
-        
-        const randomToken = await generateRandomToken(32); // Generates a 64-character (32 bytes) random token
-        //Tạo token mail  
-        // let TokenResetPw = jwt.sign({ getMail, randomToken },
-        //     process.env.JWT_SECRET,
-        //     { expiresIn: '3m' }
-        // );
-        TokenResetPw= await generateResetToken(randomToken,getMail);       
+        ischeckMail=await User.findOne({email:getMail}).count();
+        if(ischeckMail===0)
+        {
+            res.json({
+                status: 404,
+                messege: 'This mail not exits',
+                
+            });        }
+        else 
+              {        
+        TokenResetPw = await generateResetToken(randomToken, getMail);        
+        const htmlString = `
+                <div>
+                  <h1>XÁC MINH TÀI KHOẢN</h1>
+                  <p>
+                    Yêu cầu xác minh tài khoản của bạn đã được nhận, vui lòng nhấp vào liên kết bên dưới để xác nhận tài khoản.
+                  </p>
+                  <a href="http://192.168.48.145:8080/reset-password/${TokenResetPw}">Xác nhận tài khoản </a>
+                
+                  <p>
+                    Liên kết của bạn sẽ hết hạn trong 3 phút 
+                  </p>
+                </div>
+              `;
+        const { to, subject } = req.body;
+        body = htmlString;
         const getToken = new StoreToken({
             token_code: randomToken,
             email_code: getMail,
         });
-        
+        isSendMail = await mailer.sendMail(to, subject, body);
         isComplete = await getToken.save();
         if (isSendMail) {
             res.json({
@@ -473,29 +592,36 @@ let sendMail = async (req, res) => {
         }
         else {
             throw new Error('Error connecting Database on Server');
-        }       
-    } catch (error) {
+        }
+    } 
+}
+    catch (error) {
         console.log(error)
         res.send(error)
     }
 }
 let resetPassword = async (req, res) => {
+    console.log(req.params.id);
     AccessToken = req.params.id;
     if (AccessToken !== null) {
         jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, info) => {
             if (info) {
-                getToken = info;                
+                console.log("giá trị thông tin nhận được là:",info);
+                getToken = info;
                 isCheck = await StoreToken.findOne({ token_code: getToken.randomToken }).count();
                 if (isCheck > 0) {
                     Newpw = req.body.new_password;
                     Repeatpw = req.body.repeat_password;
-                    if (Newpw === Repeatpw) {                        
-                         hashNewpw = await hashpw(Newpw);                        
-                         isComplete = await User.findOneAndUpdate({ email: getToken.getMail }, { password: hashNewpw });
+                    if (Newpw === Repeatpw) {
+                        hashNewpw = await hashpw(Newpw);
+                        console.log(hashNewpw);
+                        isComplete = await User.findOneAndUpdate({ email: getToken.getMail }, { password: hashNewpw });
                         if (isComplete) {
-                            res.status(200).json({
-                                success: true, message: 'Password has been updated !!!'
-                            });
+                            res.json({
+                                status: 200,
+                                success: true,
+                                message: 'Password has been updated !!!',
+                            });                          
                         }
                     }
                     else {
@@ -506,10 +632,10 @@ let resetPassword = async (req, res) => {
                     }
                 }
             }
-            if(err) {
+            if (err) {
                 res.json({
                     status: 401,
-                    message: 'Token Has been expried',
+                    message: 'Token Has been expried or Invalid',
                 });
             }
         });
@@ -525,12 +651,11 @@ let resetPassword = async (req, res) => {
 let generateRandomToken = (length) => {
     return crypto.randomBytes(length).toString('hex');
 }
-let generateResetToken =async(x,y) =>
-{
- return jwt.sign({ x, y },
-            process.env.JWT_SECRET,
-            { expiresIn: '3m' }
-        );
+let generateResetToken = async (randomToken, getMail) => {
+    return jwt.sign({ randomToken, getMail },
+        process.env.JWT_SECRET,
+        { expiresIn: '3m' }
+    );
 }
 module.exports =
 {
@@ -548,5 +673,5 @@ module.exports =
     sendMail: sendMail,
     generateRandomToken: generateRandomToken,
     resetPassword: resetPassword,
-    generateResetToken,generateResetToken
+    generateResetToken, generateResetToken
 }

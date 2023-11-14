@@ -21,7 +21,7 @@ const middlewareValidate = {
       detail_product_order_packing: Joi.string().required().messages({  
         'string.empty': `Quy cách đóng gói không được bỏ trống`,         
       }),  
-      detail_product_order_detail: Joi.string().required().messages({  
+      detail_product_order_detail: Joi.string().allow(null).allow('').messages({  
         'string.empty': `Yêu cầu chi tiết không được bỏ trống`,         
       }), 
       

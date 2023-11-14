@@ -15,6 +15,8 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
+const expressListEndpoints = require('express-list-endpoints');
+const AllRoutersName = require('./src/app/models/all_routes_name');
 app.use(cors());
 app.use(session({
   cookie: { maxAge: 60000 },
@@ -69,10 +71,10 @@ socketIo.on("connection", (socket) => {
 //Test máy chủ chat SocetIO
 // app.get("/",async (req, res) => {
 //   await res.render('index');
-  // res.status(200).send({
-  //   success: true,
-  //   message: "Wellcome Chat System ",
-  // });
+// res.status(200).send({
+//   success: true,
+//   message: "Wellcome Chat System ",
+// });
 //});
 //Swagger
 const swaggerOptions = {
@@ -92,13 +94,40 @@ const swaggerOptions = {
   apis: ['./src/routes/*.js'],
 };
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs)); 
-app.get('/',(req,res)=>{
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.get('/', (req, res) => {
   res.send('Wellcome to NodeJS');
-  });
+});
 //Sử dụng cho 
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
+
+//get all Router Name
+app.get('/api/routes', (req, res) => {
+  ischeckStatus = true;
+  const allRoutes = expressListEndpoints(app);
+  const updatedRoutes = allRoutes.map(route => {
+    const secondSlashIndex = route.path.indexOf('/', 1); // Tìm vị trí của '/' thứ hai
+    if (secondSlashIndex !== -1) {
+      route.path = route.path.slice(secondSlashIndex); // Lấy phần sau ký tự '/'
+    }
+    return route;
+  });
+  routes = allRoutes.filter(route => route.path !== "*");
+  routes.forEach(async (routeInfo) => {
+    routes_code = routeInfo.path;
+    const _AllRoutersName = new AllRoutersName({ routes_code: routes_code });
+    isComplete = await _AllRoutersName.save();
+    ischeckStatus = isComplete ? true : false;
+
+  });
+  if (ischeckStatus) {
+    return res.status(200).json({
+      success: true, message: 'Store All Routes Completed!!', data: routes,
+    });
+    //res.json(routes);
+  }
+});
 //middleware cho trường hợp sai đường dẫn 
 app.all('*', (req, res) => {
   res.status(404);

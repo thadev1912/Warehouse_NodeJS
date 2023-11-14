@@ -6,113 +6,46 @@ const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {
-        // check middleware
-        const token = req.headers.token;
-        if (token != null) {
-            const AccessToken = token.split(" ")[1];
-            jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, user) => {
-                if (user) {
-                    getInfoUser = user;//thông tin user  
-                    console.log('thông tin user sau khi verify',getInfoUser);
-                    const _id = new ObjectId(getInfoUser._id);
-                    getRole = await getRoles(_id);
-                    //console.log(getRole[0].roles[0].role_name);
-                    let _isRole = getRole[0].roles[0].role_name;
-                    if (_isRole === 'admin') {
-                    // let getData = await ProductOrder.find({}).sort({ product_order_No: -1 });
-                     console.log(getData);
-                      getData=await ProductOrder.aggregate([
-                        {
-                            $addFields: {
-                                user_create_by: {
-                                    $toObjectId: "$user_create_by"
-                                },
-                              
-                            }
-                        },
-                        {
-                            $lookup: {
-                                from: "users",
-                                pipeline:[
-                                    {
-                                        $project: {_id:1,fullname:1}
-                                       }
-                                ],
-                                localField: "user_create_by",
-                                foreignField: "_id",
-                                as: "detail_user"
-                            }
-                        },
-                      ]);
-                        if (getData) {
-                            res.json({
-                                status: 200,
-                                message: 'Get Data Completed!!',
-                                data: getData
-                            });
-                        }
-                    }
-                    else if (_isRole === 'user') {
-                        getIdUser=getInfoUser._id;
-                        getInfoUser=await User.findOne({_id:getIdUser}).select('_id');
-                        console.log(getInfoUser);
-                      // let getData = await ProductOrder.find({fullname:getInfoUser.fullname}).sort({ product_order_No: -1 });
-                       getData=await ProductOrder.aggregate([
-                        {
-                            $addFields: {
-                                user_create_by: {
-                                    $toObjectId: "$user_create_by"
-                                },
-                              
-                            }
-                        },
-                        {
-                            $lookup: {
-                                from: "users",
-                                pipeline:[
-                                    {
-                                        $project: {_id:1,fullname:1}
-                                       }
-                                ],
-                                localField: "user_create_by",
-                                foreignField: "_id",
-                                as: "detail_user"
-                            }
-                        },
-                        {
-                            $match:{user_create_by:getInfoUser._id}
-                        }
-                       
-                    ]);
-
-
-                        if (getData) {
-                            res.json({
-                                status: 200,
-                                message: 'Get Data Completed!!',
-                                data: getData
-                            });
-                        }
-
-
-                    }
-                } 
-                else
+        //console.log('giá trị được truyền lên từ middleware',getInfoUser);   
+        
+        
+            getData=await ProductOrder.aggregate([
                 {
+                    $addFields: {
+                        user_create_by: {
+                            $toObjectId: "$user_create_by"
+                        },
+                      
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        pipeline:[
+                            {
+                                $project: {_id:1,fullname:1}
+                               }
+                        ],
+                        localField: "user_create_by",
+                        foreignField: "_id",
+                        as: "detail_user"
+                    }
+                },
+              ]);
+                if (getData) {
                     res.json({
-                        status: 401,
-                        message: 'Token has been expried',                       
+                        status: 200,
+                        message: 'Get Data Completed!!',
+                        data: getData
                     });
-                }              
-                  
-                
-               
-            })
-        }        
-        else {
-            throw new Error('Error connecting Database on Server');
-        }
-    }
+                }
+            
+       
+          
+            }
+        
+      
+    
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });

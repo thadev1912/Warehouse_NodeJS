@@ -20,6 +20,7 @@ const ProductSchema = new Schema({
     product_assemble_status:{type:String},
     product_qc_status:{type:String},
     quality_control_id:{type:String},
+    semi_product_lot:{type:String},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},
 });

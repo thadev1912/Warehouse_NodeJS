@@ -5,8 +5,8 @@ const Schema = mongoose.Schema
 const CategoriesSimSchema = new Schema({    
     serial_sim: {type: String},  
     sim_status: {type: String},
-    activation_date: {type: String}, 
-    expiration_date: {type: String},   
+    activation_date: {type: Date}, 
+    expiration_date: {type: Date},   
     deadline_warning: {type: String},
     purpose: {type: String}, 
     manage_sim_note: {type: String},  

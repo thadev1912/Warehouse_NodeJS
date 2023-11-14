@@ -1,10 +1,12 @@
 var express = require('express');
 var router = express.Router();
 const region = require('../app/Controllers/RegionController');
+const Auth =require('../app/middlewares/authenticatetion');
+const Permission =require('../app/middlewares/authorization');
 const validate=require('../request/RegionRequest');
-router.get('/',region.index);
-router.post('/create',validate.checkValidate,region.create);
-router.get('/edit',region.edit);
-router.put('/update/:id',validate.checkValidate,region.update);
-router.delete('/delete',region.destroy);
+router.get('/listRegion',region.index);
+router.post('/storeRegion',validate.checkValidate,region.create);
+router.get('/editRegion',region.edit);
+router.put('/updateRegion/:id',validate.checkValidate,region.update);
+router.delete('/deleteRegion',region.destroy);
 module.exports = router;

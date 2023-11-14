@@ -381,7 +381,7 @@ let cancel = async (req, res) => {
 }
 let OrderExportMaterials = async (req, res) => {
     try {
-
+      
         getId = req.body.arrayProductID;
         getJobSheetCode = req.body.jobsheetCode;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
