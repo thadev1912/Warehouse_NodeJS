@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const detail_manager_ims = require('../../app/Controllers/IMS/DetailManagerIMSController');
+const upload=require('../../helper/uploadIMS');
+//const validate=require('../request/PostionRequest');
+router.get('/listDetailManagerIMS/:id',detail_manager_ims.index);
+router.post('/storeDetailManagerIMS',upload.array('images'),detail_manager_ims.store);
+router.put('/updateDetailManagerIMS/:id',detail_manager_ims.update);
+router.delete('/deleteDetailManagerIMS/:id',detail_manager_ims.destroy);
+module.exports = router;

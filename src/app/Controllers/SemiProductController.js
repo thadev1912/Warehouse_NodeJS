@@ -20,10 +20,25 @@ let index = async (req, res) => {
                     from: "categories_sims",                    
                     localField: "categories_sim_id",
                     foreignField: "_id",
+                    pipeline:[
+                        {
+                            $addFields: {                                
+                                sim_package_id: { $toObjectId: "$sim_package_id" }
+                            },                                       
+                        },
+                        {
+                            $lookup: {
+                                from: "sim-packages",
+                                localField: "sim_package_id",
+                                foreignField: "_id",
+                                as: "SimpackageInfo",
+                            },
+                        }, 
+                    ],
                     as: "category"
                 }
             },
-            {$match:{semi_product_status:'9'}}
+                        {$match:{semi_product_status:'9'}}
     
         ]);
         if (getData) {

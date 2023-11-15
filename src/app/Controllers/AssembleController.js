@@ -95,46 +95,59 @@ let showDetailAssemble = async (req, res) => {
         //         $match: { jobsheet_code: getJobSheetCode }
         //     }
         // ])
-        getData = await JobSheet.aggregate([
+        getData = await JobSheet.aggregate([          
             {
                 $lookup: {
                     from: "products",
-                    pipeline: [
-                        {
-                            $match: {
-                                product_assemble_status: "1",
-                            },
-                        },
-                        {
+                    pipeline: [                                                  
+                        {                            
                             $lookup: {
-                                from: "semi_products",                               
+                                from: "semi_products",
                                 localField: "semi_product_lot",
                                 foreignField: "semi_product_lot",
                                 pipeline: [
                                     {
-                                        $match:
-                                        {
-                                            semi_product_used: '1',
+                                        $match: {
+                                          semi_product_status: '9' 
                                         }
-                                    }
+                                      },
+                                    {
+                                        $addFields: {
+                                            categories_sim_id: { $toObjectId: "$categories_sim_id" },
+                                            sim_package_id: { $toObjectId: "$sim_package_id" }
+                                        },                                       
+                                    },
+                                    {
+                                        $lookup: {
+                                            from: "categories_sims",
+                                            localField: "categories_sim_id",
+                                            foreignField: "_id",
+                                            as: "categoriesSimData",
+                                        },
+                                    },
+                                    {
+                                        $lookup: {
+                                            from: "sim-packages",
+                                            localField: "sim_package_id",
+                                            foreignField: "_id",
+                                            as: "SimpackageInfo",
+                                        },
+                                    },       
                                 ],
                                 as: "semiProductData",
                             },
-                        },
-                    ],
+                            
+                        },                        
+                    ],                   
                     localField: "jobsheet_code",
                     foreignField: "jobsheet_code",
                     as: "getDetail",
                 },
             },
-
             {
                 $match: { jobsheet_code: getJobSheetCode },
             },
-        ]);
-        
-        
-          
+        ]);      
         
         if (getData) {
             return res.status(200).json({

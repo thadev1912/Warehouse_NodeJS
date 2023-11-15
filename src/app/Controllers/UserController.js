@@ -170,14 +170,9 @@ let register = async (req, res) => {
     try {
         console.log(req.body);
         myObject = req.body;
-        if (myObject !== null) {
-            // checkId = await User.find({ user_code: req.body.user_code }).count();
-            // if (checkId > 0) {
-            //     return res.status(200).json({
-            //         success: true, message: 'This User ID exits!!',
-            //     });           }
+        if (myObject !== null) {          
             getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
-            reqName=new Date().toISOString().split('T')[0]+req.file.originalname
+            reqName=new Date().toISOString().split('T')[0]+req.file.originalname;
             getNameImage='uploads/'+reqName;          
             const getUser = new User({
                 fullname: req.body.fullname,
@@ -384,8 +379,6 @@ let hashpw = async (pw) => {
 }
 let uploadImage = async (req, res) => { 
    console.log(req.file.originalname);
-  // var currentDate = new Date().toISOString().split('T')[0];
- //  var getFileName = currentDate + file.originalname;
    reqName=new Date().toISOString().split('T')[0]+req.file.originalname
      getNameImage='uploads/'+reqName;
    StoreTestImage =new TestImage({
@@ -435,19 +428,8 @@ let destroyUser = async (req, res) => {
 }
 let updateUser = async (req, res) => {
     try {
-        let id = req.query.id;
-       
-        // if(req.file.originalname)
-        // {
-        //     reqName=new Date().toISOString().split('T')[0]+req.file.originalname
-        //     getNameImage='uploads/'+reqName;
-        // }
-        // else
-        // {
-        //     getNameImage=req.body.avatar;
-        // }
-        console.log(req.body);
-       
+        let id = req.query.id;     
+        console.log(req.body);       
         if(req.file)
           {
             if (req.file.originalname !== undefined)
@@ -484,10 +466,7 @@ let updateUser = async (req, res) => {
                     throw new Error('Error connecting Database on Server');
                 }
                         }                   
-          }
-              
-       // req.body.avatar= (req.file.originalname)?'uploads/'+new Date().toISOString().split('T')[0]+req.file.originalname:req.body.old_avatar;   
-           
+          }         
        
     }
     catch (err) {

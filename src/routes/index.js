@@ -18,6 +18,9 @@ const assemble=require('./assemble');
 const dashboard=require('./dashboard');
 const quality_control=require('./qualtity_control');
 const permission=require('./role_permission');
+//IMS
+const manager_ims=require('../routes/ims/manager_ims');
+const detail_manager_ims=require('../routes/ims/detail_manager_ims');
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
 function route(app)
@@ -42,5 +45,7 @@ app.use('/assemble',assemble);
 app.use('/dashboard',dashboard);
 app.use('/quality-control',quality_control);
 app.use('/permission',permission);
+app.use('/manager-ims',manager_ims);
+app.use('/detail_manager-ims',detail_manager_ims);
 }
 module.exports = route;

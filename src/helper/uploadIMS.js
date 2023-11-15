@@ -5,7 +5,7 @@ var excelToJson = require('convert-excel-to-json');
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
    // cb(null, './uploads/');
-     cb(null, './public/uploads/');
+     cb(null, './public/uploads/IMS');
   },
   filename: function(req, file, cb) {
     var currentDate = new Date().toISOString().split('T')[0];
@@ -23,11 +23,12 @@ const fileFilter = (req, file, cb) => {
     cb(null, false);
   }
 };
-const upload = multer({
+const uploadIMS = multer({
   storage: storage,
   limits: {
     fileSize: 1024 * 1024 * 5
   },
   fileFilter: fileFilter
 });
-module.exports = upload
+
+module.exports = uploadIMS
