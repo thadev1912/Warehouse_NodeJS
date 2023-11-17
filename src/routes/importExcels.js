@@ -4,4 +4,7 @@ const importexcel = require('../app/Controllers/ImportExcelController');
 const upload=require('../helper/importExcels');
 router.post('/importSutdent',upload.single('excel'),importexcel.importStudent);
 router.post('/importDetailProductOrder',upload.single('excel'),importexcel.importDetailProductOrder);
+router.post('/importProvinceIMS',upload.single('excel'),importexcel.importProvinceIMS);
+router.post('/importDistrictIMS',upload.single('excel'),importexcel.importDistrictIMS);
+router.post('/importWardsIMS',upload.single('excel'),importexcel.importWardsIMS);
 module.exports = router;

@@ -132,7 +132,11 @@ app.get('/api/routes', (req, res) => {
 app.all('*', (req, res) => {
   res.status(404);
   if (req.accepts('json')) {
-    res.json({ "error": "Incorrect in your url API! Please check again " });
+    res.json({
+      status: 404,
+      messege: 'Incorrect in your url API! Please check again',     
+  });
+ 
   } else {
     res.type('txt').send(" Page 404 Not Found");
   }

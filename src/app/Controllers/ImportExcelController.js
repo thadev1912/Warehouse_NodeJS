@@ -1,6 +1,9 @@
 const fs = require('fs');
 const Student = require('../models/student');
 const DetailProductOrder = require('../models/detail_product_order');
+const ProvinceIMS = require('../models/ims/province_ims');
+const DistrictIMS = require('../models/ims/district_ims');
+const WardsIMS = require('../models/ims/wards_ims');
 const IncrementCode = require('../models/increment_code_product_order');
 var excelToJson = require('convert-excel-to-json');
 const importStudent = async (req, res) => {
@@ -25,6 +28,63 @@ const importStudent = async (req, res) => {
 const importDetailProductOrder = async (req, res) => {   
     console.log(req.body);
     isCompleted = await DetailProductOrderForm('./public/excels/' + req.file.filename);
+    fs.unlinkSync(req.file.path);   //delete file
+    if (isCompleted) {
+        return res.status(200).json({
+            success: true,
+            data: isCompleted,
+            message: 'Insert has been DataCompletd !!!'
+        });
+    }
+    else {
+        return res.status(500).json({
+            success: false,            
+            message: 'Error file, please check again !!!'
+        });
+    }
+    
+}
+const importProvinceIMS = async (req, res) => {   
+    console.log(req.body);
+    isCompleted = await ProvinceIMSForm('./public/excels/' + req.file.filename);
+    fs.unlinkSync(req.file.path);   //delete file
+    if (isCompleted) {
+        return res.status(200).json({
+            success: true,
+            data: isCompleted,
+            message: 'Insert has been DataCompletd !!!'
+        });
+    }
+    else {
+        return res.status(500).json({
+            success: false,            
+            message: 'Error file, please check again !!!'
+        });
+    }
+    
+}
+const importDistrictIMS = async (req, res) => {   
+    console.log(req.body);
+    isCompleted = await DistrictIMSForm('./public/excels/' + req.file.filename);
+    fs.unlinkSync(req.file.path);   //delete file
+    if (isCompleted) {
+        return res.status(200).json({
+            success: true,
+            data: isCompleted,
+            message: 'Insert has been DataCompletd !!!'
+        });
+    }
+    else {
+        return res.status(500).json({
+            success: false,            
+            message: 'Error file, please check again !!!'
+        });
+    }
+    
+}
+const importWardsIMS = async (req, res) => {   
+    console.log(req.body);
+    isCompleted = await WardsIMSForm('./public/excels/' + req.file.filename);
     fs.unlinkSync(req.file.path);   //delete file
     if (isCompleted) {
         return res.status(200).json({
@@ -92,11 +152,77 @@ const DetailProductOrderForm = async (filePath) => {
     });
     return await DetailProductOrder.insertMany(updatedExcelData);    
 }
+
+const ProvinceIMSForm = async (filePath) => {
+    const excelData = excelToJson({
+        sourceFile: filePath,
+        sheets: [{
+            name: 'provinces',
+            header: {
+                rows: 1
+            },
+            columnToKey: {
+                A:'province_id',
+                B:'province_name',
+                C:'province_note',
+               
+            }
+        }]
+    });   
+    console.log('insert data', excelData);   
+    return await ProvinceIMS.insertMany(excelData.provinces);    
+}
+const DistrictIMSForm = async (filePath) => {
+    const excelData = excelToJson({
+        sourceFile: filePath,
+        sheets: [{
+            name: 'districts',
+            header: {
+                rows: 1
+            },
+            columnToKey: {
+                A:'district_id',
+                B:'district_name',
+                C:'province_id',
+                D:'district_note',
+               
+            }
+        }]
+    });   
+    console.log('insert data', excelData);   
+    return await DistrictIMS.insertMany(excelData.districts);    
+}
+const WardsIMSForm = async (filePath) => {
+    const excelData = excelToJson({
+        sourceFile: filePath,
+        sheets: [{
+            name: 'wards',
+            header: {
+                rows: 1
+            },
+            columnToKey: {
+                A:'wards_id',
+                B:'wards_name',
+                C:'district_id',
+                D:'wards_note',
+               
+            }
+        }]
+    });   
+    console.log('insert data', excelData);   
+    return await WardsIMS.insertMany(excelData.wards);    
+}
 module.exports = {
     importStudent: importStudent,    
-    StudentForm:StudentForm,
+    StudentForm:StudentForm,   
     importDetailProductOrder:importDetailProductOrder,
     DetailProductOrderForm:DetailProductOrderForm,
+    importProvinceIMS:importProvinceIMS,
+    ProvinceIMSForm:ProvinceIMSForm,
+    importDistrictIMS:importDistrictIMS,
+    DistrictIMSForm:DistrictIMSForm,
+    importWardsIMS:importWardsIMS,
+    WardsIMSForm:WardsIMSForm,
 }
 
 

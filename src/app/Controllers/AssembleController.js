@@ -257,7 +257,7 @@ let updateAssembleOrder = async (req, res) => {
         getProductCode = req.params.id;
         getOldSemiProductLot = req.body.old_semi_product_lot;
         getSemiProductLot = req.body.semi_product_lot;
-        getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { $set: { product_status: '5', semi_product_lot: req.body.semi_product_lot } });
+        getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { $set: { product_status: '5', semi_product_lot: req.body.semi_product_lot,product_assembly_date:product_assembly_date } });
         if (getOldSemiProductLot) {
             await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' });
         }

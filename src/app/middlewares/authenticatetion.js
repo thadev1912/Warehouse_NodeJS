@@ -13,16 +13,28 @@ const middlewareAuth = {
                     next();
                 }
                 else {
-                    return res.status(401).json("Please login acccount system.....");
+                   return res.json({
+                        status: 401,
+                        messege: 'Please login acccount system.....',     
+                    });
+                   // return res.status(401).json("Please login acccount system.....");
                 }
                 if(err)
                 {
-                    return res.status(403).json("Token invalid or has been expried");
+                    return res.json({
+                        status: 403,
+                        messege: 'Token invalid or has been expried',     
+                    });
+                    //return res.status(403).json("Token invalid or has been expried");
                 }
             });           
         }
         else {
-            res.status(401).json("Access denied, Please login acccount system.....");
+            return res.json({
+                status: 401,
+                messege: 'Access denied, Please login acccount system.....',     
+            });
+            //res.status(401).json("Access denied, Please login acccount system.....");
         }
     },   
 }

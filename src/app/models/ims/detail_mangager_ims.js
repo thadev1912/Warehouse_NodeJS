@@ -7,7 +7,9 @@ const DetailManagerIMSSchema = new Schema({
     address_of_station: {type: String},
     customer:{type: String},
     image:{type: String},
-    area_id:{ type: Schema.Types.ObjectId},
+    area_id:{ type: String},
+    active_status:{type: String,default:'1'},
+    detail_installtion:{type: String},
     location:{type:String},
     created: {type: Date, default: Date.now},   
     updated: {type: Date, default: Date.now}

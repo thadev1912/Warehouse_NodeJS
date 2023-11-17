@@ -298,9 +298,19 @@ let showDetail = async (req, res) => {
                         from: "products",
                         localField: "jobsheet_code",
                         foreignField: "jobsheet_code",
+                        pipeline:[                           
+                            {
+                                $lookup: {
+                                    from: "semi_products",
+                                    localField: "semi_product_lot",
+                                    foreignField: "semi_product_lot",
+                                    as: "SemiproductInfo",
+                                },
+                            }, 
+                        ],                       
                         as: "dataProduct"
                     }
-                },
+                },              
                 {
                     $match: {
                         jobsheet_code: getJobSheetCode
@@ -320,6 +330,36 @@ let showDetail = async (req, res) => {
                         from: "semi_products",
                         localField: "jobsheet_code",
                         foreignField: "jobsheet_code",
+                        pipeline:[
+                            {
+                                $addFields: {                                
+                                    categories_sim_id: { $toObjectId: "$categories_sim_id" }
+                                },                                       
+                            },
+                            {
+                                $lookup: {
+                                    from: "categories_sims",
+                                    localField: "categories_sim_id",
+                                    foreignField: "_id",
+                                    pipeline:[
+                                        {
+                                            $addFields: {                                
+                                                sim_package_id: { $toObjectId: "$sim_package_id" }
+                                            },                                       
+                                        },
+                                        {
+                                            $lookup: {
+                                                from: "sim-packages",
+                                                localField: "sim_package_id",
+                                                foreignField: "_id",
+                                                as: "SimpackageInfo",
+                                            },
+                                        }, 
+                                    ],
+                                    as: "CategoriesSimInfo",
+                                },
+                            }, 
+                        ],
                         as: "dataSemiProduct"
                     }
                 },

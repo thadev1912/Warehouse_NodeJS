@@ -1,19 +1,24 @@
 
 const DetailManagerIMS = require('../../models/ims/detail_mangager_ims');
+const ManagerIMS = require('../../models/ims/manager_ims');
+const ProvincesIMS = require('../../models/ims/province_ims');
+const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
-    try {
-        getId = req.params.id;
+    try {      
+        getId = new ObjectId(req.params.id);  
         const page = parseInt(req.query.page) || 1;
         limit = 10;
         totalCount = await DetailManagerIMS.find({}).count();
         const totalPages = Math.ceil(totalCount / limit);
         const currentPage = Math.min(Math.max(page, 1), totalPages);
+        getinfoManagerIMS=await ManagerIMS.findOne({_id:getId});
+        getProvinceId=await ProvincesIMS.findOne({province_id:getinfoManagerIMS.area_id});        
         getData = await DetailManagerIMS.find({ area_id: getId }).skip((currentPage - 1) * limit).limit(limit);
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: getData,
+                data: getData,getProvinceId,
                 total: totalCount,   // tổng số record
                 PageSize: totalPages,   //tổng số trang được chia
                 CurrentPage: page,  //trang hiện tại         
@@ -30,10 +35,10 @@ let index = async (req, res) => {
 }
 let store = async (req, res) => {
     try {
-        console.log(req.body);
+        console.log(req.body);       
         const getArrImage = req.files;
         reqName = new Date().toISOString().split('T')[0];
-        const CovertArrayImageToJson = JSON.stringify(getArrImage.map(file => 'uploads/IMS/' + reqName + file.originalname));
+        const CovertArrayImageToJson = JSON.stringify(getArrImage.map(file => 'uploads/IMS/' + reqName + file.originalname));       
         req.body.image = CovertArrayImageToJson;
         const getDetailManagerIMS = new DetailManagerIMS(req.body);
         let getData = await getDetailManagerIMS.save();
@@ -56,7 +61,7 @@ let store = async (req, res) => {
 let update = async (req, res) => {
     try {
         if (req.files) {
-            let id = req.params.id;
+            let id = req.params.id;            
             const getArrImage = req.files;
             reqName = new Date().toISOString().split('T')[0];
             const CovertArrayImageToJson = JSON.stringify(getArrImage.map(file => 'uploads/IMS/' + reqName + file.originalname));
