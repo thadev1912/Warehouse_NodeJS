@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const JobSheetSchema = new Schema({ 
     jobsheet_code: {type: String},
-    jobsheet_create_date: {type: String},
+    jobsheet_create_date: {type: Date},
     jobsheet_finish_date: {type: Date},
     jobsheet_purpose: {type: String},    
     production_order_code: {type: String}, //mã YCSX

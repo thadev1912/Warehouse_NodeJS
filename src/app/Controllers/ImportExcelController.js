@@ -11,14 +11,16 @@ const importStudent = async (req, res) => {
     isCompleted = await StudentForm('./public/excels/' + req.file.filename);
     fs.unlinkSync(req.file.path);   //delete file
     if (isCompleted) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true,
             data: isCompleted,
             message: 'Insert has been DataCompletd !!!'
         });
     }
     else {
-        return res.status(500).json({
+        return res.json({
+            status:500,
             success: false,            
             message: 'Error file, please check again !!!'
         });
@@ -28,16 +30,18 @@ const importStudent = async (req, res) => {
 const importDetailProductOrder = async (req, res) => {   
     console.log(req.body);
     isCompleted = await DetailProductOrderForm('./public/excels/' + req.file.filename);
-    fs.unlinkSync(req.file.path);   //delete file
+    fs.unlinkSync(req.file.path);   
     if (isCompleted) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true,
             data: isCompleted,
             message: 'Insert has been DataCompletd !!!'
         });
     }
     else {
-        return res.status(500).json({
+        return res.json({
+            status:500,
             success: false,            
             message: 'Error file, please check again !!!'
         });
@@ -47,16 +51,18 @@ const importDetailProductOrder = async (req, res) => {
 const importProvinceIMS = async (req, res) => {   
     console.log(req.body);
     isCompleted = await ProvinceIMSForm('./public/excels/' + req.file.filename);
-    fs.unlinkSync(req.file.path);   //delete file
+    fs.unlinkSync(req.file.path);  
     if (isCompleted) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true,
             data: isCompleted,
             message: 'Insert has been DataCompletd !!!'
         });
     }
     else {
-        return res.status(500).json({
+        return res.json({
+            status:500,
             success: false,            
             message: 'Error file, please check again !!!'
         });
@@ -66,16 +72,18 @@ const importProvinceIMS = async (req, res) => {
 const importDistrictIMS = async (req, res) => {   
     console.log(req.body);
     isCompleted = await DistrictIMSForm('./public/excels/' + req.file.filename);
-    fs.unlinkSync(req.file.path);   //delete file
+    fs.unlinkSync(req.file.path);   
     if (isCompleted) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true,
             data: isCompleted,
             message: 'Insert has been DataCompletd !!!'
         });
     }
     else {
-        return res.status(500).json({
+        return res.json({
+            status:500,
             success: false,            
             message: 'Error file, please check again !!!'
         });
@@ -85,21 +93,22 @@ const importDistrictIMS = async (req, res) => {
 const importWardsIMS = async (req, res) => {   
     console.log(req.body);
     isCompleted = await WardsIMSForm('./public/excels/' + req.file.filename);
-    fs.unlinkSync(req.file.path);   //delete file
+    fs.unlinkSync(req.file.path);  
     if (isCompleted) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true,
             data: isCompleted,
             message: 'Insert has been DataCompletd !!!'
         });
     }
     else {
-        return res.status(500).json({
+        return res.json({
+            status:500,
             success: false,            
             message: 'Error file, please check again !!!'
         });
-    }
-    
+    }    
 }
 //-----------------------------------------------FORM MODEL-------------------------------------------//
 const StudentForm = async (filePath) => {

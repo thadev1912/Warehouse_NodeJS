@@ -1,8 +1,7 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {    
     const checkProductOrder = Joi.object({       
       product_order_No: Joi.string().required().messages({  
         'string.empty': `Số Yêu Cầu Sản Xuất không được bỏ trống`,         

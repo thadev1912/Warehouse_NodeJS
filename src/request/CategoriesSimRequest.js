@@ -1,8 +1,7 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {    
     const checkCategoriesSim = Joi.object({
         serial_sim: Joi.string().required().messages({
         'string.empty': `Số series Sim không được bỏ trống`,     

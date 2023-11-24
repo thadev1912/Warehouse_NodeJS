@@ -2,8 +2,7 @@ const { ObjectId } = require('mongodb');
 const jwt = require("jsonwebtoken");
 const User = require('../models/user');
 const middlewarePermision = {
-    checkPermision: async (req, res, next) => {
-        //  req.getInfoUser = req.user;//thông tin user      
+    checkPermision: async (req, res, next) => {          
         console.log('truyền từ midleware1 là', getInfoUser)
         if (getInfoUser) {
             const _id = new ObjectId(getInfoUser._id);
@@ -22,8 +21,7 @@ const middlewarePermision = {
                 return res.json({
                     status: 403,
                     messege: 'Your have not permission on this page',     
-                });
-                //return res.status(403).json("Your have not permission on this page");
+                });              
             }
         }
     },
@@ -69,27 +67,14 @@ const middlewarePermision = {
             },
             {
                 $project: {
-                    _id: 0, // Exclude _id from the output
+                    _id: 0, 
                     role_permission_group: 1,
                 },
-            },
-            // {
-
-
-            //     $lookup: {
-            //         from: "role_permissions",
-            //         localField: "role_id",
-            //         foreignField: "role_permission_id",
-            //         as: "getPermissionGroup",
-            //     },
-            // },
-            // { $match: { '_id': data } },
+            },           
         ]);
         return getData
     },
-    hasPermission: async (_getPermissionGroup, requiredPermission) => {
-        // encodeString=_getPermissionGroup;        
-        //  const userPermissions = await JSON.parse(encodeString);      
+    hasPermission: async (_getPermissionGroup, requiredPermission) => {            
         return _getPermissionGroup.some(permission => permission === requiredPermission);
     }
 }

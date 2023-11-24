@@ -53,7 +53,7 @@ router.get('/listDepartment',department.index);
  *      404:
  *        description: Error connecting Database on Server
  */
-router.post('/storeDepartment',department.create);
+router.post('/storeDepartment',validate.checkValidate,department.create);
 /**
  * @swagger
  * '/deparment/edit/{id}':
@@ -111,7 +111,7 @@ router.get('/editDepartment/:id',department.edit);
  *      404:
  *        description: Error connecting Database on Server
  */
-router.put('/updateDepartment/:id',department.update);
+router.put('/updateDepartment/:id',validate.checkValidate,department.update);
 /**
  * @swagger
  * '/deparment/delete/{id}':

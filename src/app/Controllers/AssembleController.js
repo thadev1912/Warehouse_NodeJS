@@ -5,24 +5,19 @@ const SemiProduct = require('../models/semi_product');
 const CategoriesSim = require('../models/categories_sim');
 const SimPackage = require('../models/sim_packages');
 let AssembleList = async (req, res) => {
-    try {
-        //  getData = await Assemble.find();
+    try {        
         getData = await Assemble.aggregate([
             {
-
                 $lookup: {
                     from: "jobsheets",
                     localField: "jobsheet_code",
                     foreignField: "jobsheet_code",
                     as: "getDetail"
                 }
-            }]);
-        //   getDataCon = await Assemble.aggregate([
-
-        //   ])
-
+            }]);     
         if (getData) {
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true,
                 data: getData,
                 message: 'Get Data Completed!!!'
@@ -31,16 +26,18 @@ let AssembleList = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 
 }
 let showDetailAssemble = async (req, res) => {
-    try {
-        // getCategoriesSim=await CategoriesSim.find({use_sim:'0'});
-        //  getSimPackage=await SimPackage.find();
-        getJobSheetCode = req.params.id;
-        //code lấy danh sách select semiproductLot
+    try {        
+        getJobSheetCode = req.params.id;        
         getProductLot = await SemiProduct.aggregate([
             {
                 $addFields: {
@@ -52,7 +49,6 @@ let showDetailAssemble = async (req, res) => {
                     }
                 }
             },
-
             {
                 $lookup: {
                     from: "categories_sims",
@@ -81,41 +77,87 @@ let showDetailAssemble = async (req, res) => {
                     ]
                 }
             },
-        ])//get Join 
-        // getData = await JobSheet.aggregate([
+        ])      
+        // getData = await JobSheet.aggregate([          
         //     {
         //         $lookup: {
         //             from: "products",
+        //             pipeline: [                                                  
+        //                 {                            
+        //                     $lookup: {
+        //                         from: "semi_products",
+        //                         localField: "semi_product_lot",
+        //                         foreignField: "semi_product_lot",
+        //                         pipeline: [
+        //                             {
+        //                                 $match: {
+        //                                   semi_product_status: '9' 
+        //                                 }
+        //                               },
+        //                             {
+        //                                 $addFields: {
+        //                                     categories_sim_id: { $toObjectId: "$categories_sim_id" },
+        //                                     sim_package_id: { $toObjectId: "$sim_package_id" }
+        //                                 },                                       
+        //                             },
+        //                             {
+        //                                 $lookup: {
+        //                                     from: "categories_sims",
+        //                                     localField: "categories_sim_id",
+        //                                     foreignField: "_id",
+        //                                     as: "categoriesSimData",
+        //                                 },
+        //                             },
+        //                             {
+        //                                 $lookup: {
+        //                                     from: "sim-packages",
+        //                                     localField: "sim_package_id",
+        //                                     foreignField: "_id",
+        //                                     as: "SimpackageInfo",
+        //                                 },
+        //                             },       
+        //                         ],
+        //                         as: "semiProductData",
+        //                     },
+                            
+        //                 },                        
+        //             ],                   
         //             localField: "jobsheet_code",
         //             foreignField: "jobsheet_code",
-        //             as: "getDetail"
-        //         }
+        //             as: "getDetail",
+        //         },
         //     },
         //     {
-        //         $match: { jobsheet_code: getJobSheetCode }
-        //     }
-        // ])
-        getData = await JobSheet.aggregate([          
+        //         $match: { jobsheet_code: getJobSheetCode },
+        //     },
+        // ]);  
+        //code fix version MongoDB    
+        getData = await JobSheet.aggregate([
             {
                 $lookup: {
                     from: "products",
-                    pipeline: [                                                  
-                        {                            
+                    let: { job_code: "$jobsheet_code" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$$job_code", "$jobsheet_code"] }
+                            }
+                        },
+                        {
                             $lookup: {
                                 from: "semi_products",
-                                localField: "semi_product_lot",
-                                foreignField: "semi_product_lot",
+                                let: { semi_lot: "$semi_product_lot" },
                                 pipeline: [
                                     {
                                         $match: {
-                                          semi_product_status: '9' 
+                                            $expr: { $eq: ["$$semi_lot", "$semi_product_lot"] }
                                         }
-                                      },
+                                    },
                                     {
                                         $addFields: {
                                             categories_sim_id: { $toObjectId: "$categories_sim_id" },
                                             sim_package_id: { $toObjectId: "$sim_package_id" }
-                                        },                                       
+                                        }
                                     },
                                     {
                                         $lookup: {
@@ -132,37 +174,44 @@ let showDetailAssemble = async (req, res) => {
                                             foreignField: "_id",
                                             as: "SimpackageInfo",
                                         },
-                                    },       
+                                    },
                                 ],
                                 as: "semiProductData",
                             },
-                            
-                        },                        
-                    ],                   
-                    localField: "jobsheet_code",
-                    foreignField: "jobsheet_code",
+                        },
+                    ],
                     as: "getDetail",
                 },
             },
             {
                 $match: { jobsheet_code: getJobSheetCode },
             },
-        ]);      
-        
+        ]);    
+     
+               
         if (getData) {
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true,
                 data: getData, getProductLot,
                 message: 'Get Data Completed!!!'
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });           
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 
 }
@@ -176,32 +225,36 @@ let approveAssembleOrder = async (req, res) => {
                 product_assembler: getUser, product_status: '4'
             }
         });
-        getJobSheetCode = await Product.findOne({ product_code: getProductCode });
-        //  await JobSheet.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { jobsheet_status: 'Đang lắp ráp' });
+        getJobSheetCode = await Product.findOne({ product_code: getProductCode });       
         await Assemble.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { assemble_status: 'Đang lắp ráp' });
         if (isCheck) {
-
-            return res.status(200).json({
-                success: true,
-                // data: getData,
+            return res.json({
+                status:200,
+                success: true,               
                 message: 'Get Data Completed!!!'
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 }
 let infotoUpdate = async (req, res) => {
     try {
-        getProductCode = req.params.id;
-
-        // getCategoriesSimNoneUse = await CategoriesSim.find({ use_sim: '0' });  //get sim none used
-        // getSimPackage = await SimPackage.find();      
+        getProductCode = req.params.id;           
         getIdLotSemiProduct = await SemiProduct.find({ $or: [{ semi_product_status: "Hoàn Thành" }, { semi_product_status: "Đã nhập kho" }] });
         joinSemiProductWithSim = await SemiProduct.aggregate([
             {
@@ -215,7 +268,6 @@ let infotoUpdate = async (req, res) => {
             {
                 $match: { semi_product_lot: getIdLotSemiProduct.semi_product_lot }
             }
-
         ]);
         console.log(getIdLotSemiProduct);
         getData = await Product.aggregate([
@@ -230,24 +282,31 @@ let infotoUpdate = async (req, res) => {
             {
                 $match: { product_code: getProductCode }
             }
-
-
         ])
         if (getData) {
-
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true,
                 data: getData, getIdLotSemiProduct, joinSemiProductWithSim,
                 message: 'Get Data Completed!!!'
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 }
 let updateAssembleOrder = async (req, res) => {
@@ -257,24 +316,34 @@ let updateAssembleOrder = async (req, res) => {
         getProductCode = req.params.id;
         getOldSemiProductLot = req.body.old_semi_product_lot;
         getSemiProductLot = req.body.semi_product_lot;
-        getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { $set: { product_status: '5', semi_product_lot: req.body.semi_product_lot,product_assembly_date:product_assembly_date } });
+        getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { $set: { product_status: '5', semi_product_lot: req.body.semi_product_lot,product_assembly_date:req.body.product_assembly_date } });
         if (getOldSemiProductLot) {
             await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' });
         }
         await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_used: '1' });
         if (getData) {
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true,
                 message: 'Get Data Completed!!!'
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 }
 module.exports = {

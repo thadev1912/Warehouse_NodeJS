@@ -1,11 +1,9 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {    
     const checkJobsheet = Joi.object({
-        jobsheet_code: Joi.string().required().messages({
-        'string.empty': `Jobsheet code không được bỏ trống`,       
+        jobsheet_code: Joi.string().allow(null).allow('').messages({             
       }),     
       jobsheet_create_date: Joi.string().required().messages({
         'string.empty': `Ngày tạo jobsheet không được bỏ trống`,       
@@ -25,8 +23,8 @@ const middlewareValidate = {
       product_name: Joi.string().required().messages({
         'string.empty': `Tên sản xuất không được bỏ trống`,       
       }), 
-      BOM_code: Joi.string().required().messages({
-        'string.empty': `Mã BOM không được bỏ trống`,       
+      BOM_code: Joi.string().allow(null).allow('').messages({
+           
       }), 
       product_unit: Joi.string().required().messages({
         'string.empty': `Đơn vị sản xuất không được bỏ trống`,       
@@ -40,8 +38,8 @@ const middlewareValidate = {
       product_series_code: Joi.string().required().messages({
         'string.empty': `Mã dòng sản xuất không được bỏ trống`,       
       }), 
-      specification: Joi.string().required().messages({
-        'string.empty': `Quy cách sản xuất không được bỏ trống`,       
+      specification: Joi.string().allow(null).allow('').messages({
+          
       }),
       jobsheet_note: Joi.string().required().messages({
         'string.empty': ` Ghi chú sản xuất không được bỏ trống`,       

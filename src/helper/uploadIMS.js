@@ -3,8 +3,7 @@
 const multer = require('multer');
 var excelToJson = require('convert-excel-to-json');
 const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-   // cb(null, './uploads/');
+  destination: function(req, file, cb) {   
      cb(null, './public/uploads/IMS');
   },
   filename: function(req, file, cb) {
@@ -17,7 +16,7 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   // reject a file
-  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'|| file.mimetype === 'image/webp'|| file.mimetype === 'image/jpg'){
     cb(null, true);
   } else {
     cb(null, false);

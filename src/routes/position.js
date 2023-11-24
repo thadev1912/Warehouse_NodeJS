@@ -5,6 +5,6 @@ const validate=require('../request/PostionRequest');
 router.get('/listPosition',position.index);
 router.post('/storePosition',validate.checkValidate,position.create);
 router.get('/editPosition',position.edit);
-router.put('/updatePosition/:id',position.update);
+router.put('/updatePosition/:id',validate.checkValidate,position.update);
 router.delete('/deletePosition',position.destroy);
 module.exports = router;

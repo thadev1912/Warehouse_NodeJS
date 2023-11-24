@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const Assemble = require('../app/Controllers/AssembleController');
-//const validate=require('../request/CategoriesSimRequest');
+const validate=require('../request/AssembleRequest');
 router.get('/listAssemble',Assemble.AssembleList);
 router.get('/showDetailAssemble/:id',Assemble.showDetailAssemble);
 router.put('/approveOrderAssemble/:id',Assemble.approveAssembleOrder);

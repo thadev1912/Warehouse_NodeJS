@@ -5,32 +5,35 @@ const ProvincesIMS = require('../../models/ims/province_ims');
 const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {      
-        getId = new ObjectId(req.params.id);  
-        const page = parseInt(req.query.page) || 1;
-        limit = 10;
-        totalCount = await DetailManagerIMS.find({}).count();
-        const totalPages = Math.ceil(totalCount / limit);
-        const currentPage = Math.min(Math.max(page, 1), totalPages);
-        getinfoManagerIMS=await ManagerIMS.findOne({_id:getId});
-        getProvinceId=await ProvincesIMS.findOne({province_id:getinfoManagerIMS.area_id});        
-        getData = await DetailManagerIMS.find({ area_id: getId }).skip((currentPage - 1) * limit).limit(limit);
+        
+        getId = new ObjectId(req.params.id);   
+        totalCount = await DetailManagerIMS.find({}).count();      
+        getinfoManagerIMS=await ManagerIMS.findOne({_id:getId});     
+        getProvinceId=await ProvincesIMS.findOne({province_id:getinfoManagerIMS.area_id});  
+        //console.log(getProvinceId);      
+       getData = await DetailManagerIMS.find({ area_id: getProvinceId.province_id });
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: getData,getProvinceId,
-                total: totalCount,   // tổng số record
-                PageSize: totalPages,   //tổng số trang được chia
-                CurrentPage: page,  //trang hiện tại         
+                data: getData,getProvinceId,              
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 let store = async (req, res) => {
@@ -42,6 +45,8 @@ let store = async (req, res) => {
         req.body.image = CovertArrayImageToJson;
         const getDetailManagerIMS = new DetailManagerIMS(req.body);
         let getData = await getDetailManagerIMS.save();
+        await updatecountInstalled();
+        await updateLocationReportIMS();
         if (getData) {
             res.json({
                 status: 200,
@@ -50,12 +55,20 @@ let store = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 let update = async (req, res) => {
@@ -76,7 +89,11 @@ let update = async (req, res) => {
                 });
             }
             else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
         }
         else
@@ -91,18 +108,29 @@ let update = async (req, res) => {
                 });
             }
             else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
         }
-    } catch (err) {
+    }
+    catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 let destroy = async (req, res) => {
     try {
         let id = req.params.id;
         getId = await DetailManagerIMS.findByIdAndRemove({ _id: id });
+        await updatecountInstalled();
+        await updateLocationReportIMS();
         if (getId) {
             res.json({
                 success: true,
@@ -111,18 +139,109 @@ let destroy = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
+}
+let updateLocationReportIMS = async (req, res) => {
+    try {
+        gettotalCount = await ManagerIMS.aggregate([          
+            {
+                $group: {
+                    _id: null,
+                    totalInstalled: { $sum: { $toInt: "$installed" } },
+                    totalNextPhase: { $sum: { $toInt: "$next_phase" } },
+                }
+            },         
+        ]);        
+        getData = await ManagerIMS.aggregate([
+            {
+                $project:{ _id:1,area_id:1,installed:1,next_phase:1}
+            },
+            {
+                $lookup: {
+                    from: "province_imsses",
+                    localField: "area_id",
+                    foreignField: "province_id",
+                    as: "getProvinceData"
+                }
+            }           
+        ]);       
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
+    }
+}
+let updatecountInstalled = async (req, res) => {    
+    _countInstalled= await ManagerIMS.aggregate([
+        {
+            $lookup: {
+                from: "detail_manager_imsses",
+                localField: "area_id",
+                foreignField: "area_id",
+                as: "details"
+            }
+        },
+        {
+            $unwind: "$details" // Unwind để có thể tính tổng active_status trong từng document của ManagerIMSSchema
+        },
+        {
+            $group: {
+                _id: "$area_id",
+                totalActiveStatus: { $sum: { $toInt: "$details.active_status" } }
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                totalActiveStatus: 1
+            }
+        }
+    ]);       
+    const updateManagerIMS = await _countInstalled.map(function(data) {
+        return ManagerIMS.findOneAndUpdate(
+          { area_id: data._id },
+          { installed: data.totalActiveStatus },
+          { new: true }
+        );
+      });
+     return Promise.all(updateManagerIMS).then(data=>{
+        data.forEach(res=>{
+            res;
+        })            
+     })
+     .catch(err=>{
+        res.json({
+            status: 500,
+            success: false,
+            error: err.message
+        });
+     });         
 }
 module.exports =
 {
     index: index,
     store: store,
     update: update,
-    destroy: destroy
+    destroy: destroy,
+    updateLocationReportIMS:updateLocationReportIMS,
+    updatecountInstalled:updatecountInstalled,
+    
 }

@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 const Dashboard = require('../app/Controllers/DashboardController');
+const Auth =require('../app/middlewares/authenticatetion');
+const Permission =require('../app/middlewares/authorization');
 //const validate=require('../request/DepartmentRequest');
 router.get('/header-report',Dashboard.HeaderReport);
 router.get('/bar-chart-report',Dashboard.BarChartReport);

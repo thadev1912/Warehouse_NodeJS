@@ -1,4 +1,4 @@
-//Region validate:
+
 const Joi = require("joi");
 const checkRole = Joi.object({ role_code: Joi.string() .required().messages({ 
     'string.empty': `Code Role không được bỏ trống`,   

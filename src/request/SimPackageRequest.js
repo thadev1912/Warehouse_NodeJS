@@ -1,8 +1,7 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {   
     const checkSimPackage = Joi.object({
       sim_package_expiration: Joi.number().required().messages({
         'number.base': `Thời hạn Sim không được bỏ trống`,       

@@ -1,8 +1,7 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {    
     const checkAssemble = Joi.object({    
         jobsheet_code: Joi.string().required().messages({
         'string.empty': `Mã jobsheet được bỏ trống`,

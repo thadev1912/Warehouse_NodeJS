@@ -21,6 +21,9 @@ const permission=require('./role_permission');
 //IMS
 const manager_ims=require('../routes/ims/manager_ims');
 const detail_manager_ims=require('../routes/ims/detail_manager_ims');
+const dashboard_ims=require('../routes/ims/dashboard_ims');
+
+//Midleware
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
 function route(app)
@@ -42,10 +45,11 @@ app.use('/import-excel',import_excel);
 app.use('/jobsheet',jobsheet);
 app.use('/welding',welding);
 app.use('/assemble',assemble);
-app.use('/dashboard',dashboard);
+app.use('/dashboard',Auth.checkAuth,dashboard);
 app.use('/quality-control',quality_control);
 app.use('/permission',permission);
 app.use('/manager-ims',manager_ims);
 app.use('/detail_manager-ims',detail_manager_ims);
+app.use('/dashboard-ims',dashboard_ims);
 }
 module.exports = route;

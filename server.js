@@ -6,7 +6,6 @@ require('dotenv').config()
 const route = require('./src/routes/index');
 const path = require('path');
 const connectDB = require('./config');
-// const helper = require('./src/helper');
 const session = require('express-session')
 const flash = require('connect-flash');
 const cookieParser = require('cookie-parser')
@@ -17,6 +16,8 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const expressListEndpoints = require('express-list-endpoints');
 const AllRoutersName = require('./src/app/models/all_routes_name');
+const setIvoince = require('./src/helper/setIvoince');
+const updateSim = require('./src/helper/updateSim');
 app.use(cors());
 app.use(session({
   cookie: { maxAge: 60000 },
@@ -34,26 +35,28 @@ const socketIo = require("socket.io")(server, {
 });
 app.use(flash());
 app.use(cookieParser());
-// app.use(toastr());
 app.use(express.static(path.join(__dirname, 'public')));
 //midleware
-
-app.use(express.json())  // hỗ trợ json
-app.use(bodyParser.urlencoded({ extended: true }));  // dùng để res.body
-
+app.use(express.json()) 
+app.use(bodyParser.urlencoded({ extended: true }));
 route(app);
 connectDB();
-const ipAddress = '192.168.48.31';
-// helper();
-app.listen(port, ipAddress, () => {
-  console.log(`Server running on http://${ipAddress}:${port}`)
+app.listen(process.env.PORT,process.env.SERVER_URL, async() => {
+  try{
+    console.log(`Server running on ${process.env.SERVER_URL}:${process.env.PORT}`)
+    await setIvoince.setInvoice();
+    await updateSim.updateStatusSim();    
+  }
+  catch (error) {
+    console.log('Error occurred:', error);
+  }
 })
-server.listen(5000, ipAddress, () => {
-  console.log('Chat System already open on port 5000');
+server.listen(process.env.SOCKET_PORT, process.env.SERVER_URL, () => {
+  console.log(`Chat System already open on ${process.env.SERVER_URL}:${process.env.SOCKET_PORT}`);
 });
 //***********Socket IO*******************//
-//lấy token từ api
-//cấp token cho socket..
+//Task: get token from api
+//provider token for socket..
 socketIo.on("connection", (socket) => {
   console.log("User " + socket.id + " connected into room");
 
@@ -68,15 +71,7 @@ socketIo.on("connection", (socket) => {
     console.log("User " + socket.id + " leave room");
   });
 });
-//Test máy chủ chat SocetIO
-// app.get("/",async (req, res) => {
-//   await res.render('index');
-// res.status(200).send({
-//   success: true,
-//   message: "Wellcome Chat System ",
-// });
-//});
-//Swagger
+//Config Swagger Document
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -98,18 +93,18 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.get('/', (req, res) => {
   res.send('Wellcome to NodeJS');
 });
-//Sử dụng cho 
+//Midleware Static View
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
 
-//get all Router Name
+//Api get all Router Name
 app.get('/api/routes', (req, res) => {
   ischeckStatus = true;
   const allRoutes = expressListEndpoints(app);
   const updatedRoutes = allRoutes.map(route => {
-    const secondSlashIndex = route.path.indexOf('/', 1); // Tìm vị trí của '/' thứ hai
+    const secondSlashIndex = route.path.indexOf('/', 1); // Find position '/' the second
     if (secondSlashIndex !== -1) {
-      route.path = route.path.slice(secondSlashIndex); // Lấy phần sau ký tự '/'
+      route.path = route.path.slice(secondSlashIndex); // Get part last string  '/'
     }
     return route;
   });
@@ -124,19 +119,17 @@ app.get('/api/routes', (req, res) => {
   if (ischeckStatus) {
     return res.status(200).json({
       success: true, message: 'Store All Routes Completed!!', data: routes,
-    });
-    //res.json(routes);
+    });    
   }
 });
-//middleware cho trường hợp sai đường dẫn 
+//middleware for wrong URL
 app.all('*', (req, res) => {
   res.status(404);
   if (req.accepts('json')) {
     res.json({
       status: 404,
       messege: 'Incorrect in your url API! Please check again',     
-  });
- 
+  }); 
   } else {
     res.type('txt').send(" Page 404 Not Found");
   }

@@ -1,8 +1,7 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {    
     const checkSemiProduct = Joi.object({
       semi_product_lot: Joi.string().required().messages({
         'string.empty': `Lot bán thành phẩm không được bỏ trống`,       
@@ -13,33 +12,50 @@ const middlewareValidate = {
       semi_product_name: Joi.string().required().messages({     
         'string.empty': `Tên bán thành phẩm không được bỏ trống`,
       }),
-      semi_product_assembler: Joi.string().allow(null).allow('').max(20).required().messages({     
-        'string.max': `Tên Người lắp ráp bán thành phẩm không được vượt quá 20 ký tự`,
+      semi_product_assembler: Joi.string().allow(null).allow('').messages({     
+       
       }),
-      semi_product_tester: Joi.string().allow(null).allow('').max(20).required().messages({     
-        'string.max': `Tên người kiểm tra bán thành phẩm không được vượt quá 20 ký tự`,
+      semi_product_tester: Joi.string().allow(null).allow('').messages({     
+        
       }),
-      semi_product_assembly_date: Joi.string().required().messages({     
-        'string.empty': `Ngày lắp ráp bán thành phẩm không được bỏ trống`,
+      semi_product_assembly_date: Joi.string().allow(null).allow('').messages({     
+       
       }),
-      semi_product_test_date: Joi.string().required().messages({     
-        'string.empty': `Ngày kiểm tra bán thành phẩm không được bỏ trống`,
+      semi_product_test_date: Joi.string().allow(null).allow('').messages({     
+       
       }),
-      semi_product_status: Joi.string().required().messages({     
-        'string.empty': `Trạng thái bán thành phẩm không được bỏ trống`,
+      semi_product_status: Joi.string().allow(null).allow('').messages({     
+       
       }),
-      semi_product_result: Joi.string().required().messages({     
-        'string.empty': `Kết quả bán thành phẩm không được bỏ trống`,
+      semi_product_result: Joi.string().allow(null).allow('').messages({     
+       
       }),
-      semi_product_note: Joi.string().allow(null).allow('').max(100).required().messages({     
-        'string.max': `Nội dung ghi chú không được vượt quá 100 ký tự`,
+      semi_product_note: Joi.string().allow(null).allow('').messages({     
+       
       }),
-      jobsheet_code: Joi.string().required().messages({     
-        'string.empty': `Mã jobsheet không được bỏ trống!!!`,
+      jobsheet_code: Joi.string().allow(null).allow('').messages({     
+       
       }),
-      categories_sim_id: Joi.string().required().messages({     
-        'string.empty': `Mã danh mục không được bỏ trống!!!`,
+      categories_sim_id: Joi.string().allow(null).allow('').messages({   
+        
       }),
+      //---
+      semi_product_unit: Joi.string().allow(null).allow('').messages({   
+        
+      }),
+      activation_date: Joi.string().allow(null).allow('').messages({   
+        
+      }),
+      sim_package_id: Joi.string().allow(null).allow('').messages({   
+        
+      }),
+      purpose: Joi.string().allow(null).allow('').messages({   
+        
+      }),
+      expiration_date: Joi.string().allow(null).allow('').messages({   
+        
+      }),
+
     });
     const { error } = checkSemiProduct.validate(req.body, { abortEarly: false });
     if (error) {

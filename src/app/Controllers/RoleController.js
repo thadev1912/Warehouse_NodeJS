@@ -12,12 +12,20 @@ let listRole = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 
 }
@@ -44,14 +52,22 @@ let create = async (req, res) => {
                 });
             }
             else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
        }
        
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 

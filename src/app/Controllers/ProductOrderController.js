@@ -6,16 +6,14 @@ const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {
-        //console.log('giá trị được truyền lên từ middleware',getInfoUser);   
-        
-        
+        //console.log('giá trị được truyền lên từ middleware',getInfoUser); 
+              
             getData=await ProductOrder.aggregate([
                 {
                     $addFields: {
                         user_create_by: {
                             $toObjectId: "$user_create_by"
-                        },
-                      
+                        },                      
                     }
                 },
                 {
@@ -38,24 +36,29 @@ let index = async (req, res) => {
                         message: 'Get Data Completed!!',
                         data: getData
                     });
-                }
-            
-       
-          
-            }
-        
+                } 
+                else
+                {
+                    return res.json({
+                        status:500,
+                        success: false,                
+                        message: 'Error connecting Database on Server'
+                    });
+                }   
       
-    
-    catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
+            }    
+            catch (err) {
+                console.log(err);
+                return res.json({
+                    status:500,
+                    success: false,           
+                    error: err.message,
+                });              
+            }
 }
-
 let store = async (req, res) => {
-    try {
-        //cần gắn mã phiếu vào
-        console.log(req.body);
+    try {  
+           
         const getProductOrder = new ProductOrder(req.body);
         getProductOrder.production_order_status = '0';
         getProductOrder.production_order_receiver = null;
@@ -69,62 +72,27 @@ let store = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 let infotoCreate = async (req, res) => {
     try {
-        //gửi thông id user lên
-        //   const getIdUser = new ObjectId(req.query.id); đã truyền thông tin sẵn rồi!
-        lastInvoice = await IncrementCode.findOne().sort({ invoice_number: -1 }).select('invoice_number');
-        getDetailProductOrder = await DetailProductOrder.find({ product_order_code: lastInvoice.invoice_number }); //lấy danh sách chi tiết phiếu theo mã phiếu hiện hành
-        // getInfoCreate = await User.aggregate([
-        //     {
-        //         $project: {
-        //             _id: 1,
-        //             fullname: 1,
-        //             region_id: 1,
-        //             position_id: 1,
-        //             department_id: 1,
-
-        //         }
-        //     },
-
-        //     {
-        //         $lookup: {
-        //             from: "regions",
-        //             localField: "region_id",
-        //             foreignField: "_id",
-        //             as: "getRegion"
-        //         }
-        //     },
-        //     {
-        //         $lookup: {
-        //             from: "positions",
-        //             localField: "position_id",
-        //             foreignField: "_id",
-        //             as: "getPostion"
-        //         }
-        //     },
-        //     {
-        //         $lookup: {
-        //             from: "departments",
-        //             localField: "department_id",
-        //             foreignField: "_id",
-        //             as: "getDepartment"
-        //         }
-        //     },
-        //     {
-        //         $match: {
-        //             _id: getIdUser,
-        //         }
-        //     }
-        // ]);
+        lastInvoice = await IncrementCode.findOne().sort({ created: -1}).select('invoice_number');
+        console.log('dòng cuối cùng:',lastInvoice);
+        getDetailProductOrder = await DetailProductOrder.find({ product_order_code: lastInvoice.invoice_number }); 		
         if (lastInvoice) {
             res.json({
                 status: 200,
@@ -133,16 +101,24 @@ let infotoCreate = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
-
 }
 let edit = async (req, res) => {
+    try{
     getId = req.params.id;
     getData = await ProductOrder.aggregate([
         {
@@ -178,15 +154,27 @@ let edit = async (req, res) => {
         }
     ]);
     if (getData) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true, message: 'Infomation Field need to edit!!', data: getData,
         });
     }
     else {
-        throw new Error('Error connecting Database on Server');
-
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
     }
-
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });  
+}
 }
 let update = async (req, res) => {
     try {
@@ -194,18 +182,28 @@ let update = async (req, res) => {
         getData = await ProductOrder.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {
             getNewData = await ProductOrder.findOne({ _id: id });
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
-    } catch (err) {
+    } 
+    catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
-
 }
 let showdetail = async (req, res) => {
     try {
@@ -219,16 +217,24 @@ let showdetail = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
-    catch (error) {
-
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
-
-
 }
 let approve = async (req, res) => {
+    try{
     id = req.params.id;
     getdata = req.body.production_order_receiver;
     updateInfo = new ProductOrder({
@@ -238,15 +244,31 @@ let approve = async (req, res) => {
     });
     getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
     if (getData) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true, message: 'This field has been updated!!!',
         });
     }
     else {
-        throw new Error('Error connecting Database on Server');
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
     }
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });
+  
+}
+}
 let reapprove = async (req, res) => {
+    try{
     id = req.params.id;
     updateInfo = new ProductOrder({
         _id: req.params.id,
@@ -255,16 +277,31 @@ let reapprove = async (req, res) => {
     });
     getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
     if (getData) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true, message: 'This field has been updated!!!',
         });
     }
     else {
-        throw new Error('Error connecting Database on Server');
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
     }
-
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
+    }
 }
 let cancel = async (req, res) => {
+    try{
     id = req.params.id;
     updateInfo = new ProductOrder({
         _id: req.params.id,
@@ -273,14 +310,27 @@ let cancel = async (req, res) => {
     });
     getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
     if (getData) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true, message: 'This field has been updated!!!',
         });
     }
     else {
-        throw new Error('Error connecting Database on Server');
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
     }
-
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });  
+}
 }
 let destroy = async (req, res) => {
     try {
@@ -293,47 +343,49 @@ let destroy = async (req, res) => {
 
         if (getId) {
 
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, message: 'This field has been removed!!!',
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
-
 }
 let runIncrementInvoice = async (req, res) => {
-    let count = await IncrementCode.find().count();
-    if (count == 0) {
-        const getInvoice = new IncrementCode({
-            invoice_number: 'YCSX23.001',
-        });
-        await getInvoice.save();
-    }
-    else {
-        latest = await IncrementCode.findOne().sort({ invoice_number: -1 }).limit(1);
-        /// string = parseInt(latest.invoice_number.match(/\d/g).join(""));    
+    let currentYear = new Date().getFullYear().toString().slice(-2);  
+        //get year in the last record
+        getlastInvoice=await IncrementCode.findOne().sort({ created: -1 }).select('invoice_number');        
+        let invoiceNumber =getlastInvoice.invoice_number;
+        let getlastYear = invoiceNumber.match(/YCSX(\d+)\.\d+/);
+        let _getlastYear = getlastYear ? getlastYear[1] : null;
+        console.log(_getlastYear); 
+        latest = await IncrementCode.findOne().sort({ invoice_number: -1 }).limit(1);      
         string = latest.invoice_number.match(/\.(\d+)/);
-        getvalue = parseInt(string[1]);
-        getvalue += 1;
-        invoice_number = 'YCSX23.' + String(getvalue).padStart(3, '0');
+        getvalue = parseInt(string[1]);       
+        getvalue += 1;                      
+        invoice_number = 'YCSX'+currentYear+'.'+ String(getvalue).padStart(3, '0');
         const getInvoice = new IncrementCode({
             invoice_number: invoice_number,
         });
         await getInvoice.save();
     }
-}
 let getRoles= async (data) => {
-
     getData = await User.aggregate([
         {
-
-
             $lookup: {
                 from: "roles",
                 localField: "role_id",

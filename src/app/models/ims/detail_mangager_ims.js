@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 const DetailManagerIMSSchema = new Schema({      
     name_station: {type: String,},  
-    installtion_date: {type: String},
+    installtion_date: {type: Date},
     address_of_station: {type: String},
     customer:{type: String},
     image:{type: String},

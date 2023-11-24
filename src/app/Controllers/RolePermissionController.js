@@ -4,6 +4,7 @@ const User = require('../models/user');
 const { ObjectId } = require('mongodb');
 const AllPermission = require('../models/all_routes_name');
 let listPermissionGroup=async(req,res)=>{   //được gọi để xem chi tiết quyền
+    try{
    //Show detail infomation PermissionGroup
     getId=req.params.id;
     getPermissionGroupById=await RolePermission.findById(getId);  
@@ -16,11 +17,26 @@ let listPermissionGroup=async(req,res)=>{   //được gọi để xem chi tiế
         data:CovertArrPermissionbyId
     });
 } else {
-    throw new Error('Error connecting Database on Server');
+    return res.json({
+        status:500,
+        success: false,                
+        message: 'Error connecting Database on Server'
+    });
 }
     console.log(getPermissionGroupById);
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
+
 let InfotoStore = async (req, res) => {
+    try {
     getAllPermission = await AllPermission.find();
     if (getAllPermission) {
         res.json({
@@ -40,6 +56,15 @@ let InfotoStore = async (req, res) => {
     }
 
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
 let storePermisionsGroup = async (req, res) => {
     try {
 
@@ -54,16 +79,24 @@ let storePermisionsGroup = async (req, res) => {
             role_permission_group: encodedPaths
         });
         isComplete = await _rolePermission.save();
-        if (isComplete) {
-            res.json('lưu giá trị thành công!!!');
+        if (isComplete) {          
+           res.json({
+            status: 200,
+            messege: 'lưu giá trị thành công!!!',           
+        });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 let InfotoUpdatePermisionsGroup = async (req, res) => {
+    try{
     PermisionsGroupId = new ObjectId(req.params.id);
     getAllRouteName = await AllPermission.find({});
     const getAllRouteNameToJson = JSON.stringify(getAllRouteName.map(permission => ({ permision_code: permission.routes_code, permision_name: permission.routes_name })));
@@ -77,7 +110,17 @@ let InfotoUpdatePermisionsGroup = async (req, res) => {
     })));
     console.log(checkboxStatus);
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
 let updatePermisionsGroup = async (req, res) => {
+    try {
     console.log(req.body);
     getId = new ObjectId(req.params.id);  
     console.log(getId);
@@ -97,13 +140,26 @@ let updatePermisionsGroup = async (req, res) => {
         message: 'Update Completed!!',
     });
 } else {
-    throw new Error('Error connecting Database on Server');
+    return res.json({
+        status:500,
+        success: false,                
+        message: 'Error connecting Database on Server'
+    });
+}
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
 }
 }
 //User-Roles
-let listUserRole=async(req,res)=>{   // sử dụng cho infotoStore
-  getListUserRole=await RolePermission.find();
-//  const CovertArrayImageToJson = JSON.stringify(getArrImage.map(file => 'uploads/IMS/' + reqName + file.originalname));       
+let listUserRole=async(req,res)=>{  
+    try{ 
+  getListUserRole=await RolePermission.find();       
   covertArrListUserRole=JSON.stringify(getListUserRole.map(role=>({role_id:role._id,role_name:role.role_permission_name})));
   if (covertArrListUserRole) {
     res.json({
@@ -112,10 +168,25 @@ let listUserRole=async(req,res)=>{   // sử dụng cho infotoStore
         data:covertArrListUserRole,
     });
 } else {
-    throw new Error('Error connecting Database on Server');
+    return res.json({
+        status:500,
+        success: false,                
+        message: 'Error connecting Database on Server'
+    });
+    
+}
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
 }
 }
 let storeUserRole = async (req, res) => {
+    try{
     getUserId = req.body.userId;
     getArrayRolesId = req.body.arrayRolesId;
     ischeckStatus = true;
@@ -132,14 +203,29 @@ let storeUserRole = async (req, res) => {
             status: 200,
             message: 'Update Data Completed!!',
         });
-    } else {
-        throw new Error('Error connecting Database on Server');
+    } 
+    else {
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
     }
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
 }
 //list Role by User
 
 let ShowDetailRoleByUser =async(req,res)=>  
 {
+    try{
     getUserId=new ObjectId(req.params.id);
     getRoles=await getRolesbyUser(getUserId);
     if (getRoles) {
@@ -149,44 +235,160 @@ let ShowDetailRoleByUser =async(req,res)=>
             data:getRoles,
         });
     } else {
-        throw new Error('Error connecting Database on Server');
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
     }
-
 }
-
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
 let infotoUpdateUserRole =async(req,res)=>  
 {
-    getUserId=new ObjectId(req.params.id);
-    _getRolesbyUser=await getRolesbyUser(getUserId);
-    getListUserRole=await RolePermission.find();
-    //  const CovertArrayImageToJson = JSON.stringify(getArrImage.map(file => 'uploads/IMS/' + reqName + file.originalname));       
-      covertArrListUserRole=JSON.stringify(getListUserRole.map(role=>({role_id:role._id,role_name:role.role_permission_name})));
+    try{
+    getUserId = new ObjectId(req.params.id);
+    getRolesbyUser = await getRolesbyIdUser(getUserId);
+    let _getRolesbyUser = getRolesbyUser.map(item => item.role_permission_name).flat();
+    getListUserRole = await RolePermission.find();
+    covertArrListUserRole = JSON.stringify(getListUserRole.map(role => ({ role_id: role._id, role_name: role.role_permission_name })));
+    const _getAllRoles = JSON.parse(covertArrListUserRole);
+    console.log(_getAllRoles);
+    const checkboxStatus = await Promise.all(_getAllRoles.map(async (role) => ({
+        value: role.role_id,
+        name: role.role_name,
+        checked: await checkRoleByIdExist(_getRolesbyUser, role.role_name),
+    })))
+    console.log(checkboxStatus);
+    res.json(_getRolesbyUser);
 
-    if (getRolesbyUser) {
-        res.json({
-            status: 200,
-            message: 'Get Data Completed!!',
-            data:_getRolesbyUser,covertArrListUserRole
-        });
-    } else {
-        throw new Error('Error connecting Database on Server');
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
+let UpdateUserRole = async (req,res) => {
+    try{
+    getUserId = new ObjectId(req.params.id);
+    getArrayRolesId = req.body.arrayRolesId;
+    console.log(getArrayRolesId);
+    ischeckStatus = true;
+    checkExitsIdUser = await UserRole.findOne({ user_id: getUserId }).count();
+    console.log(checkExitsIdUser);
+    if (checkExitsIdUser > 0) {
+        isDeleted = await UserRole.deleteMany({ user_id: getUserId });
+        if (isDeleted) {
+            for (let i = 0; i < getArrayRolesId.length; i++) {
+                getUserRole = new UserRole({
+                    user_id: getUserId,
+                    role_permission_id: getArrayRolesId[i],
+                });
+                isComplete = await getUserRole.save();
+                ischeckStatus = isComplete ? true : false;
+            }
+        }
     }
 
+    if (ischeckStatus) {
+        res.json({
+            status: 200,
+            message: 'Update Data Completed!!',
+        });
+    } else {
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
+    }
 }
-let UpdateUserRole = async (array, element) => {
-   //
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
 }
-let DeleteUserRole = async (array, element) => {
-    //
+}
+let DeleteUserRole = async (res,req) => {
+    try{
+    getIdUser = req.params.id;
+    getIdRole = req.body.IdRole;
+    isComplete = await UserRole.deleteOne({ user_id: getIdUser, role_permission_id: getIdRole });
+    if (isComplete) {
+        res.json({
+            status: 200,
+            message: 'Delete Data Completed!!',
+        });
+    } else {
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
+    }
  }
- let DeletePermissionGroup = async (array, element) => {
-    //
+ catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
+ let DeletePermissionGroup = async (res,req) => {
+    try{
+    getIdPermissionGroup = new ObjectId(req.params.id);
+    console.log(getIdPermissionGroup);
+    isComplete = await RolePermission.deleteOne({ _id: getIdPermissionGroup });
+    checkIdRoleUser = await UserRole.find({ role_permission_id: getIdPermissionGroup }).count();
+    if (checkIdRoleUser > 0) {
+        await UserRole.deleteMany({ role_permission_id: getIdPermissionGroup });
+    }
+    if (isComplete) {
+        res.json({
+            status: 200,
+            message: 'Delete Data Completed!!',
+        });
+    } else {
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
+    }
  }
+ catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
 let checkPermissionByIdExist = async (array, element) => {
     return await array.includes(element);
 }
+let checkRoleByIdExist = async (array, element) => {
+    return await array.includes(element);
+}
 let getRolesbyUser = async (data) => {
-
+try {
     return await User.aggregate([
         {
 
@@ -233,6 +435,15 @@ let getRolesbyUser = async (data) => {
         },
     ]);
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
 module.exports = {
     //Permissions Group
     listPermissionGroup:listPermissionGroup,
@@ -249,6 +460,7 @@ module.exports = {
     ShowDetailRoleByUser:ShowDetailRoleByUser,
     infotoUpdateUserRole:infotoUpdateUserRole,
     UpdateUserRole:UpdateUserRole,
+    checkRoleByIdExist:checkRoleByIdExist,
     DeleteUserRole:DeleteUserRole
    
     

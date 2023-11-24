@@ -15,9 +15,8 @@ const complexityOptions = {
 const middlewareValidate = {
     checkValidate: (req, res, next) => {
         const checkUser = Joi.object({          
-            user_code: Joi.string().messages({               
-            }),
-            username: Joi.string().min(6).required().messages({
+          
+            username:Joi.string().required().messages({
                 'string.empty': `Username không được bỏ trống`,
                 'string.min': `Username ít nhất 6 ký tự`,
             }),
@@ -38,14 +37,7 @@ const middlewareValidate = {
                 'passwordComplexity.uppercase': `Mật khẩu phải có ít nhất một ký tự viết hoa`,
                 'passwordComplexity.numeric': `Mật khẩu phải chứa ít nhất một ký tự số`,
                 'passwordComplexity.symbol': `Mật khẩu phải chứa ít nhất một ký tự đặc biệt`,
-            }),
-            phone: Joi.number().integer().min(10 ** 9).max(10 ** 10 - 1).required().messages({
-                'number.base': `Số điện thoại không được bỏ trống hoặc chưa đúng định dạng`,
-                'number.min': `Số điện thoại chưa đủ ký tự số`,
-                'number.max': `Số điện thoại vượt qua 12 ký tự`,
-                'number.unsafe': `Số điện thoại vượt quá số ký tự an toàn`,
-                'number.empty': `Số điện thoại không được bỏ trống`,
-            }),
+            }),           
             gender: Joi.boolean()
                 .required().messages({
                     'boolean.base': `Giới tính phải là kiểu true/false`,
@@ -53,12 +45,7 @@ const middlewareValidate = {
                 }),
             birthday:Joi.string().allow(null).allow('').messages({
                
-            }),
-            address: Joi.string()
-                .required().
-                messages({
-                    'string.empty': `Địa chỉ không được bỏ trống`,
-                }),
+            }),       
 
             password: Joi.string()
                 .required().messages({

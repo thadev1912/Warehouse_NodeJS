@@ -1,12 +1,12 @@
 var express = require('express');
 var router = express.Router();
 const jobsheet = require('../app/Controllers/JobsheetController');
-const validate=require('../request/PostionRequest');
+const validate=require('../request/JobsheetRequest');
 router.get('/listJobsheet',jobsheet.index);
 router.get('/create',jobsheet.infotoCreate);
-router.post('/storeJobSheet',jobsheet.store);
+router.post('/storeJobSheet',validate.checkValidate,jobsheet.store);
 router.get('/editJobSheet/:id',jobsheet.edit);
-router.put('/updateJobSheet/:id',jobsheet.update);
+router.put('/updateJobSheet/:id',validate.checkValidate,jobsheet.update);
 router.put('/cancelJobSheet/:id',jobsheet.cancel);
 router.get('/showDetailJobSheet/:id',jobsheet.showDetail);
 router.put('/OrderExportMaterialsJobSheet',jobsheet.OrderExportMaterials);
@@ -15,6 +15,7 @@ router.put('/OrderProductJobSheet',jobsheet.OrderProduct);
 router.put('/OrderQCJobSheet',jobsheet.OrderQC);
 router.put('/OrderStoreJobSheet',jobsheet.OrderStore);
 router.put('/StoreWarehouseJobSheet',jobsheet.Store);
+router.put('/StoreWarehouse',jobsheet.StoreWarehouse);
 router.get('/infoCreatOrderQCJobSheet',jobsheet.infoCreatOrderQC);   //no use
 // router.put('/OrderProductQC/:id',jobsheet.OrderProductQC);
 // router.put('/OrderSemiProductQC/:id',jobsheet.OrderSemiProductQC);

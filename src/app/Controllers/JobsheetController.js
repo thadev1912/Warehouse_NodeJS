@@ -8,6 +8,7 @@ const Welding = require('../models/welding');
 const Assemble = require('../models/assemble');
 const ProductGroup = require('../models/product_group');
 const QualityControl = require('../models/quality_control');
+const Warehouse = require('../models/warehouse');
 const Department = require('../models/department');
 const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
@@ -24,49 +25,77 @@ let index = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 
 }
 let infotoCreate = async (req, res) => {
-
+    try{
     let getproductOrderNo = await ProductOrder.find().select('product_order_No');
     let getproductType = await ProductType.find();
     let getproductSeries = await ProductSeries.find();
     if (getproductOrderNo && getproductType && getproductSeries) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true, message: 'Infomation Field need to edit!!', getproductOrderNo, getproductType, getproductSeries
         });
     }
     else {
-        throw new Error('Error connecting Database on Server');
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
 
     }
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });
+  
+}
+}
 let store = async (req, res) => {
     try {
+        
         console.log(req.body);
         const getDateTime = new Date();
-        const month = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
-        //  console.log(req.body); công thức: 21A02     N    1     R     N     010
+        const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+        //Rule: 21A02     N    1     R     N     010
         //------------------------------------------------------------------------
-        createQuantity = String(req.body.product_quantity).padStart(3, '0');  //lấy số lượng
-        createProductionStyle = req.body.production_style; //lấy loại sản xuất (N or F)
-        createProductionSeries = req.body.product_series_code; //lấy dòng sản phẩm    
-        createProductionType = req.body.product_type_code; //lấy loại  sản phẩm sản xuất ( thành phẩm hoặc bán thành phẩm)      ;
-        createQuantityProductSeries = '1';  //số lượng dòng sản phẩm trong 1 ngày               
+        createQuantity = String(req.body.product_quantity).padStart(3, '0');  //get quantity
+        createProductionStyle = req.body.production_style; //get type Production (N or F)
+        createProductionSeries = req.body.product_series_code; //get Series Production 
+        createProductionType = req.body.product_type_code; // ( Semi or Product) ;
+        countProductSeries= await countSeriesinDay(req.body.product_series_code);          
+        countProductSeries+=1   
+        createQuantityProductSeries = countProductSeries; 
+        //createQuantityProductSeries = '1';               
         createDay = String(getDateTime.getDate()).padStart(2, '0');
         createMonth = month[getDateTime.getMonth()];
         createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
         mergeCodeJobsheet = createYear + createMonth + createDay + createProductionType + createQuantityProductSeries + createProductionSeries + createProductionStyle + createQuantity;
         //--------------------------------------- ---------
         //*****************RUN LOOP******************** */  
-        //công thức Thành phẩm: (R & P)  --Bán thành phẩm ( N & S)   
+        //rule Product: (R & P)  --Semi-Product ( N & S)   
         if ((createProductionType == 'P') || (createProductionType == 'R')) {
             for (let i = 1; i <= req.body.product_quantity; i++) {
                 let incrementQuantity = String(i).padStart(3, '0');
@@ -126,12 +155,21 @@ let store = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 }
 
@@ -171,19 +209,27 @@ let edit = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
 
         }
-    } catch (err) {
+    } 
+    catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
-
 }
 
 let update = async (req, res) => {
-    try {
-        //  console.log(req.body);
+    try {        
         let id = req.params.id;
         let OldJobsheetCode = req.body.oldjobsheetcode;
         checkId = await JobSheet.findOne({ _id: id });
@@ -193,31 +239,32 @@ let update = async (req, res) => {
                 messege: 'This Id no exits!!!',
 
             });
-        }
-        //let OldJobsheetCode=req.body.old_jobsheet_code;
+        }        
         let getQuantity = req.body.product_quantity;
         if (getQuantity) {
             const getDateTime = new Date();
             const month = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
-            //  console.log(req.body); công thức: 21A02     N    1     R     N     010
+            //   Rule: 21A02     N    1     R     N     010
             //------------------------------------------------------------------------
-            createQuantity = String(req.body.product_quantity).padStart(3, '0');  //lấy số lượng
-            createProductionStyle = req.body.production_style; //lấy loại sản xuất (N or F)
-            createProductionSeries = req.body.product_series_code; //lấy dòng sản phẩm    
-            createProductionType = req.body.product_type_code; //lấy loại  sản phẩm sản xuất ( thành phẩm hoặc bán thành phẩm)      ;
-            createQuantityProductSeries = '1';  //số lượng dòng sản phẩm trong 1 ngày 
+            createQuantity = String(req.body.product_quantity).padStart(3, '0');  //get quantity
+            createProductionStyle = req.body.production_style; //get type product (N or F)
+            createProductionSeries = req.body.product_series_code; //get series product  
+            createProductionType = req.body.product_type_code; //( Product or Semi-product);
+            countProductSeries= await countSeriesinDay(req.body.product_series_code);          
+            countProductSeries+=1   
+            createQuantityProductSeries = countProductSeries; 
+            //createQuantityProductSeries = '1'; 
             createDay = String(getDateTime.getDate()).padStart(2, '0');
             createMonth = month[getDateTime.getMonth()];
             createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
             mergeCodeJobsheet = createYear + createMonth + createDay + createProductionType + createQuantityProductSeries + createProductionSeries + createProductionStyle + createQuantity;
-            //công thức Thành phẩm: (R & P)  --Bán thành phẩm ( N & S)   
+            //Rule Product: (R & P)  --Semi-product ( N & S)   
             if ((createProductionType == 'P') || (createProductionType == 'R')) {
-                //kiểm tra trước khi xóa                    
+                //check before delete                  
                 let checkExits = await Product.findOne({ jobsheet_code: OldJobsheetCode }).count();
                 if (checkExits > 0) {
                     await Product.deleteMany({ jobsheet_code: OldJobsheetCode });
-                }
-                // console.log('giá trị cần xóa',checkExits);             
+                }                       
                 for (let i = 1; i <= getQuantity; i++) {
                     let incrementQuantity = String(i).padStart(3, '0');
                     mergeProductCode = createYear + createMonth + createDay + createProductionType + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
@@ -234,10 +281,8 @@ let update = async (req, res) => {
 
                     await getProduct.save();
                 }
-
             }
-            else if ((createProductionType == 'N') || (createProductionType == 'S')) {
-                //kiểm tra trước khi xóa                    
+            else if ((createProductionType == 'N') || (createProductionType == 'S')) {                                
                 let checkExits = await SemiProduct.findOne({ jobsheet_code: OldJobsheetCode }).count();
                 if (checkExits > 0) {
                     await SemiProduct.deleteMany({ jobsheet_code: OldJobsheetCode });
@@ -261,7 +306,6 @@ let update = async (req, res) => {
                 res.json({
                     status: 400,
                     messege: 'Production Type not exits!!!',
-
                 });
             }
         }
@@ -269,18 +313,28 @@ let update = async (req, res) => {
         getData = await JobSheet.findByIdAndUpdate(id, { $set: req.body });
         if (getData) {
             getNewData = await JobSheet.findOne({ _id: id });
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
-    } catch (err) {
+    } 
+    catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
-
 }
 let showDetail = async (req, res) => {
     let getProductGroup = await ProductGroup.find();
@@ -318,7 +372,8 @@ let showDetail = async (req, res) => {
                 }
             ])
 
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl, message: 'Infomation field has been updated !!!'
             });
 
@@ -370,17 +425,12 @@ let showDetail = async (req, res) => {
                 }
             ])
 
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl, message: 'Infomation field has been updated !!!'
             });
         }
-
     }
-
-
-
-
-
 }
 let cancel = async (req, res) => {
     try {
@@ -410,24 +460,32 @@ let cancel = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
-
 }
 let OrderExportMaterials = async (req, res) => {
     try {
-      
+      console.log(req.body);
         getId = req.body.arrayProductID;
         getJobSheetCode = req.body.jobsheetCode;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
-
             for (let i = 0; i < getId.length; i++) {
                 await Product.findOneAndUpdate({ product_code: getId[i] }, { product_status: '1' })
             }
@@ -437,7 +495,6 @@ let OrderExportMaterials = async (req, res) => {
             for (let i = 0; i < getId.length; i++) {
                 await SemiProduct.findOneAndUpdate({ semi_product_lot: getId[i] }, { semi_product_status: '1' });
             }
-
         }
         isCompleted = await JobSheet.findOneAndUpdate({ jobsheet_code: getJobSheetCode }, { jobsheet_status: '1' });
         if (isCompleted) {
@@ -447,13 +504,20 @@ let OrderExportMaterials = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
-
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 let ExportMaterials = async (req, res) => {
@@ -468,13 +532,11 @@ let ExportMaterials = async (req, res) => {
             for (let i = 0; i < getId.length; i++) {
                 await Product.findOneAndUpdate({ product_code: getId[i] }, { product_status: '2' })
             }
-
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
             for (let i = 0; i < getId.length; i++) {
                 await SemiProduct.findOneAndUpdate({ semi_product_lot: getId[i] }, { semi_product_status: '2' });
             }
-
         }
         if (getInfo) {
             res.json({
@@ -483,13 +545,22 @@ let ExportMaterials = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
 
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 }
 let OrderProduct = async (req, res) => {
@@ -499,7 +570,7 @@ let OrderProduct = async (req, res) => {
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
-            //tạo bảng Assemble (Thành phẩm)
+            //create Assemble Collection(Product)
             isCheckJobsheetCode = await Assemble.findOne({ jobsheet_code: getJobSheetCode }).count();
             console.log('đếm được là', isCheckJobsheetCode);
             let today = new Date();
@@ -522,7 +593,7 @@ let OrderProduct = async (req, res) => {
 
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
-            //tạo bảng Prduct ( Bán Thành phẩm)
+            //create Welding Collection (Semi-Product)
             let today = new Date();
             dd = String(today.getDate()).padStart(2, '0');
             mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -549,20 +620,30 @@ let OrderProduct = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
 
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 }
 let infoCreatOrderQC = async (req, res) => {
     getProductCode = req.params.id;
     getProductGroup = await ProductGroup.find();
     if (getProductGroup) {
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true, message: 'Get Data Completed !!!', getProductGroup
         });
     }
@@ -585,13 +666,13 @@ let OrderQC = async (req, res) => {
         createDay = String(getDateTime.getDate()).padStart(2, '0');
         createMonth = month[getDateTime.getMonth()];
         createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
-        createTypeQualityControl = req.body.type_quality_control   //loại kiểm tra (T or R)
-        createTypeProducttoCheck = req.body.type_product_to_check  //loại sản phẩm cần test ( M/S/P)
-        createTypeProductGroup = req.body.type_product_group//mã dòng sản phẩm
-        createDepartment = req.body.department//mã dòng sản phẩm
+        createTypeQualityControl = req.body.type_quality_control   //Type check (T or R)
+        createTypeProducttoCheck = req.body.type_product_to_check  //Type product need to check ( M/S/P)
+        createTypeProductGroup = req.body.type_product_group//Code Group Product
+        createDepartment = req.body.department
         getCount = await QualityControl.find({ created: { $gte: start, $lt: end } }).count();
         getCount += 1;
-        createQuantity = String(getCount).padStart(3, '0');  //lấy số lượng
+        createQuantity = String(getCount).padStart(3, '0');  
         console.log('đếm được là:', createQuantity);
         mergeCodeQualityControl = 'QC' + createYear + createMonth + createDay + createTypeQualityControl + createTypeProducttoCheck + createTypeProductGroup + createDepartment + createQuantity;
         console.log(mergeCodeQualityControl);
@@ -621,8 +702,7 @@ let OrderQC = async (req, res) => {
 
                 isCompleted = await Product.updateOne({ product_code: getQCArray[i] }, { $set: { product_status: '6', product_qc_status: '1' } });
                 isCheckStatus = isCompleted ? true : false;
-            }
-            //thông báo
+            }            
             if (isCheckStatus) {
                 res.json({
                     status: 200,
@@ -630,7 +710,12 @@ let OrderQC = async (req, res) => {
                 });
             }
             else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
+                
             }
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
@@ -648,8 +733,7 @@ let OrderQC = async (req, res) => {
                     getData = await getQuantityControl.save();
                 }
                 isCompleted = await SemiProduct.updateOne({ semi_product_lot: getQCArray[i] }, { $set: { semi_product_status: '6', semi_product_qc_status: '1' } });
-                isCheckStatus = isCompleted ? true : false;            }
-            //thông báo
+                isCheckStatus = isCompleted ? true : false;            }           
             if (isCheckStatus) {
                 res.json({
                     status: 200,
@@ -657,17 +741,25 @@ let OrderQC = async (req, res) => {
                 });
             }
             else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
+                
             }
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 }
-
-
 let OrderStore = async (req, res) => {
     try {
         getJobSheetCode = req.body.jobsheetCode;
@@ -679,14 +771,17 @@ let OrderStore = async (req, res) => {
             for (let i = 0; i < getOrderStoreArray.length; i++) {
                 isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '8' });
             }
-
             if (isCompleted) {
                 res.json({
                     status: 200,
                     message: 'Update Completed!!',
                 });
             } else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
@@ -699,14 +794,22 @@ let OrderStore = async (req, res) => {
                     message: 'Update Completed!!',
                 });
             } else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
+    }	
 }
 let Store = async (req, res) => {
     try {
@@ -718,8 +821,7 @@ let Store = async (req, res) => {
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
             for (let i = 0; i < getOrderStoreArray.length; i++) {
                 isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '9' });
-            }
-            //cập nhật trạng thái Jobsheet           
+            }                    
             isCheckExits = await Product.findOne({
                 $and: [{ jobsheet_code: getJobSheetCode }, {
                     $or: [
@@ -738,7 +840,11 @@ let Store = async (req, res) => {
                     message: 'Update Completed!!',
                 });
             } else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
@@ -763,16 +869,98 @@ let Store = async (req, res) => {
                     message: 'Update Completed!!',
                 });
             } else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
+    }	
 }
-
+let StoreWarehouse=async(req,res)=>
+{
+    try{
+  //Rule StoreWarehouse  IN  22 B 17 NK B  N0018
+ var start = new Date();
+ start.setHours(0, 0, 0, 0);
+ var end = new Date();
+ end.setHours(23, 59, 59, 999);
+ getCount = await Warehouse.find({ created: { $gte: start, $lt: end } }).count();
+ getCount += 1;
+ createQuantity = String(getCount).padStart(3, '0'); 
+ console.log('giá trị đếm được là', createQuantity);
+  const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+  const getDateTime = new Date();
+  createDay = String(getDateTime.getDate()).padStart(2, '0');
+  createMonth = month[getDateTime.getMonth()];
+  createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
+  createSeriesProduct='B';
+  createProductionType='N';
+  createQuantity = String(getCount).padStart(3, '0'); 
+  mergeCodeQualityControl = 'IN' + createYear + createMonth + createDay+'NK'+createSeriesProduct+createProductionType+createQuantity;
+  console.log(mergeCodeQualityControl);
+  //---get req.body---------
+  getOrderStoreArray = req.body.arrayProductID;
+  getJobSheetCode = req.body.jobsheetCode;  //truyền vào
+  getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
+  getProductionType = getInfo.product_type_code;
+  if ((getProductionType == 'P') || (getProductionType == 'R')) {
+    for (let i = 0; i < getOrderStoreArray.length; i++) {
+        isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '9' });
+    }                    
+    isCheckExits = await Product.findOne({
+        $and: [{ jobsheet_code: getJobSheetCode }, {
+            $or: [
+                { product_status: { $exists: false } },
+                { product_status: { $ne: '9' } }
+            ]
+        }]
+    }).count();
+    console.log('giá trị tồn tại cuối cùng là', isCheckExits);
+    if (isCheckExits === 0) {
+        await JobSheet.updateOne({ jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
+    }
+    if (isCompleted) {
+        res.json({
+            status: 200,
+            message: 'Update Completed!!',
+        });
+    } else {
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
+    }
+}  
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });
+  
+}
+}
+let countSeriesinDay=async(data)=>
+{
+    var start = new Date();
+    start.setHours(0, 0, 0, 0);
+    var end = new Date();
+    end.setHours(23, 59, 59, 999);
+    return await JobSheet.find({created: { $gte: start, $lt: end }, product_series_code:data}).count()      
+}
 module.exports = {
     index: index,
     store: store,
@@ -788,4 +976,6 @@ module.exports = {
     OrderQC: OrderQC,
     OrderStore: OrderStore,
     Store: Store,
+    StoreWarehouse:StoreWarehouse,
+    countSeriesinDay:countSeriesinDay,
 }

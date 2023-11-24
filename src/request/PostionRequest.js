@@ -1,8 +1,7 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-    checkValidate: (req, res, next) => {
-        // const token = req.headers.token; //cách lấy từ header
+    checkValidate: (req, res, next) => {        
         const checkposition = Joi.object({ position_code: Joi.string().required().messages({ 
             'string.empty': `Mã phòng ban không được bỏ trống`,           
           }),           

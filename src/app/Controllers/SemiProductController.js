@@ -5,8 +5,7 @@ const CategoriesSim = require('../models/categories_sim');
 let index = async (req, res) => {
     try {
         let getSimPackage = await SimPackage.find({});
-        let getCategoriesSim = await CategoriesSim.find({ use_sim: '0' });
-       // let getData = await SemiProduct.find({});  
+        let getCategoriesSim = await CategoriesSim.find({ use_sim: '0' });        
         let getData = await SemiProduct.aggregate([
             {
                 $addFields: {
@@ -49,20 +48,26 @@ let index = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
-
-
 }
-
 let create = async (req, res) => {
-    try {
-        console.log('giá trị golabal',req.body);
+    try {  
+        console.log(req.body);      
         const getSemiProduct = new SemiProduct(req.body);
         console.log(getSemiProduct._id.toString());
         getNha=getSemiProduct._id.toString();
@@ -90,54 +95,72 @@ let create = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
+	
 }
 
 let edit = async (req, res) => {
     try {
        
-        id = req.query.id;       
-       
-        getId = await SemiProduct.findOne({ _id: id });
-       // console.log(getId);       
+        id = req.query.id;      
+        getId = await SemiProduct.findOne({ _id: id });              
                 if (getId) {           
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, message: 'Infomation Field need to edit!!', data: getId,
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
 
         }
-    } catch (err) {
+    } 
+    catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
-
+	
 }
-
 const update = async (req, res) => {
-    try {
-        // Lấy dữ liệu từ yêu cầu
+    try {       
         const id = req.params.id;
         const newSemiProductData = req.body;
         const oldSemiProductId = newSemiProductData.old_semi_product_id;        
-        const newCategoriesSimId = newSemiProductData.categories_sim_id;
-        console.log('Id sim cũ',newCategoriesSimId)
-        // Cập nhật thông tin của mục SemiProduct
+        const newCategoriesSimId = newSemiProductData.categories_sim_id;     
         const updatedSemiProduct = await SemiProduct.findByIdAndUpdate(id, { $set: newSemiProductData }, { new: true });
         if (!updatedSemiProduct) {
-            throw new Error('Mục không tồn tại hoặc có lỗi khi cập nhật.');
-        }
-        // Xác định và xóa thông tin cũ trong CategoriesSim nếu có
-        if (oldSemiProductId) {
-            console.log('Id bán thành phẩm cũ',oldSemiProductId)
+           // throw new Error('Mục không tồn tại hoặc có lỗi khi cập nhật.');
+           return res.json({
+            status:404,
+            success: false,                
+            message: 'No Exits'
+        });
+        
+        }      
+        if (oldSemiProductId) {            
             const categoriesSimToUpdate = await CategoriesSim.findOne({ semi_product_id: oldSemiProductId });
             console.log('giá trị thông tin sim cũ',categoriesSimToUpdate);
             if (categoriesSimToUpdate) {
@@ -148,12 +171,9 @@ const update = async (req, res) => {
                     expiration_date: '',
                     semi_product_id:'',
                 };
-
                 await CategoriesSim.findByIdAndUpdate(categoriesSimToUpdate._id, { use_sim: '0', $set: clearOldData });
-
             }
-        }
-        // Cập nhật hoặc tạo thông tin mới trong CategoriesSim
+        }       
         if (newCategoriesSimId) {
             const categoriesSimData = {
                 _id: newCategoriesSimId,               
@@ -163,88 +183,70 @@ const update = async (req, res) => {
                 expiration_date: newSemiProductData.expiration_date,
                 semi_product_id:oldSemiProductId.toString(),
             };
-
             const updatedCategoriesSim = await CategoriesSim.findByIdAndUpdate(newCategoriesSimId, { use_sim: '1', $set: categoriesSimData });
-
             if (!updatedCategoriesSim) {
-                throw new Error('Lỗi khi cập nhật hoặc tạo CategoriesSim.');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
-        }
-        // Trả về dữ liệu đã cập nhật
+        }       
         const updatedSemiProductData = await SemiProduct.findOne({ _id: id });
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true,
             data: updatedSemiProductData,
             message: 'Thông tin đã được cập nhật!!!'
         });
-    } catch (err) {
+    }
+    catch (err) {
         console.log(err);
-        res.status(500).json({
-            success: false,
-            error: err.message
-        });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 const destroy = async (req, res) => {
     try {
         let id = req.query.id;
-        console.log(id);
-        // Tìm semi_product cần xóa
-        const semiProduct = await SemiProduct.findById(id)
-;
-
+        console.log(id);       
+        const semiProduct = await SemiProduct.findById(id);
         if (!semiProduct) {
-            return res.status(404).json({
+            return res.json({
+                status:404,
                 success: false,
                 message: 'Semi Product not found'
             });
-        }
-        //Xác định sim liên kết với semi_product
+        }       
         const simId = semiProduct.categories_sim_id;
-        if (simId) {
-            // Xóa liên kết semi_product từ sim
+        if (simId) {            
             await CategoriesSim.findByIdAndRemove(simId, { semi_product_id: id });
-        }     
-        // Xóa semi_product
+        } 
+       
         await SemiProduct.findByIdAndRemove(id);   
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true,
             message: 'Semi Product and associated Sim have been deleted'
         });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({
-            success: false,
-            error: err.message
-        });
-    }
-};
-let destroy1 = async (req, res) => {
-    try {
-        let id = req.query.id;
-        getId = await SemiProduct.findByIdAndRemove({ _id: id });
-        if (getId) {
-
-            return res.status(200).json({
-                success: true, message: 'This field has been removed!!!',
-            });
-        }
-        else {
-            throw new Error('Error connecting Database on Server');
-        }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
-
-}
-
+};
 module.exports = {
     index: index,
     create: create,
     edit: edit,
     update: update,
     destroy: destroy,
-    destroy1: destroy1,
+   
 }

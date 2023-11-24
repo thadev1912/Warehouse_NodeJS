@@ -65,12 +65,20 @@ let listUser = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 
 }
@@ -161,7 +169,11 @@ let listRoleUser = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 
 }
@@ -170,10 +182,12 @@ let register = async (req, res) => {
     try {
         console.log(req.body);
         myObject = req.body;
-        if (myObject !== null) {          
+        if (req.file) { 
+            if (req.file.originalname !== undefined)
+            {       
             getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
-            reqName=new Date().toISOString().split('T')[0]+req.file.originalname;
-            getNameImage='uploads/'+reqName;          
+            reqName=new Date().toISOString().split('T')[0]+req.file.originalname;      
+           getNameImage='uploads/'+reqName;          
             const getUser = new User({
                 fullname: req.body.fullname,
                 username: req.body.username,
@@ -186,8 +200,7 @@ let register = async (req, res) => {
                 region_id: req.body.region_id,
                 department_id: req.body.department_id,
                 gender: req.body.gender,
-                birthday: req.body.birthday,
-                // avatar: req.file.originalname,
+                birthday: req.body.birthday,               
                 avatar: getNameImage,
             });
             let getData = await getUser.save();
@@ -199,23 +212,64 @@ let register = async (req, res) => {
                 });
             }
             else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
-        }
-        else {
+        }    
+    }
+    else
+    {
+        getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;      
+            const getUser = new User({
+            fullname: req.body.fullname,
+            username: req.body.username,
+            role_id: req.body.role_id,
+            email: req.body.email,
+            address: req.body.address,
+            phone: req.body.phone,
+            password: getPw,
+            position_id: req.body.position_id,
+            region_id: req.body.region_id,
+            department_id: req.body.department_id,
+            gender: req.body.gender,
+            birthday: req.body.birthday,          
+            avatar:'uploads/avatar.png',     
+            
+        });
+        let getData = await getUser.save();
+        if (getData) {
             res.json({
-                status: 422,
-                message: 'Your Object is null',
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData,
             });
         }
+        else {
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+        }
+    }    
+          
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 
 }
 let checkLogin = async (req, res) => {
+    try
+    {
     console.log(res.body);
     let user = req.body.username;
     let pws = req.body.password;
@@ -264,23 +318,12 @@ let checkLogin = async (req, res) => {
         },
         {
             $project: {
-                _id: 0, // Exclude _id from the output
+                _id: 0, 
                 role_permission_name: 1,
             },
         },
-        // {
-
-
-        //     $lookup: {
-        //         from: "role_permissions",
-        //         localField: "role_id",
-        //         foreignField: "role_permission_id",
-        //         as: "getPermissionGroup",
-        //     },
-        // },
-        // { $match: { '_id': data } },
-    ]);
-    //console.log('lấy được thông tin role của User là:',getRoleUser);
+       
+    ]);  
     const isAdmin = getRoleUser.length > 0 && getRoleUser[0].role_permission_name.includes('admin')?'admin':'';
     console.log('user này có quyền admin:',isAdmin);
     getInfo = await User.aggregate([
@@ -345,23 +388,30 @@ let checkLogin = async (req, res) => {
         }
 
 
-    ]);
-    // let idUser=checkUser._id;
-    // console.log('giá trị user nhận được là',getInfo);  
+    ]);    
     if (!checkUser) {
         res.json({ status: 500, message: 'Username or passsword incorect!!!' });
         return;
     }
     console.log('thông tin user', checkUser);
-    let checkPw = await bcrypt.compare(pws, checkUser.password);
-    // let AccessToken = jwt.sign({ user_code: checkUser.user_code, user: checkUser.username },
+    let checkPw = await bcrypt.compare(pws, checkUser.password);    
     let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username,isAdmin},
         process.env.JWT_SECRET,       
         { expiresIn: "1h" }
     );    
     checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken, getInfo }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
 let checkLogout = async (req, res) => {   
+    try{
     const token = req.headers.token;
     jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
         if (user) {
@@ -373,12 +423,21 @@ let checkLogout = async (req, res) => {
         }
     })
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
 let hashpw = async (pw) => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(pw, salt);
 }
-let uploadImage = async (req, res) => { 
-   console.log(req.file.originalname);
+let uploadImage = async (req, res) => {  
+
    reqName=new Date().toISOString().split('T')[0]+req.file.originalname
      getNameImage='uploads/'+reqName;
    StoreTestImage =new TestImage({
@@ -394,36 +453,39 @@ let uploadImage = async (req, res) => {
     });
 }
 else {
-    throw new Error('Error connecting Database on Server');
-}
+    return res.json({
+        status:500,
+        success: false,                
+        message: 'Error connecting Database on Server'
+    });
+}   
     
-    //console.log('insert image');
-    // console.log(req.body.image)
-    // var img = fs.readFileSync(req.file.path);
-    // var encode_image = img.toString('base64');
-    // Define a JSONobject for the image attributes for saving to database
-
-    // var finalImg = {
-    //   contentType: req.file.mimetype,
-    //   image:  new Buffer(encode_image, 'base64')
-    // };
 }
 let destroyUser = async (req, res) => {
     try {
         let id = req.query.id;
         getId = await User.findByIdAndRemove({ _id: id });
         if (getId) {
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, message: 'This field has been removed!!!',
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 let updateUser = async (req, res) => {
@@ -439,12 +501,17 @@ let updateUser = async (req, res) => {
                 getData = await User.findByIdAndUpdate(id, { $set: req.body });
                 if (getData) {
                     getNewData = await User.findOne({ _id: id });
-                    return res.status(200).json({
+                    return res.json({
+                        status:200,
                         success: true, data: getNewData, message: 'Infomation field has been updated !!!'
                     });
                 }
                 else {
-                    throw new Error('Error connecting Database on Server');
+                    return res.json({
+                        status:500,
+                        success: false,                
+                        message: 'Error connecting Database on Server'
+                    });
                 }
             }
           }
@@ -458,12 +525,17 @@ let updateUser = async (req, res) => {
                 avatar=req.body.old_avatar;
                 if (getData) {
                     getNewData = await User.findOne({ _id: id });
-                    return res.status(200).json({
+                    return res.json({
+                        status:200,
                         success: true, data: getNewData, message: 'Infomation field has been updated !!!'
                     });
                 }
                 else {
-                    throw new Error('Error connecting Database on Server');
+                    return res.json({
+                        status:500,
+                        success: false,                
+                        message: 'Error connecting Database on Server'
+                    });
                 }
                         }                   
           }         
@@ -471,7 +543,11 @@ let updateUser = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 let changePassword = async (req, res) => {
@@ -492,7 +568,8 @@ let changePassword = async (req, res) => {
                     isComplete = await User.findByIdAndUpdate({ _id: getIdUser }, { password: hashNewpw });
                     if (isComplete) {
                         // getNewData = await User.findOne({ _id: getIdUser});
-                        res.status(200).json({
+                        res.json({
+                            status:200,
                             success: true, message: 'Password has been updated !!!'
                         });
                     }
@@ -522,7 +599,11 @@ let changePassword = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 }
 ///***********Mail****************
@@ -570,14 +651,23 @@ let sendMail = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
         }
     } 
 }
-    catch (error) {
-        console.log(error)
-        res.send(error)
-    }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
 }
 let resetPassword = async (req, res) => {
     console.log(req.params.id);

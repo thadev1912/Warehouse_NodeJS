@@ -9,7 +9,7 @@ const middlewareValidate = {
       detail_product_order_name: Joi.string().required().messages({  
         'string.empty': `Tên sản phẩm không được bỏ trống`,         
       }),  
-      detail_product_order_quantity: Joi.string().required().messages({  
+      detail_product_order_quantity: Joi.number().required().messages({  
         'string.empty': `Số lượng yêu cầu không được bỏ trống`,         
       }),  
       detail_product_order_unit: Joi.string().required().messages({  

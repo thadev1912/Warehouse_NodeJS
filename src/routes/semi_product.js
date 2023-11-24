@@ -1,10 +1,10 @@
 var express = require('express');
 var router = express.Router();
 const SemiProduct = require('../app/Controllers/SemiProductController');
-//const validate=require('../request/SemiProductRequest');
+const validate=require('../request/SemiProductRequest');
 router.get('/listSemiProduct',SemiProduct.index);
-router.post('/storeSemiProduct',SemiProduct.create);
+router.post('/storeSemiProduct',validate.checkValidate,SemiProduct.create);
 router.get('/editSemiProduct',SemiProduct.edit);
-router.put('/updateSemiProduct/:id',SemiProduct.update);
+router.put('/updateSemiProduct/:id',validate.checkValidate,SemiProduct.update);
 router.delete('/deleteSemiProduct',SemiProduct.destroy);
 module.exports = router;

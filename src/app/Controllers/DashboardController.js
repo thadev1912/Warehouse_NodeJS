@@ -5,7 +5,7 @@ const SemiProduct = require('../models/semi_product');
 let HeaderReport = async (req, res) => {
     try {
         //Jobsheet
-        let quantityJobSheet = await JobSheet.find().count();
+        let quantityJobSheet = await JobSheet.find().count();        
         let ProcessingJobSheet = await JobSheet.find({ jobsheet_status: '4' }).count();
         let CompletedJobSheet = await JobSheet.find({ jobsheet_status: '5' }).count();
         let CancelJobSheet = await JobSheet.find({ jobsheet_status: '6' }).count();    
@@ -27,7 +27,9 @@ let HeaderReport = async (req, res) => {
         let CompletedSemiProduct = await SemiProduct.find({ semi_product_status: '9' }).count();
         let PassSemiProduct = await SemiProduct.find({ semi_product_result: '1' }).count();
         let FailSemiProduct = await SemiProduct.find({ semi_product_result: '0' }).count();
-        if ((quantityJobSheet)&&(QuantityProduct)&&(QuantitySemiProduct)) {
+        //console.log(FailSemiProduct);
+       // console.log(quantityJobSheet,QuantityProduct,QuantitySemiProduct)
+       // if ((quantityJobSheet!==0)&&(QuantityProduct1==0)&&(QuantitySemiProduct!==0)) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
@@ -37,15 +39,24 @@ let HeaderReport = async (req, res) => {
                 Product: { QuantityProduct, CancelProduct, ProcessingProduct, CompletedProduct,PassProduct,FailProduct },
                 SemiProduct: { QuantitySemiProduct, CancelSemiProduct, ProcessingSemiProduct, CompletedSemiProduct,PassSemiProduct,FailSemiProduct },
             });
-        }
-        else {
-            throw new Error('Error connecting Database on Server');
-        }
+        
+        // else {
+        //   return res.json({
+        //     status:500,
+        //     success: false,                
+        //     message: 'Error connecting Database on Server'
+        // });
+        // }
     }
     catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
+      console.log(err);
+      return res.json({
+          status:500,
+          success: false,           
+          error: err.message,
+      });
+    
+  }
 
 }
 let BarChartReport =async (req,res) => {
@@ -55,11 +66,12 @@ let BarChartReport =async (req,res) => {
         let selectDayJobSheet =await JobSheet.aggregate([
          {
              $group: {
-               _id: { created: '$created' }, // Nhóm theo ngày
-               totalProductQuantity: { $sum: '$product_quantity' }, // Tính tổng product_quantity
+               _id: { created: '$created' }, 
+               totalProductQuantity: { $sum: '$product_quantity' }, 
              },
            },
         ]);
+         console.log(infoJobSheet,selectDayJobSheet)
         if((infoJobSheet)&&(selectDayJobSheet))
         {
             res.json({
@@ -70,19 +82,30 @@ let BarChartReport =async (req,res) => {
     
     }
     else {
-        throw new Error('Error connecting Database on Server');
+      return res.json({
+        status:500,
+        success: false,                
+        message: 'Error connecting Database on Server'
+    });
+
     }
     }
     catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
+      console.log(err);
+      return res.json({
+          status:500,
+          success: false,           
+          error: err.message,
+      });
+    
+  }
 }
  let PieChartReport =async(req,res) =>
  {
+  try {
     let infoProduct = await Product.find();   
     let infoSemiProduct = await SemiProduct.find(); 
-       //Đã hủy
+       //Cancel
     getCancelTotal=await JobSheet.aggregate([
         {
             $lookup: {
@@ -135,7 +158,7 @@ let BarChartReport =async (req,res) => {
             }
           }
       ]);
-          //Đạt
+          //Pass
     getPassTotal=await JobSheet.aggregate([
         {
             $lookup: {
@@ -188,7 +211,7 @@ let BarChartReport =async (req,res) => {
             }
           }
       ]);
-                // Không Đạt
+                // Fail
     getFailTotal=await JobSheet.aggregate([
         {
             $lookup: {
@@ -251,14 +274,27 @@ let BarChartReport =async (req,res) => {
 
 
             }
-    });
-  
-      
+    });      
 }
 else {
-    throw new Error('Error connecting Database on Server');
+  return res.json({
+    status:500,
+    success: false,                
+    message: 'Error connecting Database on Server'
+});
+
 }
 }
+catch (err) {
+  console.log(err);
+  return res.json({
+      status:500,
+      success: false,           
+      error: err.message,
+  });
+
+}
+ }
 let PerformanceReport =async(req,res)=>
 {
   //

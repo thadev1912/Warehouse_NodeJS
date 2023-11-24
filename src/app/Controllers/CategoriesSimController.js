@@ -1,13 +1,13 @@
 
 const CategoriesSim = require('../models/categories_sim');
 const SemiProduct = require('../models/semi_product');
-//const SimPackage = require('../models/sim_packages');
-//Lấy danh sách phòng ban
 let index = async (req, res) => {
-    try {      
+    try { 
+      await updateStatusSim();
+        
         let getSemiProduct = await CategoriesSim.aggregate([           
             {
-                $addFields: {
+                $addFields: {                                      
                     semi_product_id: {
                         $cond: {
                             if: { $eq: ["$semi_product_id", ''] },
@@ -21,40 +21,8 @@ let index = async (req, res) => {
                             then: '',
                             else: { $toObjectId: "$sim_package_id" }
                         }
-                    },                  
-                    sim_status: {
-                        $cond: {
-                            if: {
-                                $gte: ["$activation_date",new Date()] 
-                            },
-                            then: { $cond: { if: { $eq: ["$activation_date", ""] }, then: "", else: "Chưa Kích hoạt" } },
-                          //  else: "Đã kích hoạt"
-                            else:{
-                                $cond:{
-                                    if:{$eq: [ { $ifNull: ["$activation_date", null] }, null]},
-                                    then:'',
-                                    else: "Đã kích hoạt"
-                                }
-                            }
-                        }
-                    },                 
-                    // deadline_warning: {
-                    //     $cond: {
-                    //         if: {
-                    //             $lte: [
-                    //                 {
-                    //                     $subtract: [
-                    //                         "$expiration_date",
-                    //                         30 * 24 * 60 * 60 * 1000,
-                    //                     ],
-                    //                 },
-                    //                 new Date(),
-                    //             ],
-                    //         },
-                    //         then: "Sắp hết hạn",
-                    //         else: "",
-                    //     },
-                    // },
+                    },        
+                   
                 },
             },
             {
@@ -81,21 +49,151 @@ let index = async (req, res) => {
                 data: getSemiProduct,
             });
         } else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
-    } catch (err) {
+    }
+    
+    catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }   
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
+    }
 }
 
+let updateStatusSim=async(res,req)=>
+{          
+        let updateStatusSim = await CategoriesSim.aggregate([           
+            {
+                $addFields: {  
+                    warningDate: {                       
+                       $subtract: ["$expiration_date", 30 * 24 * 60 * 60 * 1000] // Trừ 30 ngày
+                    },  
+                    semi_product_id: {
+                        $cond: {
+                            if: { $eq: ["$semi_product_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$semi_product_id" }
+                        }
+                    },
+                    sim_package_id: {
+                        $cond: {
+                            if: { $eq: ["$sim_package_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$sim_package_id" }
+                        }
+                    },                  
+                    sim_status: {
+                        $cond: {
+                            if: {
+                                $eq:["$deadline_warning","Đã hết hạn"]
+                               // $gte: ["$activation_date",new Date()] 
+                            },
+                            then: 'Đã hết hạn',
+                          //  else: "Đã kích hoạt"
+                            else:{
+                                $cond: {
+                                    if:{                                   
+                                              $eq: ["$activation_date", ""],                                        
+                                          },
+                                     then: "",
+                                      else: {
+                                        $cond:{
+                                            if:{$eq: [ { $ifNull: ["$activation_date", null] }, null]},
+                                            then:'',
+                                            else: "Đã kích hoạt"
+                                        }
+                                      } }
+                            }
+                        }
+                    },                 
+                    deadline_warning: {                       
+                        $cond: {
+                            if: {
+                                $or: [
+                                    { $eq: ['$expiration_date', null] }, 
+                                    { $eq: ['$expiration_date', ''] }  
+                                ]
+                                                           },
+                            then:"",
+                            else: {
+                                $cond: {
+                                    if: {
+                                        $and: [
+                                            { $lt: ['$expiration_date', new Date()] },                                                                 
+                                          
+                                        ]
+                                                                   },
+                                  then: '',    //still return null                       
+                                  else: {
+                                    $cond: {
+                                        if: {
+                                            $and: [
+                                                { $gt: ['$expiration_date', new Date()] },
+                                                { $lt: ['$expiration_date', { $add: [new Date(), 30 * 24 * 60 * 60 * 1000] }] },
+                                                { $lte: ['$warningDate', new Date()] }                                               
+                                            ]
+                                          },
+                                      then: 'Sắp hết hạn',                           
+                                      else: ""                                      
+                                      
+                                    }
+                                  }
+                                }
+                              },
+                        }
+                    }
+                },
+            }, 
+            {
+                $project: {
+                    _id: 1,
+                    sim_status: 1,
+                    deadline_warning:1,
+
+                }
+            }           
+
+        ]);
+        console.log(updateStatusSim);
+        const updateCategoriesSim = await updateStatusSim.map(function(data) {
+            const infoUpdate={
+                sim_status:data.sim_status,
+                deadline_warning: data.deadline_warning,
+            }
+            return CategoriesSim.findOneAndUpdate(
+             data._id,{$set:infoUpdate}
+            );
+          });
+         return Promise.all(updateCategoriesSim).then(data=>{
+            data.forEach(res=>{
+                res;
+            })            
+         })
+         .catch(err=>{
+            res.json({
+                status: 500,
+                success: false,
+                error: err.message
+            });
+         });       
+    
+   
+}
 let create = async (req, res) => {
     try {        
         const getCategoriesSim = new CategoriesSim(req.body);
         getCategoriesSim.use_sim = '0';
         checkId = await CategoriesSim.find({ serial_sim: req.body.serial_sim }).count();
         if (checkId > 0) {
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, message: 'This ID exits!!',
             });
         }
@@ -109,12 +207,22 @@ let create = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 }
 
@@ -123,17 +231,29 @@ let edit = async (req, res) => {
         id = req.query.id;
         getId = await CategoriesSim.findOne({ _id: id });
         if (getId) {
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, message: 'Infomation Field need to edit!!', data: getId,
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
 
         }
-    } catch (err) {
+    }
+    catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 
 }
@@ -144,51 +264,62 @@ let update = async (req, res) => {
         getData = await CategoriesSim.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {
             getNewData = await CategoriesSim.findOne({ _id: id });
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!'
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
         }
-    } catch (err) {
+    } 
+    catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
     }
 
 }
 const destroy = async (req, res) => {
     try {
-        const id = req.query.id;
-        // Kiểm tra xem có liên kết với semi_product không
+        const id = req.query.id;       
         const semiProductCount = await SemiProduct.countDocuments({ categories_sim_id: id });
-        if (semiProductCount > 0) {
-            // Nếu có liên kết, không thực hiện xóa
-            return res.status(400).json({
+        if (semiProductCount > 0) {            
+            return res.json({
+                status:400,
                 success: false,
                 message: 'Cannot delete Categories Sim as it is linked to Semi Products'
             });
-        }
-
-        // Nếu không có liên kết, thực hiện xóa
+        }        
         await CategoriesSim.findByIdAndRemove(id)
-        return res.status(200).json({
+        return res.json({
+            status:200,
             success: true,
             message: 'Categories Sim has been deleted'
         });
     } catch (err) {
         console.log(err);
-        res.status(500).json({
+        res.json({
+            status:500,
             success: false,
             error: err.message
         });
     }
 };
-
 module.exports = {
     index: index,
     create: create,
     edit: edit,
     update: update,
     destroy: destroy,
+    updateStatusSim:updateStatusSim,   
 }

@@ -1,8 +1,7 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {    
     const checkProductSeries = Joi.object({
         product_series_code: Joi.string().required().messages({
         'string.empty': `Dòng sản xuất không được bỏ trống`,       

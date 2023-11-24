@@ -8,7 +8,7 @@ let index = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         _countInstalled = await countInstalled(); 
         getData=await ManagerISM.aggregate([
-            {
+            {   
                 $lookup: {
                     from: "province_imsses",
                     localField: "area_id",
@@ -16,15 +16,57 @@ let index = async (req, res) => {
                     as: "getProvinceData"
                 }
             },
-        ]);    
+        ]); 
         
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: { getData, provinces: getProvinces },
-               
-               
+                data: { getData, provinces: getProvinces },               
+                });
+        }
+       else {
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
+        
+       }
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
+    }
+}
+let testPaginatewithAggragate = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        //const result = await paginate(ManagerISM, {}, page, 10);
+        const pipeline = 
+            {
+                $lookup: {
+                    from: "province_imsses",
+                    localField: "area_id",
+                    foreignField: "province_id",
+                    as: "getProvinceData"
+                }
+            };
+        const result = await paginate(ManagerISM, {}, page, 10,true,pipeline);
+        const { getData, totalPages, currentPage, pageSize, totalCount } = result;
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData,
+                totalPages,
+                currentPage,
+                pageSize,
+                totalCount
             });
         }
         else {
@@ -36,21 +78,10 @@ let index = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
-let testPaginate = async (req, res) => {
+let testPaginatewithFind = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        //const result = await paginate(ManagerISM, {}, page, 10);
-        const pipeline=[
-            {
-                $lookup: {
-                    from: "province_imsses",
-                    localField: "area_id",
-                    foreignField: "province_id",
-                    as: "getProvinceData"
-                }
-            },
-        ];
-          const result = await paginate(ManagerISM, {}, page, 10);
+        const result = await paginate(ManagerISM, {}, page,10,false);      
         const { getData, totalPages, currentPage, pageSize, totalCount } = result;
         if (getData) {
             res.json({
@@ -105,7 +136,12 @@ let update = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
         }
     } catch (err) {
         console.log(err);
@@ -119,6 +155,7 @@ let update = async (req, res) => {
 }
 let destroy = async (req, res) => {
     try {
+       
         let id = req.params.id;
         getId = await ManagerISM.findByIdAndRemove({ _id: id });
         if (getId) {
@@ -129,7 +166,12 @@ let destroy = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
         }
     }
     catch (err) {
@@ -194,6 +236,7 @@ module.exports =
     store: store,
     update: update,
     destroy: destroy,
-    testPaginate: testPaginate,
+    testPaginatewithAggragate: testPaginatewithAggragate,
+    testPaginatewithFind:testPaginatewithFind,
     countInstalled: countInstalled,
 }

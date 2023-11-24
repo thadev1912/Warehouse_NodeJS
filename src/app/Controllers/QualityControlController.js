@@ -2,7 +2,6 @@ const QualityControl = require('../models/quality_control');
 const Product = require('../models/product');
 const SemiProduct = require('../models/semi_product');
 const JobSheet = require('../models/jobsheet');
-
 let index = async (req, res) => {
     try {
         let getData = await QualityControl.aggregate([
@@ -23,16 +22,26 @@ let index = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
     }
 
 }
 let detailQC = async (req, res) => {
+    try
+    {
     getJobSheetCode = req.params.id;
     console.log(getJobSheetCode);
     getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
@@ -70,7 +79,11 @@ let detailQC = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
     else if ((getProductionType == 'N') || (getProductionType == 'S')) {
@@ -105,12 +118,26 @@ let detailQC = async (req, res) => {
             });
         }
         else {
-            throw new Error('Error connecting Database on Server');
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
         }
     }
 }
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
+}
 
 let orderQC = async (req, res) => {
+    try {
     console.log(req.body);
     getJobSheetCode = req.body.jobsheetCode;
     getId = req.body.productId;
@@ -161,10 +188,23 @@ let orderQC = async (req, res) => {
                 });
             }
             else {
-                throw new Error('Error connecting Database on Server');
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
             }
         }
     }
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
 }
 
 module.exports = {

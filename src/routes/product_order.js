@@ -5,7 +5,7 @@ const Auth =require('../app/middlewares/authenticatetion');
 const Permission =require('../app/middlewares/authorization');
 const validate=require('../request/ProductOrderRequest');
 router.get('/listProductOrder',productorder.index);
-router.post('/createProductOrder',productorder.store);
+router.post('/createProductOrder',validate.checkValidate,productorder.store);
 router.get('/infoProductOrder',productorder.infotoCreate);
 router.get('/editProductOrder/:id',productorder.edit);
 router.put('/updateProductOrder/:id',productorder.update);

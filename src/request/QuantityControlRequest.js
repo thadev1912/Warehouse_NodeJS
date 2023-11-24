@@ -1,8 +1,7 @@
 
 const Joi = require("joi");
 const middlewareValidate = {
-  checkValidate: (req, res, next) => {
-    // const token = req.headers.token; //cách lấy từ header
+  checkValidate: (req, res, next) => {    
     const checkQuantityControl = Joi.object({    
       quality_control_code: Joi.string().required().messages({
         'string.empty': `Mã QC kiểm tra không được bỏ trống`,

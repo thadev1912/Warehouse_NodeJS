@@ -11,7 +11,7 @@ const ProductSchema = new Schema({
     product_assembler:{type:String},
     product_tester:{type:String},
     product_assembly_date:{type:Date},
-    product_test_date:{type:String},
+    product_test_date:{type: Date},
     semi_product_id:{type: Schema.Types.ObjectId},
     product_status:{type:String},
     product_result:{type:String},
