@@ -3,8 +3,7 @@ const CategoriesSim = require('../models/categories_sim');
 const SemiProduct = require('../models/semi_product');
 let index = async (req, res) => {
     try { 
-      await updateStatusSim();
-        
+      await updateStatusSim();        
         let getSemiProduct = await CategoriesSim.aggregate([           
             {
                 $addFields: {                                      
@@ -315,6 +314,13 @@ const destroy = async (req, res) => {
         });
     }
 };
+let NotificationSim=async (req,res)=>
+{
+  countDeadlineWarningSim=await CategoriesSim.find({deadline_warning:'Đã hết hạn'}).count();
+  getArrayDeadlineWarningSim =await CategoriesSim.find({deadline_warning:'Đã hết hạn'});
+  console.log(getArrayDeadlineWarningSim);
+  console.log(countDeadlineWarningSim);
+}
 module.exports = {
     index: index,
     create: create,
@@ -322,4 +328,5 @@ module.exports = {
     update: update,
     destroy: destroy,
     updateStatusSim:updateStatusSim,   
+    NotificationSim:NotificationSim,
 }

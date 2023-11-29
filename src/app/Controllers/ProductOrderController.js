@@ -4,32 +4,70 @@ const IncrementCode = require('../models/increment_code_product_order');
 const User = require('../models/user');
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
+
 let index = async (req, res) => {
     try {
-        //console.log('giá trị được truyền lên từ middleware',getInfoUser); 
+        //console.log('giá trị được truyền lên từ middleware',getInfoUser);
               
-            getData=await ProductOrder.aggregate([
+            // getData=await ProductOrder.aggregate([
+            //     {
+            //         $addFields: {
+            //             user_create_by: {
+            //                 $toObjectId: "$user_create_by"
+            //             },                      
+            //         }
+            //     },
+            //     {
+            //         $lookup: {
+            //             from: "users",                       
+            //             let: { user_create_by: "$user_create_by" },
+            //             pipeline:[
+            //                 {
+            //                     $match: {
+            //                         $expr: {   $eq: ["$$user_create_by", "$_id"] },
+                                    
+            //                     }
+            //                 },
+            //                 {
+            //                     $project: {_id:1,fullname:1}
+            //                    }
+            //             ],
+                       
+            //             as: "detail_user"
+            //         }
+            //     },
+            //   ]);
+            getData = await ProductOrder.aggregate([
                 {
                     $addFields: {
                         user_create_by: {
                             $toObjectId: "$user_create_by"
-                        },                      
+                        },
+                    }
+                },
+                {
+                    $match: {
+                        user_create_by: { $exists: true } // Lọc ra các documents có trường user_create_by tồn tại
                     }
                 },
                 {
                     $lookup: {
                         from: "users",
-                        pipeline:[
+                        let: { userId: "$user_create_by" },
+                        pipeline: [
                             {
-                                $project: {_id:1,fullname:1}
-                               }
+                                $match: {
+                                    $expr: { $eq: ["$_id", "$$userId"] }
+                                }
+                            },
+                            {
+                                $project: { _id: 1, fullname: 1 }
+                            }
                         ],
-                        localField: "user_create_by",
-                        foreignField: "_id",
                         as: "detail_user"
                     }
                 },
-              ]);
+            ]);
                 if (getData) {
                     res.json({
                         status: 200,

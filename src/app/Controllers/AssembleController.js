@@ -78,59 +78,76 @@ let showDetailAssemble = async (req, res) => {
                 }
             },
         ])      
-        // getData = await JobSheet.aggregate([          
-        //     {
-        //         $lookup: {
-        //             from: "products",
-        //             pipeline: [                                                  
-        //                 {                            
-        //                     $lookup: {
-        //                         from: "semi_products",
-        //                         localField: "semi_product_lot",
-        //                         foreignField: "semi_product_lot",
-        //                         pipeline: [
-        //                             {
-        //                                 $match: {
-        //                                   semi_product_status: '9' 
-        //                                 }
-        //                               },
-        //                             {
-        //                                 $addFields: {
-        //                                     categories_sim_id: { $toObjectId: "$categories_sim_id" },
-        //                                     sim_package_id: { $toObjectId: "$sim_package_id" }
-        //                                 },                                       
-        //                             },
-        //                             {
-        //                                 $lookup: {
-        //                                     from: "categories_sims",
-        //                                     localField: "categories_sim_id",
-        //                                     foreignField: "_id",
-        //                                     as: "categoriesSimData",
-        //                                 },
-        //                             },
-        //                             {
-        //                                 $lookup: {
-        //                                     from: "sim-packages",
-        //                                     localField: "sim_package_id",
-        //                                     foreignField: "_id",
-        //                                     as: "SimpackageInfo",
-        //                                 },
-        //                             },       
-        //                         ],
-        //                         as: "semiProductData",
-        //                     },
+    //  getData = await JobSheet.aggregate([          
+    //         {
+    //             $lookup: {
+    //                 from: "products",
+    //                 pipeline: [                                                  
+    //                     {                            
+    //                         $lookup: {
+    //                             from: "semi_products",
+    //                             localField: "semi_product_lot",
+    //                             foreignField: "semi_product_lot",
+    //                             pipeline: [
+    //                                 {
+    //                                     $match: {
+    //                                       semi_product_status:'9', 
+    //                                       product_status:'5'
+    //                                     }
+    //                                   },
+    //                                 {
+    //                                     $addFields: {
+    //                                         categories_sim_id: { $toObjectId: "$categories_sim_id" },
+    //                                         sim_package_id: { $toObjectId: "$sim_package_id" }
+    //                                     },                                       
+    //                                 },
+    //                                 {
+    //                                     $lookup: {
+    //                                         from: "categories_sims",
+    //                                         localField: "categories_sim_id",
+    //                                         foreignField: "_id",
+    //                                         as: "categoriesSimData",
+    //                                     },
+    //                                 },
+    //                                 {
+    //                                     $lookup: {
+    //                                         from: "sim-packages",
+    //                                         localField: "sim_package_id",
+    //                                         foreignField: "_id",
+    //                                         as: "SimpackageInfo",
+    //                                     },
+    //                                 },       
+    //                             ],
+    //                             as: "semiProductData",
+    //                         },
                             
-        //                 },                        
-        //             ],                   
-        //             localField: "jobsheet_code",
-        //             foreignField: "jobsheet_code",
-        //             as: "getDetail",
-        //         },
-        //     },
-        //     {
-        //         $match: { jobsheet_code: getJobSheetCode },
-        //     },
-        // ]);  
+    //                     },                        
+    //                 ],                                       
+    //                 localField: "jobsheet_code",
+    //                 foreignField: "jobsheet_code",
+    //                 as: "getDetail",
+    //             },
+    //         },
+    //         {
+    //             $match: {
+    //                 $and: [
+    //                     { jobsheet_code: getJobSheetCode },
+    //                  //   { "getDetail.product_assemble_status": "1" }
+                       
+    //                 ]
+    //             }
+    //             // $and: [
+    //             //     {
+    //             //         jobsheet_code: getJobSheetCode
+    //             //     },
+    //             //     {
+    //             //         product_status: "5"
+    //             //     }
+    //             //   ]
+    //           //  $match: { jobsheet_code: getJobSheetCode },
+    //         },
+            
+    //     ]);     
         //code fix version MongoDB    
         getData = await JobSheet.aggregate([
             {
@@ -140,7 +157,13 @@ let showDetailAssemble = async (req, res) => {
                     pipeline: [
                         {
                             $match: {
-                                $expr: { $eq: ["$$job_code", "$jobsheet_code"] }
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$$job_code", "$jobsheet_code"] },
+                                        { $eq: ["$product_assemble_status", "1"] }
+                                    ]
+                                }
+                               // $expr: { $eq: ["$$job_code", "$jobsheet_code"] }
                             }
                         },
                         {
@@ -150,7 +173,8 @@ let showDetailAssemble = async (req, res) => {
                                 pipeline: [
                                     {
                                         $match: {
-                                            $expr: { $eq: ["$$semi_lot", "$semi_product_lot"] }
+                                            $expr: {   $eq: ["$$semi_lot", "$semi_product_lot"] },
+                                            
                                         }
                                     },
                                     {
@@ -312,16 +336,20 @@ let infotoUpdate = async (req, res) => {
 let updateAssembleOrder = async (req, res) => {
     try {
         console.log(req.body);
-        console.log(req.params.id);
+        console.log('giá trị params',req.params.id);
         getProductCode = req.params.id;
         getOldSemiProductLot = req.body.old_semi_product_lot;
         getSemiProductLot = req.body.semi_product_lot;
-        getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { $set: { product_status: '5', semi_product_lot: req.body.semi_product_lot,product_assembly_date:req.body.product_assembly_date } });
-        if (getOldSemiProductLot) {
-            await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' });
-        }
-        await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_used: '1' });
-        if (getData) {
+        getStatus=req.body.product_status;       
+         
+        if(getStatus==='5')
+        {             
+            if(getSemiProductLot)
+            {
+                await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_used: '1' });
+            }      
+       getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { $set: { product_status:getStatus, semi_product_lot: req.body.semi_product_lot,product_assembler:req.body.product_assembler,product_assembly_date:req.body.product_assembly_date } });
+                if (getData) {
             return res.json({
                 status:200,
                 success: true,
@@ -335,6 +363,43 @@ let updateAssembleOrder = async (req, res) => {
                 message: 'Error connecting Database on Server'
             });
         }
+          }
+          else if(getStatus==='10')
+          {           
+            if(getOldSemiProductLot)
+            {
+                await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' }); 
+            }         
+        
+             getData = await Product.findOneAndUpdate({ product_code: getProductCode },{$set: { product_status:getStatus,semi_product_lot:'',product_assembly_date:''}});
+            if (getData) {
+                return res.json({
+                    status:200,
+                    success: true,
+                    message: 'Get Data Completed!!!'
+                });
+            }
+            else {
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
+            }
+          }
+            // if (getOldSemiProductLot) {
+        //     console.log('1')
+        //     await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' });
+        //     getData = await Product.findOneAndUpdate({ product_code: getOldSemiProductLot }, {  product_status: '10' });
+        // }
+        // if(getSemiProductLot)
+        // {
+        //     console.log('nhận được getSemi')
+
+        //     await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_used: '1' });
+        // }
+      
+      
     }
     catch (err) {
         console.log(err);

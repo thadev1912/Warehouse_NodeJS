@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const http = require("http");
+const https = require('https');
+const fs = require('fs');
 const port = 8080;
 require('dotenv').config()
 const route = require('./src/routes/index');
@@ -41,9 +43,29 @@ app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 route(app);
 connectDB();
-app.listen(process.env.PORT,process.env.SERVER_URL, async() => {
+//dùng https có chứng chỉ:
+//đọc SSL
+// const options = {
+//   key: fs.readFileSync('/etc/letsencrypt/product.rynansaas.com/privkey.pem'),
+//   cert: fs.readFileSync('/etc/letsencrypt/product.rynansaas.com/fullchain.pem')
+// };
+// const httpsServer = https.createServer(options,app);
+// httpsServer.listen(HTTPS_PORT, () => {
+//   console.log(`HTTPS Server running on port ${HTTPS_PORT}`);
+// });
+// httpsServer.listen(process.env.PORTS,process.env.SERVER_URL, async() => {
+//   try{
+//     console.log(`Server running on ${process.env.SERVER_URL}:${process.env.PORTS}`)
+   
+//   }
+//   catch (error) {
+//     console.log('Error occurred:', error);
+//   }
+// })
+//dùng http thông thường
+app.listen(process.env.PORT_HTTP,process.env.SERVER_URL, async() => {
   try{
-    console.log(`Server running on ${process.env.SERVER_URL}:${process.env.PORT}`)
+    console.log(`Server running on ${process.env.SERVER_URL}:${process.env.PORT_HTTP}`)
     await setIvoince.setInvoice();
     await updateSim.updateStatusSim();    
   }
@@ -95,6 +117,7 @@ app.get('/', (req, res) => {
 });
 //Midleware Static View
 app.use(express.static('public'));
+
 app.set('view engine', 'ejs');
 
 //Api get all Router Name

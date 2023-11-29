@@ -8,4 +8,5 @@ router.get('/editCategoriesSim',CategoriesSim.edit);
 router.put('/updateCategoriesSim/:id',validate.checkValidate,CategoriesSim.update);
 router.delete('/deleteCategoriesSim',CategoriesSim.destroy);
 router.get('/updateStatusSim',CategoriesSim.updateStatusSim);
+router.get('/NotificationSim',CategoriesSim.NotificationSim);
 module.exports = router;

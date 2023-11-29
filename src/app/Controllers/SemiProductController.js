@@ -5,7 +5,41 @@ const CategoriesSim = require('../models/categories_sim');
 let index = async (req, res) => {
     try {
         let getSimPackage = await SimPackage.find({});
-        let getCategoriesSim = await CategoriesSim.find({ use_sim: '0' });        
+        let getCategoriesSim = await CategoriesSim.find({ use_sim: '0' });    
+        // let getData = await SemiProduct.aggregate([
+        //     {
+        //         $addFields: {
+        //             categories_sim_id: {
+        //                 $toObjectId: "$categories_sim_id"
+        //             }
+        //         }
+        //     },
+        //     {
+        //         $lookup: {
+        //             from: "categories_sims",                    
+        //             localField: "categories_sim_id",
+        //             foreignField: "_id",
+        //             pipeline:[
+        //                 {
+        //                     $addFields: {                                
+        //                         sim_package_id: { $toObjectId: "$sim_package_id" }
+        //                     },                                       
+        //                 },
+        //                 {
+        //                     $lookup: {
+        //                         from: "sim-packages",
+        //                         localField: "sim_package_id",
+        //                         foreignField: "_id",
+        //                         as: "SimpackageInfo",
+        //                     },
+        //                 }, 
+        //             ],
+        //             as: "category"
+        //         }
+        //     },
+        //                 {$match:{semi_product_status:'9'}}
+    
+        // ]);    
         let getData = await SemiProduct.aggregate([
             {
                 $addFields: {
@@ -17,9 +51,19 @@ let index = async (req, res) => {
             {
                 $lookup: {
                     from: "categories_sims",                    
-                    localField: "categories_sim_id",
-                    foreignField: "_id",
+                   // localField: "categories_sim_id",
+                    //foreignField: "_id",
+                    let:{categories:'$categories_sim_id'},
                     pipeline:[
+                       
+                        {
+                            $match:{
+                            $expr:                             
+                            { $eq: ["$_id", "$$categories"] }
+                            }
+                             
+                        }
+                    ,
                         {
                             $addFields: {                                
                                 sim_package_id: { $toObjectId: "$sim_package_id" }
@@ -29,7 +73,7 @@ let index = async (req, res) => {
                             $lookup: {
                                 from: "sim-packages",
                                 localField: "sim_package_id",
-                                foreignField: "_id",
+                                foreignField: "_id",                                
                                 as: "SimpackageInfo",
                             },
                         }, 

@@ -590,7 +590,6 @@ let OrderProduct = async (req, res) => {
                 });
                 getData = await getAssemble.save();
             }
-
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
             //create Welding Collection (Semi-Product)
