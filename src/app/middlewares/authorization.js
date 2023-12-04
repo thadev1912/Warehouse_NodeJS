@@ -14,7 +14,7 @@ const middlewarePermision = {
             console.log('tên api được gọi lên là', requestRouterName);
             const isCan = await middlewarePermision.hasPermission(_getPermissionGroup, requestRouterName);
             console.log(isCan);
-            if (isCan) {
+            if (isCan) {                
                 next();
             }
             else {
@@ -26,10 +26,8 @@ const middlewarePermision = {
         }
     },
     getRoles: async (data) => {
-
         getData = await User.aggregate([
             {
-
                 $match: {
                     _id: data,
                 },

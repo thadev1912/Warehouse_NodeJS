@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 const department = require('../app/Controllers/DeparmentController');
 const validate=require('../request/DepartmentRequest');
+const Auth =require('../app/middlewares/authenticatetion');
+const Permission =require('../app/middlewares/authorization');
 /**
  * @swagger
  * '/deparment/':
@@ -21,7 +23,7 @@ const validate=require('../request/DepartmentRequest');
  *       403:
  *         description: Authertication
  */
-router.get('/listDepartment',department.index);
+router.get('/listDepartment',Auth.checkAuth,Permission.checkPermision,department.index);
 /**
  * @swagger
  * '/deparment/create':
@@ -133,4 +135,5 @@ router.put('/updateDepartment/:id',validate.checkValidate,department.update);
  *        description: Not Found
  */
 router.delete('/deleteDepartment/:id',department.destroy);
+router.get('/getdecryptData',department.getdecryptData);
 module.exports = router;

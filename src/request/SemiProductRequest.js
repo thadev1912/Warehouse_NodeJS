@@ -37,7 +37,7 @@ const middlewareValidate = {
        
       }),
       categories_sim_id: Joi.string().allow(null).allow('').messages({   
-        
+             
       }),
       //---
       semi_product_unit: Joi.string().allow(null).allow('').messages({   
@@ -52,7 +52,13 @@ const middlewareValidate = {
       purpose: Joi.string().allow(null).allow('').messages({   
         
       }),
-      expiration_date: Joi.string().allow(null).allow('').messages({   
+      expiration_date: Joi.string().allow(null).allow('').messages({  
+        
+      }),
+      old_semi_product_id: Joi.string().allow(null).allow('').messages({  
+        
+      }),
+      old_sim_id: Joi.string().allow(null).allow('').messages({  
         
       }),
 

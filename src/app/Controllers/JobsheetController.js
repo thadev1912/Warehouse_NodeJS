@@ -10,13 +10,15 @@ const ProductGroup = require('../models/product_group');
 const QualityControl = require('../models/quality_control');
 const Warehouse = require('../models/warehouse');
 const Department = require('../models/department');
+const cryptJSon = require('../../helper/cryptJSon');
 const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
     try {
-        let getproductOrderNo = await ProductOrder.find().select('product_order_No');
-        let getproductType = await ProductType.find();
-        let getproductSeries = await ProductSeries.find();
-        let getData = await JobSheet.find({});;
+        const token = req.headers.token; 
+        let getproductOrderNo =await cryptJSon.encryptData(token,await ProductOrder.find().select('product_order_No'));
+        let getproductType =await cryptJSon.encryptData(token,await ProductType.find());
+        let getproductSeries =await cryptJSon.encryptData(token,await ProductSeries.find());
+        let getData =await cryptJSon.encryptData(token,await JobSheet.find({}));
         if (getData) {
             res.json({
                 status: 200,
@@ -45,9 +47,10 @@ let index = async (req, res) => {
 }
 let infotoCreate = async (req, res) => {
     try{
-    let getproductOrderNo = await ProductOrder.find().select('product_order_No');
-    let getproductType = await ProductType.find();
-    let getproductSeries = await ProductSeries.find();
+    const token = req.headers.token; 
+    let getproductOrderNo =await cryptJSon.encryptData(token,await ProductOrder.find().select('product_order_No'));
+    let getproductType =await cryptJSon.encryptData(token,await ProductType.find());
+    let getproductSeries =await cryptJSon.encryptData(token, await ProductSeries.find());
     if (getproductOrderNo && getproductType && getproductSeries) {
         return res.json({
             status:200,
@@ -75,7 +78,7 @@ catch (err) {
 }
 let store = async (req, res) => {
     try {
-        
+        const token = req.headers.token; 
         console.log(req.body);
         const getDateTime = new Date();
         const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
@@ -151,7 +154,7 @@ let store = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data: getData,
+                //data: getData,
             });
         }
         else {
@@ -175,11 +178,12 @@ let store = async (req, res) => {
 
 let edit = async (req, res) => {
     try {
+        const token = req.headers.token; 
         let id = new ObjectId(req.params.id);
-        let getproductOrderNo = await ProductOrder.find().select('product_order_No');
-        let getproductType = await ProductType.find();
-        let getproductSeries = await ProductSeries.find();
-        getId = await JobSheet.aggregate
+        let getproductOrderNo = await cryptJSon.encryptData(token, await ProductOrder.find().select('product_order_No'));
+        let getproductType = await cryptJSon.encryptData(token, await ProductType.find());
+        let getproductSeries = await cryptJSon.encryptData(token, await ProductSeries.find());
+        getId =await cryptJSon.encryptData(token, await JobSheet.aggregate
             ([
                 {
                     $lookup: {
@@ -202,7 +206,7 @@ let edit = async (req, res) => {
                         _id: id,
                     }
                 }
-            ]);
+            ]));
         if (getId) {
             return res.status(200).json({
                 success: true, message: 'Infomation Field need to edit!!', data: getId, getproductOrderNo, getproductType, getproductSeries
@@ -337,70 +341,161 @@ let update = async (req, res) => {
     }
 }
 let showDetail = async (req, res) => {
-    let getProductGroup = await ProductGroup.find();
-    let getDepartment = await Department.find();
+    const token = req.headers.token; 
+    let getProductGroup =await cryptJSon.encryptData(token,await ProductGroup.find());
+    let getDepartment =await cryptJSon.encryptData(token,await Department.find());
     getJobSheetCode = req.params.id;
-    isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
+    isCheckQuantityControl =await cryptJSon.encryptData(token, await QualityControl.find({ jobsheet_code: getJobSheetCode }).count());
     _isCheckQuantityControl = isCheckQuantityControl > 0 ? 1 : 0;
     const index = 6 - 1;
     if (index >= 0 && index < getJobSheetCode.length) {
         const createProductionType = getJobSheetCode.charAt(index);
         if ((createProductionType == 'P') || (createProductionType == 'R')) {
-            getshowDetail = await JobSheet.aggregate([
-                {
-                    $lookup: {
-                        from: "products",
-                        localField: "jobsheet_code",
-                        foreignField: "jobsheet_code",
-                        pipeline:[                           
-                            {
-                                $lookup: {
-                                    from: "semi_products",
-                                    localField: "semi_product_lot",
-                                    foreignField: "semi_product_lot",
-                                    as: "SemiproductInfo",
-                                },
-                            }, 
-                        ],                       
-                        as: "dataProduct"
-                    }
-                },              
-                {
-                    $match: {
-                        jobsheet_code: getJobSheetCode
-                    }
+            // getshowDetail = await JobSheet.aggregate([
+            //     {
+            //         $lookup: {
+            //             from: "products",
+            //             localField: "jobsheet_code",
+            //             foreignField: "jobsheet_code",
+            //             pipeline:[                           
+            //                 {
+            //                     $lookup: {
+            //                         from: "semi_products",
+            //                         localField: "semi_product_lot",
+            //                         foreignField: "semi_product_lot",
+            //                         as: "SemiproductInfo",
+            //                     },
+            //                 }, 
+            //             ],                       
+            //             as: "dataProduct"
+            //         }
+            //     },              
+            //     {
+            //         $match: {
+            //             jobsheet_code: getJobSheetCode
+            //         }
+            //     }
+            // ])
+           //
+         
+           //fix version Mongo
+           getshowDetail =await cryptJSon.encryptData(token, await JobSheet.aggregate([
+            {
+                $match: {
+                    jobsheet_code: getJobSheetCode
                 }
-            ])
-
-            return res.json({
+            },
+            {
+                $lookup: {
+                    from: "products",
+                    let: { code: "$jobsheet_code" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$jobsheet_code", "$$code"] }
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "semi_products",
+                                localField: "semi_product_lot",
+                                foreignField: "semi_product_lot",
+                                as: "SemiproductInfo",
+                            },
+                        },
+                    ],
+                    as: "dataProduct"
+                }
+            }
+        ]));
+        
+           return res.json({
                 status:200,
                 success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl, message: 'Infomation field has been updated !!!'
             });
 
         }
         else if ((createProductionType == 'S') || (createProductionType == 'N')) {
-            getshowDetail = await JobSheet.aggregate([
+            // getshowDetail = await JobSheet.aggregate([
+            //     {
+            //         $lookup: {
+            //             from: "semi_products",
+            //             localField: "jobsheet_code",
+            //             foreignField: "jobsheet_code",
+            //             pipeline:[
+            //                 {
+            //                     $addFields: {                                
+            //                         categories_sim_id: { $toObjectId: "$categories_sim_id" }
+            //                     },                                       
+            //                 },
+            //                 {
+            //                     $lookup: {
+            //                         from: "categories_sims",
+            //                         localField: "categories_sim_id",
+            //                         foreignField: "_id",
+            //                         pipeline:[
+            //                             {
+            //                                 $addFields: {                                
+            //                                     sim_package_id: { $toObjectId: "$sim_package_id" }
+            //                                 },                                       
+            //                             },
+            //                             {
+            //                                 $lookup: {
+            //                                     from: "sim-packages",
+            //                                     localField: "sim_package_id",
+            //                                     foreignField: "_id",
+            //                                     as: "SimpackageInfo",
+            //                                 },
+            //                             }, 
+            //                         ],
+            //                         as: "CategoriesSimInfo",
+            //                     },
+            //                 }, 
+            //             ],
+            //             as: "dataSemiProduct"
+            //         }
+            //     },
+            //     {
+            //         $match: {
+            //             jobsheet_code: getJobSheetCode
+            //         }
+            //     }
+            // ])
+            getshowDetail =await cryptJSon.encryptData(token, await JobSheet.aggregate([
+                {
+                    $match: {
+                        jobsheet_code: getJobSheetCode
+                    }
+                },
                 {
                     $lookup: {
                         from: "semi_products",
-                        localField: "jobsheet_code",
-                        foreignField: "jobsheet_code",
-                        pipeline:[
+                        let: { code: "$jobsheet_code" },
+                        pipeline: [
                             {
-                                $addFields: {                                
+                                $match: {
+                                    $expr: { $eq: ["$jobsheet_code", "$$code"] }
+                                }
+                            },
+                            {
+                                $addFields: {
                                     categories_sim_id: { $toObjectId: "$categories_sim_id" }
-                                },                                       
+                                }
                             },
                             {
                                 $lookup: {
                                     from: "categories_sims",
-                                    localField: "categories_sim_id",
-                                    foreignField: "_id",
-                                    pipeline:[
+                                    let: { catId: "$categories_sim_id" },
+                                    pipeline: [
                                         {
-                                            $addFields: {                                
+                                            $match: {
+                                                $expr: { $eq: ["$_id", "$$catId"] }
+                                            }
+                                        },
+                                        {
+                                            $addFields: {
                                                 sim_package_id: { $toObjectId: "$sim_package_id" }
-                                            },                                       
+                                            }
                                         },
                                         {
                                             $lookup: {
@@ -409,22 +504,17 @@ let showDetail = async (req, res) => {
                                                 foreignField: "_id",
                                                 as: "SimpackageInfo",
                                             },
-                                        }, 
+                                        },
                                     ],
                                     as: "CategoriesSimInfo",
                                 },
-                            }, 
+                            },
                         ],
                         as: "dataSemiProduct"
                     }
-                },
-                {
-                    $match: {
-                        jobsheet_code: getJobSheetCode
-                    }
                 }
-            ])
-
+            ]));
+            
             return res.json({
                 status:200,
                 success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl, message: 'Infomation field has been updated !!!'
@@ -443,19 +533,20 @@ let cancel = async (req, res) => {
         getJobSheetCode = req.body.oldjobsheetcode;
         updateJobSheet = new JobSheet({
             id: req.params.id,
-            jobsheet_status: 'Đã hủy',
+            jobsheet_status: '3',
         })
         getData = await JobSheet.findByIdAndUpdate(id, { $set: updateJobSheet });
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
-            await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: 'Đã hủy' })
+            await Product.updateMany({ jobsheet_code: getJobSheetCode }, { product_status: '10' })
 
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
-            await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, { semi_product_status: 'Đã hủy' })
+            await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, { semi_product_status: '10' })
         }
         if (getData) {
             getNewData = await JobSheet.findOne({ _id: id });
-            return res.status(200).json({
+            return res.json({
+                status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
             });
         }
@@ -638,8 +729,9 @@ let OrderProduct = async (req, res) => {
     }
 }
 let infoCreatOrderQC = async (req, res) => {
+    const token = req.headers.token; 
     getProductCode = req.params.id;
-    getProductGroup = await ProductGroup.find();
+    getProductGroup =await cryptJSon.encryptData(token, await ProductGroup.find());
     if (getProductGroup) {
         return res.json({
             status:200,

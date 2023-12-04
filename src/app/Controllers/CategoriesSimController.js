@@ -1,10 +1,13 @@
 
 const CategoriesSim = require('../models/categories_sim');
 const SemiProduct = require('../models/semi_product');
+const Notification = require('../models/notification_sim');
+const cryptJSon = require('../../helper/cryptJSon');
 let index = async (req, res) => {
     try { 
+        const token = req.headers.token; 
       await updateStatusSim();        
-        let getSemiProduct = await CategoriesSim.aggregate([           
+        let getSemiProduct =await cryptJSon.encryptData(token, await CategoriesSim.aggregate([           
             {
                 $addFields: {                                      
                     semi_product_id: {
@@ -40,7 +43,7 @@ let index = async (req, res) => {
                     as: "sim_package"
                 }
             },
-        ]);
+        ]));
         if (getSemiProduct) {
             res.json({
                 status: 200,
@@ -129,7 +132,7 @@ let updateStatusSim=async(res,req)=>
                                           
                                         ]
                                                                    },
-                                  then: '',    //still return null                       
+                                  then: 'Đã hết hạn',    //still return null                       
                                   else: {
                                     $cond: {
                                         if: {
@@ -202,7 +205,7 @@ let create = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data: getData,
+               // data: getData,
             });
         }
         else {
@@ -227,8 +230,9 @@ let create = async (req, res) => {
 
 let edit = async (req, res) => {
     try {
+        const token = req.headers.token; 
         id = req.query.id;
-        getId = await CategoriesSim.findOne({ _id: id });
+        getId =await cryptJSon.encryptData(token, await CategoriesSim.findOne({ _id: id }));
         if (getId) {
             return res.json({
                 status:200,
@@ -314,12 +318,19 @@ const destroy = async (req, res) => {
         });
     }
 };
-let NotificationSim=async (req,res)=>
+let showNotification =async(req,res)=>
 {
-  countDeadlineWarningSim=await CategoriesSim.find({deadline_warning:'Đã hết hạn'}).count();
-  getArrayDeadlineWarningSim =await CategoriesSim.find({deadline_warning:'Đã hết hạn'});
-  console.log(getArrayDeadlineWarningSim);
-  console.log(countDeadlineWarningSim);
+  getData=await Notification.find({}).sort({ createdAt: -1 });
+  if(getData)
+  { 
+    return res.json({
+    status:200,
+    success: true,
+    data:getData,
+    message: 'Categories Sim has been deleted'
+});
+
+  }
 }
 module.exports = {
     index: index,
@@ -328,5 +339,5 @@ module.exports = {
     update: update,
     destroy: destroy,
     updateStatusSim:updateStatusSim,   
-    NotificationSim:NotificationSim,
+    showNotification:showNotification,
 }

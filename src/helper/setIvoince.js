@@ -9,19 +9,19 @@ const setInvoice=async(req,res) =>{
         });
         await getInvoice.save();
     }    
-    getlastInvoice=await IncrementCode.findOne().sort({ created: -1 }).select('invoice_number');        
-    let invoiceNumber =getlastInvoice.invoice_number;
-    let getlastYear = invoiceNumber.match(/YCSX(\d+)\.\d+/);
-    let _getlastYear = getlastYear ? getlastYear[1] : null;     
-        if(currentYear!==_getlastYear) 
-        {
-            getvalue='001';
-            invoice_number = 'YCSX'+currentYear+'.'+getvalue;
-            const getInvoice = new IncrementCode({
-                invoice_number: invoice_number,
-            });
-            await getInvoice.save();
-        }       
+    // getlastInvoice=await IncrementCode.findOne().sort({ created: -1 }).select('invoice_number');        
+    // let invoiceNumber =getlastInvoice.invoice_number;
+    // let getlastYear = invoiceNumber.match(/YCSX(\d+)\.\d+/);
+    // let _getlastYear = getlastYear ? getlastYear[1] : null;     
+    //     if(currentYear!==_getlastYear) 
+    //     {
+    //         getvalue='001';
+    //         invoice_number = 'YCSX'+currentYear+'.'+getvalue;
+    //         const getInvoice = new IncrementCode({
+    //             invoice_number: invoice_number,
+    //         });
+    //         await getInvoice.save();
+    //     }       
     }
 module.exports = {
     setInvoice

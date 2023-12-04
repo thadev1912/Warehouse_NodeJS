@@ -2,9 +2,11 @@ const QualityControl = require('../models/quality_control');
 const Product = require('../models/product');
 const SemiProduct = require('../models/semi_product');
 const JobSheet = require('../models/jobsheet');
+const cryptJSon = require('../../helper/cryptJSon');
 let index = async (req, res) => {
     try {
-        let getData = await QualityControl.aggregate([
+        const token = req.headers.token; 
+        let getData =await cryptJSon.encryptData(token, await QualityControl.aggregate([
             {
                 $lookup: {
                     from: "jobsheets",
@@ -13,7 +15,7 @@ let index = async (req, res) => {
                     as: "getDetail"
                 },
             }
-        ]);
+        ]));
         if (getData) {
             res.json({
                 status: 200,
@@ -42,12 +44,13 @@ let index = async (req, res) => {
 let detailQC = async (req, res) => {
     try
     {
+    const token = req.headers.token;
     getJobSheetCode = req.params.id;
     console.log(getJobSheetCode);
     getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
     getProductionType = getInfo.product_type_code;
     if ((getProductionType == 'P') || (getProductionType == 'R')) {
-        getProduct = await Product.aggregate([
+        getProduct =await cryptJSon.encryptData(token, await Product.aggregate([
             {
                 $lookup: {
                     from: "jobsheets",
@@ -70,7 +73,7 @@ let detailQC = async (req, res) => {
                 }
             }
 
-        ]);
+        ]));
         if (getProduct) {
             res.json({
                 status: 200,
@@ -87,7 +90,7 @@ let detailQC = async (req, res) => {
         }
     }
     else if ((getProductionType == 'N') || (getProductionType == 'S')) {
-        getSemiProduct = await SemiProduct.aggregate([
+        getSemiProduct =await cryptJSon.encryptData(token, await SemiProduct.aggregate([
             {
                 $lookup: {
                     from: "jobsheets",
@@ -109,7 +112,7 @@ let detailQC = async (req, res) => {
                 }
             }
 
-        ]);
+        ]));
         if (getSemiProduct) {
             res.json({
                 status: 200,

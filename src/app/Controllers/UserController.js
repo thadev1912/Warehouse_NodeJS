@@ -11,13 +11,15 @@ const mailer = require('../../helper/sendmail');
 const crypto = require('crypto');
 const StoreToken = require('../models/store_token');
 const TestImage = require('../models/test_image');
+const cryptJSon = require('../../helper/cryptJSon');
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
-        let dataPosition = await Position.find({});
-        let dataRegion = await Region.find({});
-        let dataDepartment = await Department.find({});
-        let getData = await User.aggregate([
+        const token = req.headers.token; 
+        let dataPosition =await cryptJSon.encryptData(token, await Position.find({}));
+        let dataRegion =await cryptJSon.encryptData(token, await Region.find({}));
+        let dataDepartment =await cryptJSon.encryptData(token, await Department.find({}));
+        let getData =await cryptJSon.encryptData(token, await User.aggregate([
             {
                 $addFields: {
                     region_id: {
@@ -55,7 +57,7 @@ let listUser = async (req, res) => {
                     as: "getDepartment"
                 }
             },
-        ]);
+        ]));
        
         if (getData) {
             res.json({
@@ -83,11 +85,12 @@ let listUser = async (req, res) => {
 
 }
 let Infomation = async (req, res) => {
-    let dataPosition = await Position.find({});
-    let dataRegion = await Region.find({});
-    let dataDepartment = await Department.find({});
-    let dataRole = await Role.find({});
-    getData = await User.aggregate([
+    const token = req.headers.token;
+    let dataPosition =await cryptJSon.encryptData(token, await Position.find({}));
+    let dataRegion =await cryptJSon.encryptData(token, await Region.find({}));
+    let dataDepartment =await cryptJSon.encryptData(token, await Department.find({}));
+    let dataRole = await cryptJSon.encryptData(token,await Role.find({}));
+    getData =await cryptJSon.encryptData(token, await User.aggregate([
         {
             $project: {
                 _id: 1,
@@ -134,7 +137,7 @@ let Infomation = async (req, res) => {
         },
 
 
-    ])
+    ]));
     if (getData) {
         res.json({
             status: 200,
@@ -314,17 +317,22 @@ let checkLogin = async (req, res) => {
             $group: {
                 _id: null,
                 role_permission_name: { $addToSet: '$rolePermission.role_permission_name' },
+                role_permission_group: { $addToSet: '$rolePermission.role_permission_group' },
             },
         },
         {
             $project: {
                 _id: 0, 
                 role_permission_name: 1,
+                role_permission_group: 1,
             },
-        },
-       
+        },       
     ]);  
-    const isAdmin = getRoleUser.length > 0 && getRoleUser[0].role_permission_name.includes('admin')?'admin':'';
+    const isAdmin = getRoleUser.length > 0 && getRoleUser[0].role_permission_name.includes('admin')?'admin':'';    
+   // getRoleUser[0].role_permission_group.map(JSON.parse).flat();  
+    const _getPermissionGroup = getRoleUser[0].role_permission_group.flatMap(group => JSON.parse(group));
+    const getPermissionGroup = [...new Set(_getPermissionGroup)];
+    console.log('nhóm quyền của user là',getPermissionGroup)
     console.log('user này có quyền admin:',isAdmin);
     getInfo = await User.aggregate([
         {
@@ -392,10 +400,11 @@ let checkLogin = async (req, res) => {
     if (!checkUser) {
         res.json({ status: 500, message: 'Username or passsword incorect!!!' });
         return;
-    }
-    console.log('thông tin user', checkUser);
-    let checkPw = await bcrypt.compare(pws, checkUser.password);    
-    let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username,isAdmin},
+    }   
+    let checkPw = await bcrypt.compare(pws, checkUser.password);
+    const _SecurityKey = crypto.randomBytes(32).toString('hex');
+    const _initVector = crypto.randomBytes(16).toString('hex');      
+    let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username,_SecurityKey,_initVector,roles:{isAdmin,getPermissionGroup}},
         process.env.JWT_SECRET,       
         { expiresIn: "1h" }
     );    

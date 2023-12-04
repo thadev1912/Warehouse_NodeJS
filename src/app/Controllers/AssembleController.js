@@ -4,9 +4,11 @@ const Product = require('../models/product');
 const SemiProduct = require('../models/semi_product');
 const CategoriesSim = require('../models/categories_sim');
 const SimPackage = require('../models/sim_packages');
+const cryptJSon = require('../../helper/cryptJSon');
 let AssembleList = async (req, res) => {
     try {        
-        getData = await Assemble.aggregate([
+        const token = req.headers.token; 
+        getData =await cryptJSon.encryptData(token, await Assemble.aggregate([
             {
                 $lookup: {
                     from: "jobsheets",
@@ -14,7 +16,7 @@ let AssembleList = async (req, res) => {
                     foreignField: "jobsheet_code",
                     as: "getDetail"
                 }
-            }]);     
+            }]));     
         if (getData) {
             return res.json({
                 status:200,
@@ -36,9 +38,10 @@ let AssembleList = async (req, res) => {
 
 }
 let showDetailAssemble = async (req, res) => {
-    try {        
+    try {   
+        const token = req.headers.token;     
         getJobSheetCode = req.params.id;        
-        getProductLot = await SemiProduct.aggregate([
+        getProductLot =await cryptJSon.encryptData(token, await SemiProduct.aggregate([
             {
                 $addFields: {
                     categories_sim_id: {
@@ -77,79 +80,10 @@ let showDetailAssemble = async (req, res) => {
                     ]
                 }
             },
-        ])      
-    //  getData = await JobSheet.aggregate([          
-    //         {
-    //             $lookup: {
-    //                 from: "products",
-    //                 pipeline: [                                                  
-    //                     {                            
-    //                         $lookup: {
-    //                             from: "semi_products",
-    //                             localField: "semi_product_lot",
-    //                             foreignField: "semi_product_lot",
-    //                             pipeline: [
-    //                                 {
-    //                                     $match: {
-    //                                       semi_product_status:'9', 
-    //                                       product_status:'5'
-    //                                     }
-    //                                   },
-    //                                 {
-    //                                     $addFields: {
-    //                                         categories_sim_id: { $toObjectId: "$categories_sim_id" },
-    //                                         sim_package_id: { $toObjectId: "$sim_package_id" }
-    //                                     },                                       
-    //                                 },
-    //                                 {
-    //                                     $lookup: {
-    //                                         from: "categories_sims",
-    //                                         localField: "categories_sim_id",
-    //                                         foreignField: "_id",
-    //                                         as: "categoriesSimData",
-    //                                     },
-    //                                 },
-    //                                 {
-    //                                     $lookup: {
-    //                                         from: "sim-packages",
-    //                                         localField: "sim_package_id",
-    //                                         foreignField: "_id",
-    //                                         as: "SimpackageInfo",
-    //                                     },
-    //                                 },       
-    //                             ],
-    //                             as: "semiProductData",
-    //                         },
-                            
-    //                     },                        
-    //                 ],                                       
-    //                 localField: "jobsheet_code",
-    //                 foreignField: "jobsheet_code",
-    //                 as: "getDetail",
-    //             },
-    //         },
-    //         {
-    //             $match: {
-    //                 $and: [
-    //                     { jobsheet_code: getJobSheetCode },
-    //                  //   { "getDetail.product_assemble_status": "1" }
-                       
-    //                 ]
-    //             }
-    //             // $and: [
-    //             //     {
-    //             //         jobsheet_code: getJobSheetCode
-    //             //     },
-    //             //     {
-    //             //         product_status: "5"
-    //             //     }
-    //             //   ]
-    //           //  $match: { jobsheet_code: getJobSheetCode },
-    //         },
-            
-    //     ]);     
+        ]));      
+    
         //code fix version MongoDB    
-        getData = await JobSheet.aggregate([
+        getData =await cryptJSon.encryptData(token, await JobSheet.aggregate([
             {
                 $lookup: {
                     from: "products",
@@ -210,7 +144,7 @@ let showDetailAssemble = async (req, res) => {
             {
                 $match: { jobsheet_code: getJobSheetCode },
             },
-        ]);    
+        ]));    
      
                
         if (getData) {
@@ -366,12 +300,11 @@ let updateAssembleOrder = async (req, res) => {
           }
           else if(getStatus==='10')
           {           
-            if(getOldSemiProductLot)
-            {
+            if(getOldSemiProductLot)            {
                 await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' }); 
             }         
         
-             getData = await Product.findOneAndUpdate({ product_code: getProductCode },{$set: { product_status:getStatus,semi_product_lot:'',product_assembly_date:''}});
+             getData = await Product.findOneAndUpdate({ product_code: getProductCode },{$set: { product_status:getStatus,semi_product_lot:'',product_assembler:'',product_assembly_date:''}});
             if (getData) {
                 return res.json({
                     status:200,

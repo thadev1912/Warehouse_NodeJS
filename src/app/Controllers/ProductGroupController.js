@@ -1,8 +1,9 @@
 const ProductGroup = require('../models/product_group');
-
+const cryptJSon = require('../../helper/cryptJSon');
 let index = async (req, res) => {
     try {
-        let getData = await ProductGroup.find({});
+        const token = req.headers.token; 
+        let getData =await cryptJSon.encryptData(token, await ProductGroup.find({}));
         if (getData) {
             res.json({
                 status: 200,
@@ -33,6 +34,7 @@ let index = async (req, res) => {
 
 let create = async (req, res) => {
     try {
+
      console.log(req.body);
         const getProductGroup = new ProductGroup(req.body);      
         checkId = await ProductGroup.find({ product_group_code:req.body.product_group_code}).count();      
@@ -47,7 +49,7 @@ let create = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data: getData,
+               // data: getData,
             });
         }
         else
@@ -72,8 +74,9 @@ let create = async (req, res) => {
 
 let edit = async (req, res) => {
     try {
+        const token = req.headers.token; 
         id = req.query.id;
-        getId = await ProductGroup.findOne({ _id: id });
+        getId = await cryptJSon.encryptData(token, await ProductGroup.findOne({ _id: id }));
         if (getId) {
             return res.json({
                 status:200,

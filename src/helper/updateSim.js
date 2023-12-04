@@ -49,6 +49,9 @@ let updateStatusSim=async(res,req)=>
                         $cond: {
                             if: {
                                 $or: [
+                                    { $eq: [{ $ifNull: ['$activation_date', null] }, null] },  //check $activation_date null
+                                    { $eq: ['$activation_date', null] }, 
+                                    { $eq: ['$activation_date', ''] }, 
                                     { $eq: ['$expiration_date', null] }, 
                                     { $eq: ['$expiration_date', ''] }  
                                 ]

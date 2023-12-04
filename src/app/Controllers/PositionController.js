@@ -1,7 +1,10 @@
-const Position = require('../models/position')
+const Position = require('../models/position');
+const cryptJSon = require('../../helper/cryptJSon');
 let index = async (req, res) => {
-    try {
-        let getData = await Position.find({});
+    try {       
+        const token = req.headers.token; 
+        let _getData = await Position.find({});
+        getData= await cryptJSon.encryptData(token,_getData);  
         if (getData) {
             res.json({
                 status: 200,
@@ -43,7 +46,7 @@ let create = async (req, res) => {
             res.json({
                 status: 200,
                 message: 'Add new field comleted!!!',
-                data: getData,
+               // data: getData,
             });
         }
         else {
@@ -67,8 +70,10 @@ let create = async (req, res) => {
 }
 let edit = async (req, res) => {
     try {
+        const token = req.headers.token; 
         id = req.query.id;
-        getId = await Position.findOne({ _id: id });
+        _getId = await Position.findOne({ _id: id });
+        getId= await cryptJSon.encryptData(token,_getId);  
         if (getId) {
             return res.json({
                 status:200,
@@ -103,7 +108,7 @@ let update = async (req, res) => {
             getNewData = await Position.findOne({ _id: id });
             return res.json({
                 status:200,
-                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                success: true, message: 'Infomation field has been updated !!!'
             });
         }
         else {

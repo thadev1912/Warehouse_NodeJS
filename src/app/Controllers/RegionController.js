@@ -1,9 +1,11 @@
 
 const Region = require('../models/region');
-const { checkRegion } = require('../../request/RegionRequest');
+const cryptJSon = require('../../helper/cryptJSon');
 let index = async (req, res) => {
     try {
-        let getData = await Region.find({});
+        const token = req.headers.token; 
+        let _getData = await Region.find({});
+        getData= await cryptJSon.encryptData(token,_getData);  
         if (getData) {
             res.json({
                 status: 200,
@@ -43,7 +45,7 @@ let create = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data: getData,
+                //data: getData,
             });
         }
         else

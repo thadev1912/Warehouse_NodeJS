@@ -4,11 +4,11 @@ const IncrementCode = require('../models/increment_code_product_order');
 const User = require('../models/user');
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
-
+const cryptJSon = require('../../helper/cryptJSon');
 let index = async (req, res) => {
     try {
-        //console.log('giá trị được truyền lên từ middleware',getInfoUser);
-              
+       
+                     
             // getData=await ProductOrder.aggregate([
             //     {
             //         $addFields: {
@@ -37,7 +37,8 @@ let index = async (req, res) => {
             //         }
             //     },
             //   ]);
-            getData = await ProductOrder.aggregate([
+            const token = req.headers.token;
+            _getData = await ProductOrder.aggregate([
                 {
                     $addFields: {
                         user_create_by: {
@@ -68,6 +69,7 @@ let index = async (req, res) => {
                     }
                 },
             ]);
+            getData= await cryptJSon.encryptData(token,_getData);  
                 if (getData) {
                     res.json({
                         status: 200,
@@ -106,7 +108,7 @@ let store = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data: getData,
+                //data: getData,
             });
         }
         else {
@@ -157,40 +159,86 @@ let infotoCreate = async (req, res) => {
 }
 let edit = async (req, res) => {
     try{
+    const token = req.headers.token; 
     getId = req.params.id;
-    getData = await ProductOrder.aggregate([
+    // getData = await ProductOrder.aggregate([
+    //     {
+    //         $addFields: {
+    //             user_create_by: {
+    //                 $toObjectId: "$user_create_by"
+    //             },              
+    //         }
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: "users",
+    //             pipeline:[
+    //                 {
+    //                     $project: {_id:1,fullname:1}
+    //                    }
+    //             ],
+    //             localField: "user_create_by",
+    //             foreignField: "_id",
+    //             as: "detail_user"
+    //         }
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: "detail_product_orders",
+    //             localField: "product_order_No",
+    //             foreignField: "product_order_code",
+    //             as: "dataDetail"
+    //         }
+    //     },
+    //     {
+    //         $match: { product_order_No: getId }
+    //     }
+    // ]);
+     //fix vesion mongoDB
+     _getData = await ProductOrder.aggregate([
+        {
+            $match: { product_order_No: getId }
+        },
         {
             $addFields: {
                 user_create_by: {
                     $toObjectId: "$user_create_by"
-                },              
+                },
             }
         },
         {
             $lookup: {
                 from: "users",
-                pipeline:[
+                let: { userId: "$user_create_by" },
+                pipeline: [
                     {
-                        $project: {_id:1,fullname:1}
-                       }
+                        $match: {
+                            $expr: { $eq: ["$_id", "$$userId"] }
+                        }
+                    },
+                    {
+                        $project: { _id: 1, fullname: 1 }
+                    }
                 ],
-                localField: "user_create_by",
-                foreignField: "_id",
                 as: "detail_user"
             }
         },
         {
             $lookup: {
                 from: "detail_product_orders",
-                localField: "product_order_No",
-                foreignField: "product_order_code",
+                let: { orderNo: "$product_order_No" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ["$product_order_code", "$$orderNo"] }
+                        }
+                    }
+                ],
                 as: "dataDetail"
             }
-        },
-        {
-            $match: { product_order_No: getId }
         }
     ]);
+    getData= await cryptJSon.encryptData(token,_getData);  
     if (getData) {
         return res.json({
             status:200,
@@ -222,7 +270,7 @@ let update = async (req, res) => {
             getNewData = await ProductOrder.findOne({ _id: id });
             return res.json({
                 status:200,
-                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                success: true, message: 'Infomation field has been updated !!!'
             });
         }
         else {
@@ -245,8 +293,10 @@ let update = async (req, res) => {
 }
 let showdetail = async (req, res) => {
     try {
+        const token = req.headers.token; 
         getId = req.params.id;
-       let getData = await DetailProductOrder.find({ product_order_code: getId });     
+       let _getData = await DetailProductOrder.find({ product_order_code: getId });   
+       getData= await cryptJSon.encryptData(token,_getData);    
         if (getData) {
             res.json({
                 status: 200,

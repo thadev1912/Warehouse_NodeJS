@@ -6,7 +6,7 @@ const Permission = require('../app/Controllers/RolePermissionController');
 router.get('/listPermissionGroup/:id',Permission.listPermissionGroup);
 router.get('/InfotoStore',Permission.InfotoStore );
 router.post('/storePermisionsGroup',Permission.storePermisionsGroup );
-router.get('/InfotoUpdatePermisionsGroup/:id',Permission.InfotoUpdatePermisionsGroup);
+router.get('/InfotoUpdatePermissionsGroup/:id',Permission.InfotoUpdatePermisionsGroup);
 router.put('/updatePermisionsGroup/:id',Permission.updatePermisionsGroup);
 router.delete('/DeletePermissionGroup/:id',Permission.DeletePermissionGroup);
 router.get('/listUserRole',Permission.listUserRole);

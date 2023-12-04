@@ -17,10 +17,4 @@ router.put('/OrderStoreJobSheet',jobsheet.OrderStore);
 router.put('/StoreWarehouseJobSheet',jobsheet.Store);
 router.put('/StoreWarehouse',jobsheet.StoreWarehouse);
 router.get('/infoCreatOrderQCJobSheet',jobsheet.infoCreatOrderQC);   //no use
-// router.put('/OrderProductQC/:id',jobsheet.OrderProductQC);
-// router.put('/OrderSemiProductQC/:id',jobsheet.OrderSemiProductQC);
-// router.put('/OrderStoreSemiProduct/:id',jobsheet.OrderStoreSemiProduct);
-// router.put('/OrderStoreProduct/:id',jobsheet.OrderStoreProduct);
-// router.put('/StoreProduct/:id',jobsheet.StoreProduct);
-// router.put('/StoreSemiProduct/:id',jobsheet.StoreSemiProduct);
 module.exports = router;

@@ -19,8 +19,24 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const expressListEndpoints = require('express-list-endpoints');
 const AllRoutersName = require('./src/app/models/all_routes_name');
 const setIvoince = require('./src/helper/setIvoince');
-const updateSim = require('./src/helper/updateSim');
+const runcronJob= require('./src/helper/cronJob');
+runcronJob();  //Cron auto
 app.use(cors());
+app.disable('x-powered-by');
+//Allow Method
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers",
+    "Origin, X-Requeted-With, Content-Type, Accept, Authorization, RBR");
+  if (req.headers.origin) {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+  }
+  if (req.method === 'OPTIONS') {
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE");
+    return res.status(200).json({});
+  }
+  next();
+ }); 
 app.use(session({
   cookie: { maxAge: 60000 },
   store: new session.MemoryStore,
@@ -38,36 +54,30 @@ const socketIo = require("socket.io")(server, {
 app.use(flash());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-//midleware
 app.use(express.json()) 
 app.use(bodyParser.urlencoded({ extended: true }));
 route(app);
 connectDB();
-//dùng https có chứng chỉ:
-//đọc SSL
+//Config HTTPS USE SSL ON SERVER NGINX:
 // const options = {
 //   key: fs.readFileSync('/etc/letsencrypt/product.rynansaas.com/privkey.pem'),
 //   cert: fs.readFileSync('/etc/letsencrypt/product.rynansaas.com/fullchain.pem')
 // };
 // const httpsServer = https.createServer(options,app);
-// httpsServer.listen(HTTPS_PORT, () => {
-//   console.log(`HTTPS Server running on port ${HTTPS_PORT}`);
-// });
-// httpsServer.listen(process.env.PORTS,process.env.SERVER_URL, async() => {
+// httpsServer.listen(process.env.PORT_HTTPS,process.env.SERVER_URL, async() => {
 //   try{
-//     console.log(`Server running on ${process.env.SERVER_URL}:${process.env.PORTS}`)
+//     console.log(`Server running on ${process.env.SERVER_URL}:${process.env.PORT_HTTPS}`)
    
 //   }
 //   catch (error) {
 //     console.log('Error occurred:', error);
 //   }
 // })
-//dùng http thông thường
+//Config HTTP NO SSL
 app.listen(process.env.PORT_HTTP,process.env.SERVER_URL, async() => {
   try{
     console.log(`Server running on ${process.env.SERVER_URL}:${process.env.PORT_HTTP}`)
-    await setIvoince.setInvoice();
-    await updateSim.updateStatusSim();    
+    await setIvoince.setInvoice();   
   }
   catch (error) {
     console.log('Error occurred:', error);

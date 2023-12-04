@@ -1,11 +1,13 @@
 const SemiProduct = require('../models/semi_product');
 const SimPackage = require('../models/sim_packages');
 const CategoriesSim = require('../models/categories_sim');
-
+const updateSim = require('../../helper/updateSim');
+const cryptJSon = require('../../helper/cryptJSon'); 
 let index = async (req, res) => {
     try {
-        let getSimPackage = await SimPackage.find({});
-        let getCategoriesSim = await CategoriesSim.find({ use_sim: '0' });    
+        const token = req.headers.token; 
+        let getSimPackage = await cryptJSon.encryptData(token, await SimPackage.find({}));
+        let getCategoriesSim = await cryptJSon.encryptData(token, await CategoriesSim.find({ use_sim: '0' }));    
         // let getData = await SemiProduct.aggregate([
         //     {
         //         $addFields: {
@@ -40,7 +42,7 @@ let index = async (req, res) => {
         //                 {$match:{semi_product_status:'9'}}
     
         // ]);    
-        let getData = await SemiProduct.aggregate([
+        let getData = await cryptJSon.encryptData(token, await SemiProduct.aggregate([
             {
                 $addFields: {
                     categories_sim_id: {
@@ -83,7 +85,7 @@ let index = async (req, res) => {
             },
                         {$match:{semi_product_status:'9'}}
     
-        ]);
+        ]));
         if (getData) {
             res.json({
                 status: 200,
@@ -131,11 +133,12 @@ let create = async (req, res) => {
         console.log(PassInfo);        
         updateData = await CategoriesSim.findByIdAndUpdate(getIdSim, { $set: PassInfo, use_sim: '1' });
         let getData = await getSemiProduct.save();
+        await updateSim.updateStatusSim();
         if (getData) {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data: getData,
+                //data: getData,
             });
         }
         else {
@@ -160,13 +163,15 @@ let create = async (req, res) => {
 
 let edit = async (req, res) => {
     try {
-       
+        const token = req.headers.token; 
         id = req.query.id;      
-        getId = await SemiProduct.findOne({ _id: id });              
+        getId =await cryptJSon.encryptData(token, await SemiProduct.findOne({ _id: id }));              
                 if (getId) {           
             return res.json({
                 status:200,
-                success: true, message: 'Infomation Field need to edit!!', data: getId,
+                success: true,
+                message: 'Infomation Field need to edit!!',
+                data: getId,
             });
         }
         else {
@@ -189,7 +194,8 @@ let edit = async (req, res) => {
 	
 }
 const update = async (req, res) => {
-    try {       
+    try {     
+        console.log(req.body); 
         const id = req.params.id;
         const newSemiProductData = req.body;
         const oldSemiProductId = newSemiProductData.old_semi_product_id;        
@@ -216,6 +222,7 @@ const update = async (req, res) => {
                     semi_product_id:'',
                 };
                 await CategoriesSim.findByIdAndUpdate(categoriesSimToUpdate._id, { use_sim: '0', $set: clearOldData });
+                await updateSim.updateStatusSim();
             }
         }       
         if (newCategoriesSimId) {
@@ -228,6 +235,7 @@ const update = async (req, res) => {
                 semi_product_id:oldSemiProductId.toString(),
             };
             const updatedCategoriesSim = await CategoriesSim.findByIdAndUpdate(newCategoriesSimId, { use_sim: '1', $set: categoriesSimData });
+            await updateSim.updateStatusSim();
             if (!updatedCategoriesSim) {
                 return res.json({
                     status:500,
