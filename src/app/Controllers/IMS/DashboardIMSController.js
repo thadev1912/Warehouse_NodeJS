@@ -1,9 +1,12 @@
 
 const ManagerISM = require('../../models/ims/manager_ims');
 const DetailProductOrder = require('../../models/ims/detail_mangager_ims');
+const cryptJSon = require('../../../helper/cryptJSon');
+const configCrypt = require('../../../../config/cryptJson');
 let LocationReportIMS = async (req, res) => {
     try {
-        gettotalCount = await ManagerISM.aggregate([          
+        const token = req.headers.token; 
+        gettotalCount =await ManagerISM.aggregate([          
             {
                 $group: {
                     _id: null,
@@ -12,7 +15,7 @@ let LocationReportIMS = async (req, res) => {
                 }
             },         
         ]);        
-        getData = await ManagerISM.aggregate([
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ManagerISM.aggregate([
             {
                 $project:{ _id:1,area_id:1,installed:1,next_phase:1}
             },
@@ -24,12 +27,13 @@ let LocationReportIMS = async (req, res) => {
                     as: "getProvinceData"
                 }
             }           
-        ]);
+        ]));
         if ((getData)&&(gettotalCount)) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: {getTotal:{totalInstalled:gettotalCount[0].totalInstalled,totalNextPhase:gettotalCount[0].totalNextPhase},getData},
+               data: {getTotal:{totalInstalled:gettotalCount[0].totalInstalled,totalNextPhase:gettotalCount[0].totalNextPhase},getData},
+           // data: {getTotal:{totalInstalled:gettotalCount},getData},
                 //getCount: gettotalCount
             });
         } else {
@@ -52,8 +56,9 @@ let LocationReportIMS = async (req, res) => {
 let YearReportIMS =async(req,res)=>
 {
     try {
+    const token = req.headers.token; 
     //Sum by Year
-    getTotalInstalledSumbyYear = await DetailProductOrder.aggregate([
+    getTotalInstalledSumbyYear =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await DetailProductOrder.aggregate([
        
        {
          $group: {
@@ -69,9 +74,9 @@ let YearReportIMS =async(req,res)=>
             }
         }  
        
-    ]);    
+    ]));    
     //Sum all Installed
-    getTotalInstalled = await DetailProductOrder.aggregate([
+    getTotalInstalled =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await DetailProductOrder.aggregate([
         {
             $group: {                          
                 _id: null,
@@ -79,9 +84,9 @@ let YearReportIMS =async(req,res)=>
                      $sum: { $toInt: "$active_status" } 
                 }              
             }
-          }        ]);    
+          }        ]));    
  //Sum all Next phase
- getTotalNextPhase = await ManagerISM.aggregate([
+ getTotalNextPhase =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ManagerISM.aggregate([
     {
         $group: {                          
             _id: null,
@@ -90,15 +95,17 @@ let YearReportIMS =async(req,res)=>
             }              
         }
       }    
-]); 
+])); 
 if((getTotalInstalledSumbyYear) &&(getTotalInstalled) &&(getTotalNextPhase)) {
     res.json({
         status: 200,
         message: 'Get Data Completed!!',
         data: {getTotal:{
             totalInstalledByYear:getTotalInstalledSumbyYear,
+          //  SumInstalled:getTotalInstalled,
+          // totalNextPhase:getTotalNextPhase
             SumInstalled:getTotalInstalled[0].qty,
-            totalNextPhase:getTotalNextPhase[0].qty
+           totalNextPhase:getTotalNextPhase[0].qty
               }},       
       
     });

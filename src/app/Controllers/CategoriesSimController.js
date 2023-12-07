@@ -3,11 +3,12 @@ const CategoriesSim = require('../models/categories_sim');
 const SemiProduct = require('../models/semi_product');
 const Notification = require('../models/notification_sim');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try { 
         const token = req.headers.token; 
       await updateStatusSim();        
-        let getSemiProduct =await cryptJSon.encryptData(token, await CategoriesSim.aggregate([           
+        let getSemiProduct =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.aggregate([           
             {
                 $addFields: {                                      
                     semi_product_id: {
@@ -68,7 +69,7 @@ let index = async (req, res) => {
         });      
     }
 }
-
+ //const covertData=await cryptJSon.decryptData(token,encryptionEnabled,getData) 
 let updateStatusSim=async(res,req)=>
 {          
         let updateStatusSim = await CategoriesSim.aggregate([           
@@ -120,7 +121,9 @@ let updateStatusSim=async(res,req)=>
                             if: {
                                 $or: [
                                     { $eq: ['$expiration_date', null] }, 
-                                    { $eq: ['$expiration_date', ''] }  
+                                    { $eq: ['$expiration_date', ''] },
+                                    { $eq: ['$activation_date', null] }, 
+                                    { $eq: ['$activation_date', ''] }   
                                 ]
                                                            },
                             then:"",
@@ -163,6 +166,7 @@ let updateStatusSim=async(res,req)=>
             }           
 
         ]);
+        
         console.log(updateStatusSim);
         const updateCategoriesSim = await updateStatusSim.map(function(data) {
             const infoUpdate={

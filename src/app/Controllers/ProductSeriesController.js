@@ -1,9 +1,10 @@
 const ProductSeries = require('../models/product_series');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try {
         const token = req.headers.token; 
-        let getData = await cryptJSon.encryptData(token, await ProductSeries.find({}));
+        let getData = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductSeries.find({}));
         if (getData) {
             res.json({
                 status: 200,
@@ -73,7 +74,7 @@ let edit = async (req, res) => {
     try {
         const token = req.headers.token; 
         id = req.query.id;
-        getId =await cryptJSon.encryptData(token, await ProductSeries.findOne({ _id: id }));
+        getId =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductSeries.findOne({ _id: id }));
         if (getId) {
             return res.json({
                 status:200,

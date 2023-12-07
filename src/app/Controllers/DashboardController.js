@@ -3,32 +3,34 @@ const ProductOrder = require('../models/product_order');
 const Product = require('../models/product');
 const SemiProduct = require('../models/semi_product');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let HeaderReport = async (req, res) => {
     try {
+
       const token = req.headers.token;
         //Jobsheet
-        let quantityJobSheet =await cryptJSon.encryptData(token,await JobSheet.find().count());        
-        let ProcessingJobSheet =await cryptJSon.encryptData(token, await JobSheet.find({ jobsheet_status: '4' }).count());
-        let CompletedJobSheet =await cryptJSon.encryptData(token,await JobSheet.find({ jobsheet_status: '5' }).count());
-        let CancelJobSheet = await cryptJSon.encryptData(token,await JobSheet.find({ jobsheet_status: '6' }).count());    
+        let quantityJobSheet =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.find().count());        
+        let ProcessingJobSheet =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await JobSheet.find({ jobsheet_status: '4' }).count());
+        let CompletedJobSheet =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.find({ jobsheet_status: '5' }).count());
+        let CancelJobSheet = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.find({ jobsheet_status: '6' }).count());    
         //ProductOrder
-        let quantityProductOrder =await cryptJSon.encryptData(token,await ProductOrder.find().count());
-        let acceptProductOrder = await cryptJSon.encryptData(token,await ProductOrder.find({ production_order_status: 1 }).count());
-        let cancelProductOrder = await cryptJSon.encryptData(token,await ProductOrder.find({ production_order_status: 2 }).count());
+        let quantityProductOrder =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find().count());
+        let acceptProductOrder = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find({ production_order_status: 1 }).count());
+        let cancelProductOrder = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find({ production_order_status: 2 }).count());
         //Product       
-        let QuantityProduct = await cryptJSon.encryptData(token,await Product.find().count());
-        let CancelProduct = await cryptJSon.encryptData(token,await Product.find({ product_status: '10' }).count());
-        let ProcessingProduct = await cryptJSon.encryptData(token,await Product.find({ product_status: '4' }).count());
-        let CompletedProduct = await cryptJSon.encryptData(token,await Product.find({ product_status: '9' }).count());
-        let PassProduct = await cryptJSon.encryptData(token,await Product.find({ product_result: '1' }).count());
-        let FailProduct = await cryptJSon.encryptData(token,await Product.find({ product_result: '0' }).count());
+        let QuantityProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Product.find().count());
+        let CancelProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Product.find({ product_status: '10' }).count());
+        let ProcessingProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Product.find({ product_status: '4' }).count());
+        let CompletedProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Product.find({ product_status: '9' }).count());
+        let PassProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Product.find({ product_result: '1' }).count());
+        let FailProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Product.find({ product_result: '0' }).count());
         //SemiProduct      
-        let QuantitySemiProduct = await cryptJSon.encryptData(token,await SemiProduct.find().count());
-        let CancelSemiProduct = await cryptJSon.encryptData(token,await SemiProduct.find({ semi_product_status: '10' }).count());
-        let ProcessingSemiProduct = await cryptJSon.encryptData(token,await SemiProduct.find({ semi_product_status: '4' }).count());
-        let CompletedSemiProduct = await cryptJSon.encryptData(token,await SemiProduct.find({ semi_product_status: '9' }).count());
-        let PassSemiProduct = await cryptJSon.encryptData(token,await SemiProduct.find({ semi_product_result: '1' }).count());
-        let FailSemiProduct = await cryptJSon.encryptData(token,await SemiProduct.find({ semi_product_result: '0' }).count());
+        let QuantitySemiProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.find().count());
+        let CancelSemiProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.find({ semi_product_status: '10' }).count());
+        let ProcessingSemiProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.find({ semi_product_status: '4' }).count());
+        let CompletedSemiProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.find({ semi_product_status: '9' }).count());
+        let PassSemiProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.find({ semi_product_result: '1' }).count());
+        let FailSemiProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.find({ semi_product_result: '0' }).count());
         //console.log(FailSemiProduct);
        // console.log(quantityJobSheet,QuantityProduct,QuantitySemiProduct)
        // if ((quantityJobSheet!==0)&&(QuantityProduct1==0)&&(QuantitySemiProduct!==0)) {
@@ -65,8 +67,8 @@ let BarChartReport =async (req,res) => {
     try
     {
         const token = req.headers.token;
-        let infoJobSheet = await cryptJSon.encryptData(token,await JobSheet.find());
-        let selectDayJobSheet =await cryptJSon.encryptData(token,await JobSheet.aggregate([
+        let infoJobSheet = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.find());
+        let selectDayJobSheet =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate([
          {
              $group: {
                _id: { created: '$created' }, 
@@ -106,10 +108,10 @@ let BarChartReport =async (req,res) => {
  {
   try {
     const token = req.headers.token;
-    let infoProduct = await cryptJSon.encryptData(token,await Product.find());   
-    let infoSemiProduct = await cryptJSon.encryptData(token,await SemiProduct.find()); 
+    let infoProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Product.find());   
+    let infoSemiProduct = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.find()); 
        //Cancel
-    getCancelTotal=await cryptJSon.encryptData(token,await JobSheet.aggregate([
+    getCancelTotal=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate([
         {
             $lookup: {
               from: "products",
@@ -162,7 +164,7 @@ let BarChartReport =async (req,res) => {
           }
       ]));
           //Pass
-    getPassTotal=await cryptJSon.encryptData(token,await JobSheet.aggregate([
+    getPassTotal=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate([
         {
             $lookup: {
               from: "products",
@@ -215,7 +217,7 @@ let BarChartReport =async (req,res) => {
           }
       ]));
                 // Fail
-    getFailTotal=await cryptJSon.encryptData(token,await JobSheet.aggregate([
+    getFailTotal=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate([
         {
             $lookup: {
               from: "products",

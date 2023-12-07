@@ -1,11 +1,12 @@
 
 const Region = require('../models/region');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try {
         const token = req.headers.token; 
         let _getData = await Region.find({});
-        getData= await cryptJSon.encryptData(token,_getData);  
+        getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);  
         if (getData) {
             res.json({
                 status: 200,

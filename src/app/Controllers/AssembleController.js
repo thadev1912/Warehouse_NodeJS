@@ -5,10 +5,12 @@ const SemiProduct = require('../models/semi_product');
 const CategoriesSim = require('../models/categories_sim');
 const SimPackage = require('../models/sim_packages');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let AssembleList = async (req, res) => {
-    try {        
+    try {
+                
         const token = req.headers.token; 
-        getData =await cryptJSon.encryptData(token, await Assemble.aggregate([
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Assemble.aggregate([
             {
                 $lookup: {
                     from: "jobsheets",
@@ -38,10 +40,11 @@ let AssembleList = async (req, res) => {
 
 }
 let showDetailAssemble = async (req, res) => {
-    try {   
+    try { 
+        
         const token = req.headers.token;     
         getJobSheetCode = req.params.id;        
-        getProductLot =await cryptJSon.encryptData(token, await SemiProduct.aggregate([
+        getProductLot =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.aggregate([
             {
                 $addFields: {
                     categories_sim_id: {
@@ -49,9 +52,11 @@ let showDetailAssemble = async (req, res) => {
                     },
                     sim_package_id: {
                         $toObjectId: "$sim_package_id"
-                    }
+                    },
+                   
                 }
             },
+           
             {
                 $lookup: {
                     from: "categories_sims",
@@ -83,12 +88,44 @@ let showDetailAssemble = async (req, res) => {
         ]));      
     
         //code fix version MongoDB    
-        getData =await cryptJSon.encryptData(token, await JobSheet.aggregate([
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await JobSheet.aggregate([       
+                   
             {
-                $lookup: {
+                   $lookup: {
                     from: "products",
                     let: { job_code: "$jobsheet_code" },
                     pipeline: [
+                        {
+                            $addFields: {                  
+                               // product_assembler: {$toObjectId: "$product_assembler"},   
+                               product_assembler: {
+                                $cond: {
+                                    if: { $eq: ["$product_assembler", ''] },
+                                    then: '',
+                                    else: { $toObjectId: "$product_assembler" }
+                                }
+                            },                     
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                let: { product_assembler: "$product_assembler" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: { $eq: ["$_id", "$$product_assembler"] }
+                                        }
+                                    },
+                                    {
+                                        $project: { _id: 1, fullname: 1 }
+                                    }
+                                  
+                                ],
+                                as: "getIdAssembler"
+                            }
+                        },
+                        
                         {
                             $match: {
                                 $expr: {
@@ -99,7 +136,9 @@ let showDetailAssemble = async (req, res) => {
                                 }
                                // $expr: { $eq: ["$$job_code", "$jobsheet_code"] }
                             }
-                        },
+                        },                      
+                       
+                      
                         {
                             $lookup: {
                                 from: "semi_products",
@@ -114,9 +153,10 @@ let showDetailAssemble = async (req, res) => {
                                     {
                                         $addFields: {
                                             categories_sim_id: { $toObjectId: "$categories_sim_id" },
-                                            sim_package_id: { $toObjectId: "$sim_package_id" }
+                                            sim_package_id: { $toObjectId: "$sim_package_id" },
+                                           // product_assembler: {$toObjectId: "$product_assembler"},                        
                                         }
-                                    },
+                                    },                                   
                                     {
                                         $lookup: {
                                             from: "categories_sims",
@@ -141,6 +181,7 @@ let showDetailAssemble = async (req, res) => {
                     as: "getDetail",
                 },
             },
+                     
             {
                 $match: { jobsheet_code: getJobSheetCode },
             },
@@ -277,7 +318,10 @@ let updateAssembleOrder = async (req, res) => {
         getStatus=req.body.product_status;       
          
         if(getStatus==='5')
-        {             
+        {    
+            if(getOldSemiProductLot)            {
+                await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' }); 
+            }          
             if(getSemiProductLot)
             {
                 await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_used: '1' });
@@ -302,7 +346,7 @@ let updateAssembleOrder = async (req, res) => {
           {           
             if(getOldSemiProductLot)            {
                 await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' }); 
-            }         
+            }      
         
              getData = await Product.findOneAndUpdate({ product_code: getProductCode },{$set: { product_status:getStatus,semi_product_lot:'',product_assembler:'',product_assembly_date:''}});
             if (getData) {
@@ -319,18 +363,7 @@ let updateAssembleOrder = async (req, res) => {
                     message: 'Error connecting Database on Server'
                 });
             }
-          }
-            // if (getOldSemiProductLot) {
-        //     console.log('1')
-        //     await SemiProduct.findOneAndUpdate({ semi_product_lot: getOldSemiProductLot }, { semi_product_used: '0' });
-        //     getData = await Product.findOneAndUpdate({ product_code: getOldSemiProductLot }, {  product_status: '10' });
-        // }
-        // if(getSemiProductLot)
-        // {
-        //     console.log('nhận được getSemi')
-
-        //     await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_used: '1' });
-        // }
+          }          
       
       
     }

@@ -147,7 +147,6 @@ app.get('/api/routes', (req, res) => {
     const _AllRoutersName = new AllRoutersName({ routes_code: routes_code });
     isComplete = await _AllRoutersName.save();
     ischeckStatus = isComplete ? true : false;
-
   });
   if (ischeckStatus) {
     return res.status(200).json({

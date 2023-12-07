@@ -1,13 +1,17 @@
 
 const ManagerISM = require('../../models/ims/manager_ims');
 const ProvinceISM = require('../../models/ims/province_ims');
+const DetailManagerIMS = require('../../models/ims/detail_mangager_ims');
 const { paginate } = require('../../../helper/pagination');
+const cryptJSon = require('../../../helper/cryptJSon');
+const configCrypt = require('../../../../config/cryptJson');
 let index = async (req, res) => {
     try {
-        let getProvinces = await ProvinceISM.find({});
+        const token = req.headers.token; 
+        let getProvinces =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProvinceISM.find({}));
         const page = parseInt(req.query.page) || 1;
         _countInstalled = await countInstalled(); 
-        getData=await ManagerISM.aggregate([
+        getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ManagerISM.aggregate([
             {   
                 $lookup: {
                     from: "province_imsses",
@@ -16,7 +20,7 @@ let index = async (req, res) => {
                     as: "getProvinceData"
                 }
             },
-        ]); 
+        ])); 
         
         if (getData) {
             res.json({
@@ -111,7 +115,7 @@ let store = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data: getData,
+                //data: getData,
             });
         }
         else {
@@ -132,7 +136,7 @@ let update = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Infomation field has been updated !!!',
-                data: getNewData,
+              //  data: getNewData,
             });
         }
         else {
@@ -157,8 +161,10 @@ let destroy = async (req, res) => {
     try {
        
         let id = req.params.id;
+        getProvinces=await ManagerISM.findOne({_id:id});
+        isDeleted=await DetailManagerIMS.findOneAndRemove({area_id:getProvinces.area_id});
         getId = await ManagerISM.findByIdAndRemove({ _id: id });
-        if (getId) {
+        if (getId && isDeleted){
             res.json({
                 success: true,
                 status: 200,

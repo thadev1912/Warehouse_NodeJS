@@ -3,25 +3,19 @@ const jwt = require("jsonwebtoken");
 const User = require('../models/user');
 const middlewareAuth = {
     checkAuth: (req, res, next) => {        
-        const token = req.headers.token;   
-        if (token != null) {
+        const token = req.headers.token;  
+        if (token != null) {          
             const AccessToken = token.split(" ")[1];
             jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, user) => {
                 if (user) {
                    getInfoUser = user;             
-                 console.log('giá trị midleware0',getInfoUser);
+                 //console.log('giá trị midleware0',getInfoUser);
                     next();
-                }
-                else {
-                   return res.json({
-                        status: 401,
-                        messege: 'Please login acccount system.....',     
-                    });                   
-                }
+                }                
                 if(err)
                 {
                     return res.json({
-                        status: 403,
+                        status: 402,
                         messege: 'Token invalid or has been expried or invalid',     
                     });                  
                 }

@@ -3,13 +3,41 @@ const Product = require('../models/product');
 const SemiProduct = require('../models/semi_product');
 const JobSheet = require('../models/jobsheet');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try {
         const token = req.headers.token; 
-        let getData =await cryptJSon.encryptData(token, await QualityControl.aggregate([
+        let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await QualityControl.aggregate([
             {
                 $lookup: {
                     from: "jobsheets",
+                    pipeline:[                     
+                        {
+                            $addFields: {
+                                user_id: {
+                                    $toObjectId: "$user_id"
+                                },
+                            }
+                        },       
+                        {
+                            $lookup: {
+                                from: "users",
+                                let: { userId: "$user_id" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: { $eq: ["$_id", "$$userId"] }
+                                        }
+                                    },
+                                    {
+                                        $project: { _id: 1, fullname: 1 }
+                                    }
+                                  
+                                ],
+                                as: "detail_user"
+                            }
+                        },
+                    ],
                     localField: "jobsheet_code",
                     foreignField: "jobsheet_code",
                     as: "getDetail"
@@ -50,10 +78,35 @@ let detailQC = async (req, res) => {
     getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
     getProductionType = getInfo.product_type_code;
     if ((getProductionType == 'P') || (getProductionType == 'R')) {
-        getProduct =await cryptJSon.encryptData(token, await Product.aggregate([
+        getProduct =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Product.aggregate([
+            {
+                $addFields: {
+                    product_tester: {
+                        $toObjectId: "$product_tester"
+                    },
+                }
+            },    
+                {            
+                    $lookup: {
+                        from: "users",
+                        let: { product_tester: "$product_tester" },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: { $eq: ["$_id", "$$product_tester"] }
+                                }
+                            },
+                            {
+                                $project: { _id: 1, fullname: 1 }
+                            }
+                          
+                        ],
+                        as: "getIduser"
+                    }
+                },
             {
                 $lookup: {
-                    from: "jobsheets",
+                    from: "jobsheets",                  
                     localField: "jobsheet_code",
                     foreignField: "jobsheet_code",
                     as: "getDetail"
@@ -90,10 +143,36 @@ let detailQC = async (req, res) => {
         }
     }
     else if ((getProductionType == 'N') || (getProductionType == 'S')) {
-        getSemiProduct =await cryptJSon.encryptData(token, await SemiProduct.aggregate([
-            {
+        getSemiProduct =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SemiProduct.aggregate([
+            
+                {
+                    $addFields: {
+                        semi_product_tester: {
+                            $toObjectId: "$semi_product_tester"
+                        },
+                    }
+                },    
+                    {            
+                        $lookup: {
+                            from: "users",
+                            let: { semi_product_tester: "$semi_product_tester" },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: { $eq: ["$_id", "$$semi_product_tester"] }
+                                    }
+                                },
+                                {
+                                    $project: { _id: 1, fullname: 1 }
+                                }
+                              
+                            ],
+                            as: "getIduser"
+                        }
+                    },
+                {
                 $lookup: {
-                    from: "jobsheets",
+                    from: "jobsheets",                  
                     localField: "jobsheet_code",
                     foreignField: "jobsheet_code",
                     as: "getDetail"

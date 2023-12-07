@@ -1,10 +1,11 @@
 const DetailProductOrder = require('../models/detail_product_order');
 const User = require('../models/user');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try {         
        const token = req.headers.token; 
-        let getData = await cryptJSon.encryptData(token, await DetailProductOrder.find({}));       
+        let getData = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await DetailProductOrder.find({}));       
         if (getData) {
             res.json({
                 status: 200,

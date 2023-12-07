@@ -11,21 +11,50 @@ const QualityControl = require('../models/quality_control');
 const Warehouse = require('../models/warehouse');
 const Department = require('../models/department');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 const { ObjectId } = require('mongodb');
 let index = async (req, res) => {
-    try {
+    try {        
         const token = req.headers.token; 
-        let getproductOrderNo =await cryptJSon.encryptData(token,await ProductOrder.find().select('product_order_No'));
-        let getproductType =await cryptJSon.encryptData(token,await ProductType.find());
-        let getproductSeries =await cryptJSon.encryptData(token,await ProductSeries.find());
-        let getData =await cryptJSon.encryptData(token,await JobSheet.find({}));
+        let getproductOrderNo =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find().select('product_order_No'));
+        let getproductType =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductType.find());
+        let getproductSeries =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductSeries.find());
+      //  let getData =await cryptJSon.encryptData(token,await JobSheet.find({}));
+      let getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate([
+        {
+            $addFields: {
+                user_id: {
+                    $toObjectId: "$user_id"
+                },
+            }
+        },       
+        {
+            $lookup: {
+                from: "users",
+                let: { userId: "$user_id" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ["$_id", "$$userId"] }
+                        }
+                    },
+                    {
+                        $project: { _id: 1, fullname: 1 }
+                    }
+                  
+                ],
+                as: "detail_user"
+            }
+        },
+       
+       ]));
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
                 data: getData, getproductOrderNo, getproductType, getproductSeries
             });
-        }
+        }      
         else {
             return res.json({
                 status:500,
@@ -48,9 +77,9 @@ let index = async (req, res) => {
 let infotoCreate = async (req, res) => {
     try{
     const token = req.headers.token; 
-    let getproductOrderNo =await cryptJSon.encryptData(token,await ProductOrder.find().select('product_order_No'));
-    let getproductType =await cryptJSon.encryptData(token,await ProductType.find());
-    let getproductSeries =await cryptJSon.encryptData(token, await ProductSeries.find());
+    let getproductOrderNo =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find().select('product_order_No'));
+    let getproductType =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductType.find());
+    let getproductSeries =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductSeries.find());
     if (getproductOrderNo && getproductType && getproductSeries) {
         return res.json({
             status:200,
@@ -142,7 +171,6 @@ let store = async (req, res) => {
             res.json({
                 status: 400,
                 messege: 'Production Type not exits!!!',
-
             });
         }
         //------------------End Run Loop--------------------- ---------           
@@ -180,10 +208,10 @@ let edit = async (req, res) => {
     try {
         const token = req.headers.token; 
         let id = new ObjectId(req.params.id);
-        let getproductOrderNo = await cryptJSon.encryptData(token, await ProductOrder.find().select('product_order_No'));
-        let getproductType = await cryptJSon.encryptData(token, await ProductType.find());
-        let getproductSeries = await cryptJSon.encryptData(token, await ProductSeries.find());
-        getId =await cryptJSon.encryptData(token, await JobSheet.aggregate
+        let getproductOrderNo = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductOrder.find().select('product_order_No'));
+        let getproductType = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductType.find());
+        let getproductSeries = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductSeries.find());
+        getId =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await JobSheet.aggregate
             ([
                 {
                     $lookup: {
@@ -233,9 +261,9 @@ let edit = async (req, res) => {
 }
 
 let update = async (req, res) => {
-    try {        
+    try {             
         let id = req.params.id;
-        let OldJobsheetCode = req.body.oldjobsheetcode;
+        let OldJobsheetCode = req.body.jobsheet_code;
         checkId = await JobSheet.findOne({ _id: id });
         if (checkId == null) {
             res.json({
@@ -268,7 +296,11 @@ let update = async (req, res) => {
                 let checkExits = await Product.findOne({ jobsheet_code: OldJobsheetCode }).count();
                 if (checkExits > 0) {
                     await Product.deleteMany({ jobsheet_code: OldJobsheetCode });
-                }                       
+                }  
+                let checkExitsOther = await SemiProduct.findOne({ jobsheet_code: OldJobsheetCode }).count(); 
+                if (checkExitsOther > 0) {
+                    await SemiProduct.deleteMany({ jobsheet_code: OldJobsheetCode });
+                }                   
                 for (let i = 1; i <= getQuantity; i++) {
                     let incrementQuantity = String(i).padStart(3, '0');
                     mergeProductCode = createYear + createMonth + createDay + createProductionType + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
@@ -280,7 +312,9 @@ let update = async (req, res) => {
                         product_id: req.body.product_id,
                         product_name: req.body.product_name,
                         product_unit: req.body.product_unit,
-                        product_status: '0'
+                        product_status: '0',
+                        product_assemble_status: '0',
+                        product_qc_status: '0',
                     });
 
                     await getProduct.save();
@@ -291,6 +325,10 @@ let update = async (req, res) => {
                 if (checkExits > 0) {
                     await SemiProduct.deleteMany({ jobsheet_code: OldJobsheetCode });
                 }
+                let checkExitsOther = await Product.findOne({ jobsheet_code: OldJobsheetCode }).count(); 
+                if (checkExitsOther > 0) {
+                    await Product.deleteMany({ jobsheet_code: OldJobsheetCode });
+                } 
                 for (let i = 1; i <= getQuantity; i++) {
                     let incrementQuantity = String(i).padStart(3, '0');
                     let IdSemiProduct = req.body.product_id
@@ -302,6 +340,9 @@ let update = async (req, res) => {
                         semi_product_name: req.body.product_name,
                         semi_product_unit: req.body.product_unit,
                         semi_product_status: '0',
+                        semi_product_welding_status: '0',
+                        semi_product_used: '0',
+                        semi_product_qc_status: '0',
                     });
                     await getSemiProduct.save();
                 }
@@ -342,11 +383,13 @@ let update = async (req, res) => {
 }
 let showDetail = async (req, res) => {
     const token = req.headers.token; 
-    let getProductGroup =await cryptJSon.encryptData(token,await ProductGroup.find());
-    let getDepartment =await cryptJSon.encryptData(token,await Department.find());
+    let getProductGroup =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductGroup.find());
+    let getDepartment =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Department.find());
     getJobSheetCode = req.params.id;
-    isCheckQuantityControl =await cryptJSon.encryptData(token, await QualityControl.find({ jobsheet_code: getJobSheetCode }).count());
-    _isCheckQuantityControl = isCheckQuantityControl > 0 ? 1 : 0;
+    isCheckQuantityControl =await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
+    _isCheckQuantityControl = isCheckQuantityControl > 0 ? 1 : 0;    
+    isCheckWarehoue =await Warehouse.find({ jobsheet_code: getJobSheetCode }).count();    
+    _isCheckWarehoue = isCheckWarehoue > 0 ? 1 : 0;
     const index = 6 - 1;
     if (index >= 0 && index < getJobSheetCode.length) {
         const createProductionType = getJobSheetCode.charAt(index);
@@ -379,7 +422,7 @@ let showDetail = async (req, res) => {
            //
          
            //fix version Mongo
-           getshowDetail =await cryptJSon.encryptData(token, await JobSheet.aggregate([
+           getshowDetail =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await JobSheet.aggregate([
             {
                 $match: {
                     jobsheet_code: getJobSheetCode
@@ -411,7 +454,7 @@ let showDetail = async (req, res) => {
         
            return res.json({
                 status:200,
-                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl, message: 'Infomation field has been updated !!!'
+                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl,_isCheckWarehoue, message: 'Infomation field has been updated !!!'
             });
 
         }
@@ -461,7 +504,7 @@ let showDetail = async (req, res) => {
             //         }
             //     }
             // ])
-            getshowDetail =await cryptJSon.encryptData(token, await JobSheet.aggregate([
+            getshowDetail =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await JobSheet.aggregate([
                 {
                     $match: {
                         jobsheet_code: getJobSheetCode
@@ -478,8 +521,14 @@ let showDetail = async (req, res) => {
                                 }
                             },
                             {
-                                $addFields: {
-                                    categories_sim_id: { $toObjectId: "$categories_sim_id" }
+                                $addFields: {                                  
+                                   categories_sim_id: {
+                                    $cond: {
+                                        if: { $eq: ["$categories_sim_id", ''] },
+                                        then: '',
+                                        else: { $toObjectId: "$categories_sim_id" }
+                                    }
+                                },    
                                 }
                             },
                             {
@@ -517,7 +566,7 @@ let showDetail = async (req, res) => {
             
             return res.json({
                 status:200,
-                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl, message: 'Infomation field has been updated !!!'
+                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl,_isCheckWarehoue, message: 'Infomation field has been updated !!!'
             });
         }
     }
@@ -731,7 +780,7 @@ let OrderProduct = async (req, res) => {
 let infoCreatOrderQC = async (req, res) => {
     const token = req.headers.token; 
     getProductCode = req.params.id;
-    getProductGroup =await cryptJSon.encryptData(token, await ProductGroup.find());
+    getProductGroup =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductGroup.find());
     if (getProductGroup) {
         return res.json({
             status:200,
@@ -779,15 +828,15 @@ let OrderQC = async (req, res) => {
             for (let i = 0; i < getQCArray.length; i++) {
                 console.log(i);
                 isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
-                console.log('kiem tra ton tai', isCheckQuantityControl)
+                console.log('kiem tra ton tai thành phẩm', isCheckQuantityControl)
                 if (isCheckQuantityControl === 0) {
-                    getQuantityControl = new QualityControl({
+                    getQualityControl = new QualityControl({
                         quality_control_code: mergeCodeQualityControl,
                         jobsheet_code: getJobSheetCode,
                         quality_control_create_date: CurrentDay,
                         user_id: getUSer,
                     });
-                    getData = await getQuantityControl.save();
+                    getData = await getQualityControl.save();
                 }
 
 
@@ -813,15 +862,16 @@ let OrderQC = async (req, res) => {
             //Loop here..........//
             for (let i = 0; i < getQCArray.length; i++) {
                 isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
-                console.log('kiem tra ton tai', isCheckQuantityControl)
+                console.log('kiem tra ton tai bán thành phẩm', isCheckQuantityControl)
                 if (isCheckQuantityControl === 0) {
-                    getQuantityControl = new QualityControl({
+                    console.log('code thôi!');
+                    getQualityControl = new QualityControl({
                         quality_control_code: mergeCodeQualityControl,
                         jobsheet_code: getJobSheetCode,
                         quality_control_create_date: CurrentDay,
                         user_id: getUSer,
                     });
-                    getData = await getQuantityControl.save();
+                    getData = await getQualityControl.save();
                 }
                 isCompleted = await SemiProduct.updateOne({ semi_product_lot: getQCArray[i] }, { $set: { semi_product_status: '6', semi_product_qc_status: '1' } });
                 isCheckStatus = isCompleted ? true : false;            }           
@@ -904,6 +954,13 @@ let OrderStore = async (req, res) => {
 }
 let Store = async (req, res) => {
     try {
+        console.log(req.body);
+        //create Current Day
+        let today = new Date();
+        dd = String(today.getDate()).padStart(2, '0');
+        mm = String(today.getMonth() + 1).padStart(2, '0');
+        yyyy = today.getFullYear();
+        CurrentDay = mm + '/' + dd + '/' + yyyy;        
         getJobSheetCode = req.body.jobsheetCode;
         console.log(req.body);
         getOrderStoreArray = req.body.arrayProductID;
@@ -911,17 +968,37 @@ let Store = async (req, res) => {
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
             for (let i = 0; i < getOrderStoreArray.length; i++) {
-                isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '9' });
+                isCheckWarehoue = await Warehouse.find({ jobsheet_code: getJobSheetCode }).count();
+                console.log('kiem tra ton tai thành phẩm', isCheckWarehoue);
+                if (isCheckWarehoue === 0) {
+                    isCheckStoreWareHouse=true;
+                    getWarehouse = new Warehouse({
+                        No_invoice: req.body.No_invoice,
+                        jobsheet_code: getJobSheetCode,
+                        employee_warehouse:req.body.employee_warehouse,
+                        date_storeWarehouse: CurrentDay,                        
+                    });                    
+                    getData = await getWarehouse.save();                
+                     
+                }
+                
+                isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '9'});
             }                    
             isCheckExits = await Product.findOne({
                 $and: [{ jobsheet_code: getJobSheetCode }, {
                     $or: [
                         { product_status: { $exists: false } },
-                        { product_status: { $ne: '9' } }
+                        { 
+                            $and: [
+                                { product_status: { $ne: '9' } },
+                                { product_status: { $ne: '10' } },  
+                                { product_status: { $ne: '7' } },                                
+                            ]
+                        }
                     ]
                 }]
             }).count();
-            console.log('giá trị tồn tại cuối cùng là', isCheckExits);
+           // console.log('giá trị tồn tại cuối cùng là', isCheckExits);
             if (isCheckExits === 0) {
                 await JobSheet.updateOne({ jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }
@@ -940,19 +1017,39 @@ let Store = async (req, res) => {
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
             for (let i = 0; i < getOrderStoreArray.length; i++) {
+                isCheckWarehoue = await Warehouse.find({ jobsheet_code: getJobSheetCode }).count();
+               // console.log('kiem tra ton tai bán thành phẩm', isCheckWarehoue);
+                if (isCheckWarehoue === 0) {
+                    isCheckStoreWareHouse=true;
+                    getWarehouse = new Warehouse({
+                        No_invoice: req.body.No_invoice,
+                        jobsheet_code: getJobSheetCode,
+                        employee_warehouse:req.body.employee_warehouse,
+                        date_storeWarehouse: CurrentDay,                        
+                    }); 
+                    getData = await getWarehouse.save();                    
+                }
                 isCompleted = await SemiProduct.findOneAndUpdate({ semi_product_lot: getOrderStoreArray[i] }, { semi_product_status: '9' });
             }
             isCheckExits = await SemiProduct.findOne({
                 $and: [{ jobsheet_code: getJobSheetCode }, {
                     $or: [
                         { semi_product_status: { $exists: false } },
-                        { semi_product_status: { $ne: '9' } }
+                        { 
+                            $and: [
+                                { semi_product_status: { $ne: '9' } },
+                                { semi_product_status: { $ne: '10' } },        
+                                { semi_product_status: { $ne: '7' } },                           
+                            ]
+                        }
+                     
+                       
                     ]
                 }]
             }).count();
             console.log('giá trị tồn tại cuối cùng là', isCheckExits);
             if (isCheckExits === 0) {
-                await JobSheet.updateOne({ jobsheet_code: getInfoSemiProduct.jobsheet_code }, { jobsheet_status: '9' });
+                await JobSheet.updateOne({  jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }
             if (isCompleted) {
                 res.json({
@@ -977,73 +1074,7 @@ let Store = async (req, res) => {
         });      
     }	
 }
-let StoreWarehouse=async(req,res)=>
-{
-    try{
-  //Rule StoreWarehouse  IN  22 B 17 NK B  N0018
- var start = new Date();
- start.setHours(0, 0, 0, 0);
- var end = new Date();
- end.setHours(23, 59, 59, 999);
- getCount = await Warehouse.find({ created: { $gte: start, $lt: end } }).count();
- getCount += 1;
- createQuantity = String(getCount).padStart(3, '0'); 
- console.log('giá trị đếm được là', createQuantity);
-  const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-  const getDateTime = new Date();
-  createDay = String(getDateTime.getDate()).padStart(2, '0');
-  createMonth = month[getDateTime.getMonth()];
-  createYear = getDateTime.getFullYear(); createYear = createYear.toString().substr(-2);
-  createSeriesProduct='B';
-  createProductionType='N';
-  createQuantity = String(getCount).padStart(3, '0'); 
-  mergeCodeQualityControl = 'IN' + createYear + createMonth + createDay+'NK'+createSeriesProduct+createProductionType+createQuantity;
-  console.log(mergeCodeQualityControl);
-  //---get req.body---------
-  getOrderStoreArray = req.body.arrayProductID;
-  getJobSheetCode = req.body.jobsheetCode;  //truyền vào
-  getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
-  getProductionType = getInfo.product_type_code;
-  if ((getProductionType == 'P') || (getProductionType == 'R')) {
-    for (let i = 0; i < getOrderStoreArray.length; i++) {
-        isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '9' });
-    }                    
-    isCheckExits = await Product.findOne({
-        $and: [{ jobsheet_code: getJobSheetCode }, {
-            $or: [
-                { product_status: { $exists: false } },
-                { product_status: { $ne: '9' } }
-            ]
-        }]
-    }).count();
-    console.log('giá trị tồn tại cuối cùng là', isCheckExits);
-    if (isCheckExits === 0) {
-        await JobSheet.updateOne({ jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
-    }
-    if (isCompleted) {
-        res.json({
-            status: 200,
-            message: 'Update Completed!!',
-        });
-    } else {
-        return res.json({
-            status:500,
-            success: false,                
-            message: 'Error connecting Database on Server'
-        });
-    }
-}  
-}
-catch (err) {
-    console.log(err);
-    return res.json({
-        status:500,
-        success: false,           
-        error: err.message,
-    });
-  
-}
-}
+
 let countSeriesinDay=async(data)=>
 {
     var start = new Date();
@@ -1066,7 +1097,6 @@ module.exports = {
     infoCreatOrderQC: infoCreatOrderQC,    
     OrderQC: OrderQC,
     OrderStore: OrderStore,
-    Store: Store,
-    StoreWarehouse:StoreWarehouse,
+    Store: Store,   
     countSeriesinDay:countSeriesinDay,
 }

@@ -3,7 +3,7 @@ var router = express.Router();
 const department = require('../app/Controllers/DeparmentController');
 const validate=require('../request/DepartmentRequest');
 const Auth =require('../app/middlewares/authenticatetion');
-const Permission =require('../app/middlewares/authorization');
+const Permision =require('../app/middlewares/authorization');
 /**
  * @swagger
  * '/deparment/':
@@ -23,7 +23,7 @@ const Permission =require('../app/middlewares/authorization');
  *       403:
  *         description: Authertication
  */
-router.get('/listDepartment',Auth.checkAuth,Permission.checkPermision,department.index);
+router.get('/listDepartment',Auth.checkAuth,Permision.checkPermision,department.index);
 /**
  * @swagger
  * '/deparment/create':
@@ -55,7 +55,7 @@ router.get('/listDepartment',Auth.checkAuth,Permission.checkPermision,department
  *      404:
  *        description: Error connecting Database on Server
  */
-router.post('/storeDepartment',validate.checkValidate,department.create);
+router.post('/storeDepartment',Auth.checkAuth,Permision.checkPermision,validate.checkValidate,department.create);
 /**
  * @swagger
  * '/deparment/edit/{id}':
@@ -76,7 +76,7 @@ router.post('/storeDepartment',validate.checkValidate,department.create);
  *      404:
  *        description: Error connecting Database on Server
  */
-router.get('/editDepartment/:id',department.edit);
+router.get('/editDepartment/:id',Auth.checkAuth,Permision.checkPermision,department.edit);
 /**
  * @swagger
  * '/deparment/update/{id}':
@@ -113,7 +113,7 @@ router.get('/editDepartment/:id',department.edit);
  *      404:
  *        description: Error connecting Database on Server
  */
-router.put('/updateDepartment/:id',validate.checkValidate,department.update);
+router.put('/updateDepartment/:id',Auth.checkAuth,Permision.checkPermision,validate.checkValidate,department.update);
 /**
  * @swagger
  * '/deparment/delete/{id}':
@@ -134,6 +134,5 @@ router.put('/updateDepartment/:id',validate.checkValidate,department.update);
  *      404:
  *        description: Not Found
  */
-router.delete('/deleteDepartment/:id',department.destroy);
-router.get('/getdecryptData',department.getdecryptData);
+router.delete('/deleteDepartment/:id',Auth.checkAuth,Permision.checkPermision,department.destroy);
 module.exports = router;

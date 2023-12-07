@@ -18,11 +18,11 @@ const assemble=require('./assemble');
 const dashboard=require('./dashboard');
 const quality_control=require('./qualtity_control');
 const permission=require('./role_permission');
+const all_router_name=require('./all_router_name');
 //IMS
 const manager_ims=require('../routes/ims/manager_ims');
 const detail_manager_ims=require('../routes/ims/detail_manager_ims');
 const dashboard_ims=require('../routes/ims/dashboard_ims');
-
 //Midleware
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
@@ -51,5 +51,6 @@ app.use('/permission',permission);
 app.use('/manager-ims',manager_ims);
 app.use('/detail_manager-ims',detail_manager_ims);
 app.use('/dashboard-ims',dashboard_ims);
+app.use('/all_router_name',all_router_name);
 }
 module.exports = route;

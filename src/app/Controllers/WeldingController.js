@@ -6,14 +6,15 @@ const SimPackage = require('../models/sim_packages');
 const QualityControl = require('../models/quality_control');
 const { ObjectId } = require('mongodb');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let WeldingList = async (req, res) => {
     try {
         const token = req.headers.token;
-        getCategoriesSim = await cryptJSon.encryptData(token,await CategoriesSim.find({ use_sim: '0' }));
-        getSimPackage = await cryptJSon.encryptData(token,await SimPackage.find());
+        getCategoriesSim = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await CategoriesSim.find({ use_sim: '0' }));
+        getSimPackage = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SimPackage.find());
         getJobSheetCode = req.params.id;      
        //fix version mongoDB
-       let getSim =await cryptJSon.encryptData(token, await SemiProduct.aggregate([
+       let getSim =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SemiProduct.aggregate([
         {
             $addFields: {
                 categories_sim_id: {
@@ -54,7 +55,7 @@ let WeldingList = async (req, res) => {
             $match: { jobsheet_code: getJobSheetCode },
         },
     ]));       
-        getData =await cryptJSon.encryptData(token, await Welding.aggregate([
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Welding.aggregate([
             {
                 $lookup: {
                     from: "jobsheets",
@@ -95,8 +96,8 @@ let showDetailWelding = async (req, res) => {
     try {
         const token = req.headers.token;
         getJobSheetCode = req.params.id;
-        getCategoriesSim =await cryptJSon.encryptData(token, await CategoriesSim.find({ use_sim: '0' }));
-        getSimPackage =await cryptJSon.encryptData(token, await SimPackage.find());     
+        getCategoriesSim =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.find({ use_sim: '0' }));
+        getSimPackage =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SimPackage.find());     
         // getData = await JobSheet.aggregate([
         //     {
         //         $lookup: {
@@ -151,12 +152,61 @@ let showDetailWelding = async (req, res) => {
         //     },
         // ]);
         //fix version mongoDB
-        getData =await cryptJSon.encryptData(token, await JobSheet.aggregate([
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate([
             {
                 $lookup: {
                     from: "semi_products",
                     let: { job_code: "$jobsheet_code" },
                     pipeline: [
+                        {
+                            $addFields: {                  
+                              //  semi_product_assembler: {$toObjectId: "$semi_product_assembler"},  
+                              semi_product_assembler: {
+                                $cond: {
+                                    if: { $eq: ["$semi_product_assembler", ''] },
+                                    then: '',
+                                    else: { $toObjectId: "$semi_product_assembler" }
+                                }
+                            },          
+                                semi_product_tester: {$toObjectId: "$semi_product_tester"},                            
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                let: { semi_product_assembler: "$semi_product_assembler" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: { $eq: ["$_id", "$$semi_product_assembler"] }
+                                        }
+                                    },
+                                    {
+                                        $project: { _id: 1, fullname: 1 }
+                                    }
+                                  
+                                ],
+                                as: "getIdAssembler"
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                let: { semi_product_tester: "$semi_product_tester" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: { $eq: ["$_id", "$$semi_product_tester"] }
+                                        }
+                                    },
+                                    {
+                                        $project: { _id: 1, fullname: 1 }
+                                    }
+                                  
+                                ],
+                                as: "getIdTester"
+                            }
+                        },
                         {
                             $match: {
                                 $expr: {
@@ -203,7 +253,7 @@ let showDetailWelding = async (req, res) => {
                 $match: { jobsheet_code: getJobSheetCode },
             },
         ]));                
-        getSemiProduct_Sim =await cryptJSon.encryptData(token, await SemiProduct.aggregate([
+        getSemiProduct_Sim =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SemiProduct.aggregate([
             {
                 $addFields: {
                     categories_sim_id: {
@@ -287,14 +337,15 @@ let approveWeldingOrder = async (req, res) => {
     }
 }
 let updateWeldingOrder = async (req, res) => {
-    try {             
+    try {   
+        console.log(req.body);          
         getSemiProductLot = req.params.id;
         getOldSim = req.body.old_sim;
         getNewSim = req.body.categories_sim_id;
         isCheckStatus = req.body.semi_product_status;    
         getData = await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { $set: req.body });
         InfoSemiProduct = await SemiProduct.findOne({ semi_product_lot: getSemiProductLot }); 
-        if ((isCheckStatus === '10') && (getOldSim)) {        
+        if ((isCheckStatus === '10')&& getOldSim){        
                 getCancelCategoriesSim = new CategoriesSim({
                 _id: getOldSim,
                 activation_date: '',
@@ -305,7 +356,7 @@ let updateWeldingOrder = async (req, res) => {
                 manage_sim_note: '',
             });          
             await CategoriesSim.findByIdAndUpdate(getOldSim, { use_sim: '0', $set: getCancelCategoriesSim });   
-            await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { semi_product_status:'10' });      
+            await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { $set:{semi_product_status:'10',semi_product_assembler:'',categories_sim_id:'',semi_product_assembly_date:''} });      
             isExits=await SemiProduct.findOne({ semi_product_lot: getSemiProductLot}).count();
             if(isExits>0)
             {

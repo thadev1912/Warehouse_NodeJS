@@ -1,9 +1,10 @@
 const SimPackage = require('../models/sim_packages');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try { 
         const token = req.headers.token;        
-        let getData =await cryptJSon.encryptData(token, await SimPackage.find({}));
+        let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SimPackage.find({}));
         if (getData) {
             res.json({
                 status: 200,
@@ -69,7 +70,7 @@ let edit = async (req, res) => {
     try {
         const token = req.headers.token; 
         id = req.query.id;
-        getId = await cryptJSon.encryptData(token, await SimPackage.findOne({ _id: id }));
+        getId = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SimPackage.findOne({ _id: id }));
         if (getId) {
             return res.json({
                 status:200,

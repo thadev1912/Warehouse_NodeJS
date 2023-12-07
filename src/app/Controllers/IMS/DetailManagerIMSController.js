@@ -3,15 +3,17 @@ const DetailManagerIMS = require('../../models/ims/detail_mangager_ims');
 const ManagerIMS = require('../../models/ims/manager_ims');
 const ProvincesIMS = require('../../models/ims/province_ims');
 const { ObjectId } = require('mongodb');
+const cryptJSon = require('../../../helper/cryptJSon');
+const configCrypt = require('../../../../config/cryptJson');
 let index = async (req, res) => {
     try {      
-        
+        const token = req.headers.token; 
         getId = new ObjectId(req.params.id);   
         totalCount = await DetailManagerIMS.find({}).count();      
         getinfoManagerIMS=await ManagerIMS.findOne({_id:getId});     
-        getProvinceId=await ProvincesIMS.findOne({province_id:getinfoManagerIMS.area_id});  
+        getProvinceId=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProvincesIMS.findOne({province_id:getinfoManagerIMS.area_id}));  
         //console.log(getProvinceId);      
-       getData = await DetailManagerIMS.find({ area_id: getProvinceId.province_id });
+       getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await DetailManagerIMS.find({ area_id: getProvinceId.province_id }));
         if (getData) {
             res.json({
                 status: 200,
@@ -51,7 +53,7 @@ let store = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-                data: getData,
+                //data: getData,
             });
         }
         else {
@@ -85,7 +87,7 @@ let update = async (req, res) => {
                 res.json({
                     status: 200,
                     messege: 'Infomation field has been updated !!!',
-                    data: getNewData,
+                    //data: getNewData,
                 });
             }
             else {

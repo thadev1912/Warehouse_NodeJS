@@ -12,14 +12,15 @@ const crypto = require('crypto');
 const StoreToken = require('../models/store_token');
 const TestImage = require('../models/test_image');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
         const token = req.headers.token; 
-        let dataPosition =await cryptJSon.encryptData(token, await Position.find({}));
-        let dataRegion =await cryptJSon.encryptData(token, await Region.find({}));
-        let dataDepartment =await cryptJSon.encryptData(token, await Department.find({}));
-        let getData =await cryptJSon.encryptData(token, await User.aggregate([
+        let dataPosition =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Position.find({}));
+        let dataRegion =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Region.find({}));
+        let dataDepartment =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Department.find({}));
+        let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await User.aggregate([
             {
                 $addFields: {
                     region_id: {
@@ -86,11 +87,11 @@ let listUser = async (req, res) => {
 }
 let Infomation = async (req, res) => {
     const token = req.headers.token;
-    let dataPosition =await cryptJSon.encryptData(token, await Position.find({}));
-    let dataRegion =await cryptJSon.encryptData(token, await Region.find({}));
-    let dataDepartment =await cryptJSon.encryptData(token, await Department.find({}));
-    let dataRole = await cryptJSon.encryptData(token,await Role.find({}));
-    getData =await cryptJSon.encryptData(token, await User.aggregate([
+    let dataPosition =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Position.find({}));
+    let dataRegion =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Region.find({}));
+    let dataDepartment =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Department.find({}));
+    let dataRole = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Role.find({}));
+    getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await User.aggregate([
         {
             $project: {
                 _id: 1,
@@ -182,8 +183,7 @@ let listRoleUser = async (req, res) => {
 }
 //Thêm mới user
 let register = async (req, res) => {
-    try {
-        console.log(req.body);
+    try {        
         myObject = req.body;
         if (req.file) { 
             if (req.file.originalname !== undefined)
@@ -272,8 +272,8 @@ let register = async (req, res) => {
 }
 let checkLogin = async (req, res) => {
     try
-    {
-    console.log(res.body);
+    {    
+        
     let user = req.body.username;
     let pws = req.body.password;
     let checkExits = await User.findOne({ username: user }).count();
@@ -327,17 +327,15 @@ let checkLogin = async (req, res) => {
                 role_permission_group: 1,
             },
         },       
-    ]);  
+    ]); 
+    const encryptionEnabled = configCrypt.encryptionEnabled;   
     const isAdmin = getRoleUser.length > 0 && getRoleUser[0].role_permission_name.includes('admin')?'admin':'';    
    // getRoleUser[0].role_permission_group.map(JSON.parse).flat();  
     const _getPermissionGroup = getRoleUser[0].role_permission_group.flatMap(group => JSON.parse(group));
-    const getPermissionGroup = [...new Set(_getPermissionGroup)];
-    console.log('nhóm quyền của user là',getPermissionGroup)
-    console.log('user này có quyền admin:',isAdmin);
+    const getPermissionGroup = [...new Set(_getPermissionGroup)];   
     getInfo = await User.aggregate([
         {
             $project: {
-
                 _id: 1,
                 username: 1,
                 fullname: 1,
@@ -402,13 +400,14 @@ let checkLogin = async (req, res) => {
         return;
     }   
     let checkPw = await bcrypt.compare(pws, checkUser.password);
-    const _SecurityKey = crypto.randomBytes(32).toString('hex');
+    
+    const _SecurityKey = crypto.randomBytes(32).toString('hex');    
     const _initVector = crypto.randomBytes(16).toString('hex');      
-    let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username,_SecurityKey,_initVector,roles:{isAdmin,getPermissionGroup}},
+    let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username,encryptionEnabled,_SecurityKey,_initVector,},
         process.env.JWT_SECRET,       
         { expiresIn: "1h" }
     );    
-    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken, getInfo }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
+    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken, getInfo,getPermissionGroup}) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
 }
 catch (err) {
     console.log(err);
@@ -512,7 +511,7 @@ let updateUser = async (req, res) => {
                     getNewData = await User.findOne({ _id: id });
                     return res.json({
                         status:200,
-                        success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                        success: true, message: 'Infomation field has been updated !!!'
                     });
                 }
                 else {
@@ -536,7 +535,7 @@ let updateUser = async (req, res) => {
                     getNewData = await User.findOne({ _id: id });
                     return res.json({
                         status:200,
-                        success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                        success: true, message: 'Infomation field has been updated !!!'
                     });
                 }
                 else {
@@ -656,7 +655,7 @@ let sendMail = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Your email has been sent successfully',
-                token: TokenResetPw,
+                //token: TokenResetPw,
             });
         }
         else {

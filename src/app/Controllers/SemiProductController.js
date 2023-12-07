@@ -2,12 +2,13 @@ const SemiProduct = require('../models/semi_product');
 const SimPackage = require('../models/sim_packages');
 const CategoriesSim = require('../models/categories_sim');
 const updateSim = require('../../helper/updateSim');
-const cryptJSon = require('../../helper/cryptJSon'); 
+const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try {
         const token = req.headers.token; 
-        let getSimPackage = await cryptJSon.encryptData(token, await SimPackage.find({}));
-        let getCategoriesSim = await cryptJSon.encryptData(token, await CategoriesSim.find({ use_sim: '0' }));    
+        let getSimPackage = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SimPackage.find({}));
+        let getCategoriesSim = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.find({ use_sim: '0' }));    
         // let getData = await SemiProduct.aggregate([
         //     {
         //         $addFields: {
@@ -42,7 +43,7 @@ let index = async (req, res) => {
         //                 {$match:{semi_product_status:'9'}}
     
         // ]);    
-        let getData = await cryptJSon.encryptData(token, await SemiProduct.aggregate([
+        let getData = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SemiProduct.aggregate([
             {
                 $addFields: {
                     categories_sim_id: {
@@ -117,7 +118,9 @@ let create = async (req, res) => {
         const getSemiProduct = new SemiProduct(req.body);
         console.log(getSemiProduct._id.toString());
         getNha=getSemiProduct._id.toString();
+        getSemiProduct.semi_product_used='0';
         let getIdSim = req.body.categories_sim_id;
+        
         PassInfo = new CategoriesSim({
             _id: req.body.categories_sim_id,
             board_name: req.body.semi_product_name,
@@ -126,11 +129,11 @@ let create = async (req, res) => {
             purpose: req.body.purpose,
             sim_package_id: req.body.sim_package_id,
             expiration_date:req.body.expiration_date,
-            semi_product_id:getNha,  
-            semi_product_used:'0',          
+            semi_product_id:getNha, 
+                  
         })
        
-        console.log(PassInfo);        
+        console.log('giá trị info nhận được là',PassInfo);        
         updateData = await CategoriesSim.findByIdAndUpdate(getIdSim, { $set: PassInfo, use_sim: '1' });
         let getData = await getSemiProduct.save();
         await updateSim.updateStatusSim();

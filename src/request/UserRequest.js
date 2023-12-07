@@ -52,8 +52,8 @@ const middlewareValidate = {
                     'string.empty': `Password không được bỏ trống`,
 
                 }),
-            repeat_password: Joi.string().valid(Joi.ref('password')).required().messages({
-                'any.only': `Password chưa trùng khớp`,
+            repeat_password: Joi.string().allow(null).allow('').messages({
+                
             }),
             email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required().messages({
                 'string.empty': `Email không được bỏ trống`,

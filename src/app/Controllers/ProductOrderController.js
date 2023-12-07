@@ -5,38 +5,10 @@ const User = require('../models/user');
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
-    try {
-       
-                     
-            // getData=await ProductOrder.aggregate([
-            //     {
-            //         $addFields: {
-            //             user_create_by: {
-            //                 $toObjectId: "$user_create_by"
-            //             },                      
-            //         }
-            //     },
-            //     {
-            //         $lookup: {
-            //             from: "users",                       
-            //             let: { user_create_by: "$user_create_by" },
-            //             pipeline:[
-            //                 {
-            //                     $match: {
-            //                         $expr: {   $eq: ["$$user_create_by", "$_id"] },
-                                    
-            //                     }
-            //                 },
-            //                 {
-            //                     $project: {_id:1,fullname:1}
-            //                    }
-            //             ],
-                       
-            //             as: "detail_user"
-            //         }
-            //     },
-            //   ]);
+    try {    
+           
             const token = req.headers.token;
             _getData = await ProductOrder.aggregate([
                 {
@@ -48,9 +20,23 @@ let index = async (req, res) => {
                 },
                 {
                     $match: {
-                        user_create_by: { $exists: true } // Lọc ra các documents có trường user_create_by tồn tại
+                        user_create_by: { $exists: true } 
                     }
                 },
+                // {
+                //     $match:{user_create_by:getInfoUser._id}
+                // },
+                // {
+                //     $match: {
+                //       $expr: {
+                //         $cond: {
+                //           if: { $eq: [getInfoUser.roles.isAdmin, 'admin'] },
+                //           then: {}, 
+                //           else: { $eq: ["$user_create_by", getInfoUser._id] } 
+                //         }
+                //       }
+                //     }
+                // },
                 {
                     $lookup: {
                         from: "users",
@@ -68,24 +54,25 @@ let index = async (req, res) => {
                         as: "detail_user"
                     }
                 },
-            ]);
-            getData= await cryptJSon.encryptData(token,_getData);  
-                if (getData) {
-                    res.json({
-                        status: 200,
-                        message: 'Get Data Completed!!',
-                        data: getData
-                    });
-                } 
-                else
-                {
-                    return res.json({
-                        status:500,
-                        success: false,                
-                        message: 'Error connecting Database on Server'
-                    });
-                }   
-      
+            ]);            
+            getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);  
+            if (getData) {
+                res.json({
+                    status: 200,
+                    message: 'Get Data Completed!!',
+                    data: getData
+                });
+            } 
+            else
+            {
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
+            }   
+                 
+        
             }    
             catch (err) {
                 console.log(err);
@@ -97,7 +84,7 @@ let index = async (req, res) => {
             }
 }
 let store = async (req, res) => {
-    try {  
+    try { 
            
         const getProductOrder = new ProductOrder(req.body);
         getProductOrder.production_order_status = '0';
@@ -238,7 +225,7 @@ let edit = async (req, res) => {
             }
         }
     ]);
-    getData= await cryptJSon.encryptData(token,_getData);  
+    getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);  
     if (getData) {
         return res.json({
             status:200,
@@ -296,7 +283,7 @@ let showdetail = async (req, res) => {
         const token = req.headers.token; 
         getId = req.params.id;
        let _getData = await DetailProductOrder.find({ product_order_code: getId });   
-       getData= await cryptJSon.encryptData(token,_getData);    
+       getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);    
         if (getData) {
             res.json({
                 status: 200,

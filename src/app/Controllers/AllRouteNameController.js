@@ -1,15 +1,14 @@
-const ProductGroup = require('../models/product_group');
+const AllRouterName = require('../models/all_routes_name');
 const cryptJSon = require('../../helper/cryptJSon');
-const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try {
-        const token = req.headers.token; 
-        let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductGroup.find({}));
+       
+        let getData = await AllRouterName.find({});       
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: getData,
+                data:getData,
             });
         }
         else {
@@ -26,31 +25,20 @@ let index = async (req, res) => {
             status:500,
             success: false,           
             error: err.message,
-        });
-      
+        });      
     }
-	
-
 }
-
 let create = async (req, res) => {
     try {
-
-     console.log(req.body);
-        const getProductGroup = new ProductGroup(req.body);      
-        checkId = await ProductGroup.find({ product_group_code:req.body.product_group_code}).count();      
-        if (checkId>0) {
-            return res.json({
-                status:200,
-                success: true, message: 'This ID exits!!',
-            });
-        }
-        let getData = await getProductGroup.save();       
+        console.log(req.body);
+        const getAllRouterName = new AllRouterName(req.body);  
+       
+        let getData = await getAllRouterName.save();       
         if (getData) {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
-               // data: getData,
+                data: getData,
             });
         }
         else
@@ -61,23 +49,23 @@ let create = async (req, res) => {
                 message: 'Error connecting Database on Server'
             });
         }
-    }
-    catch (err) {
+ 
+     }
+     catch (err) {
         console.log(err);
         return res.json({
             status:500,
             success: false,           
             error: err.message,
-        });
-      
+        });      
     }
 }
 
 let edit = async (req, res) => {
-    try {
-        const token = req.headers.token; 
-        id = req.query.id;
-        getId = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductGroup.findOne({ _id: id }));
+    try {       
+        id = req.params.id;
+        console.log(id);
+        getId = await AllRouterName.find({ _id:id });       
         if (getId) {
             return res.json({
                 status:200,
@@ -90,35 +78,7 @@ let edit = async (req, res) => {
                 success: false,                
                 message: 'Error connecting Database on Server'
             });
-        }
-    }
-    catch (err) {
-        console.log(err);
-        return res.json({
-            status:500,
-            success: false,           
-            error: err.message,
-        });      
-    }
-}
 
-let update = async (req, res) => {
-    try {
-        let id = req.params.id;
-        getData = await ProductGroup.findByIdAndUpdate(id, { $set: req.body })
-        if (getData) {           
-            getNewData = await ProductGroup.findOne({ _id: id });
-            return res.json({
-                status:200,
-                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
-            });
-        }
-        else {
-            return res.json({
-                status:500,
-                success: false,                
-                message: 'Error connecting Database on Server'
-            });
         }
     } 
     catch (err) {
@@ -131,10 +91,40 @@ let update = async (req, res) => {
     }
 
 }
+
+let update = async (req, res) => {
+    try {        
+        let id = req.params.id;        
+        getData = await AllRouterName.findByIdAndUpdate(id, { $set: req.body });        
+        if (getData) {
+            getNewData = await AllRouterName.findOne({ _id: id });
+            return res.json({
+                status:200,
+                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+            });
+        }
+        else {
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+			
+        }
+    } 
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
+    }
+}
 let destroy = async (req, res) => {
     try {
-        let id = req.query.id;
-        getId = await ProductGroup.findByIdAndRemove({ _id: id });
+        let id = req.params.id;
+        getId = await AllRouterName.findByIdAndRemove({ _id: id });
         if (getId) {
             return res.json({
                 status:200,
@@ -158,10 +148,11 @@ let destroy = async (req, res) => {
         });      
     }
 }
-module.exports = {
+module.exports =
+{
     index: index,
     create: create,
-    edit: edit,
     update: update,
     destroy: destroy,
+    edit: edit,
 }

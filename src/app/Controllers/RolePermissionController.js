@@ -4,13 +4,14 @@ const User = require('../models/user');
 const { ObjectId } = require('mongodb');
 const AllPermission = require('../models/all_routes_name');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let listPermissionGroup=async(req,res)=>{   //can show detail Roles
     try{
    //Show detail infomation PermissionGroup
    const token = req.headers.token;
     getId=req.params.id;
     getPermissionGroupById=await RolePermission.findById(getId);
-    CovertArrPermissionbyId =await cryptJSon.encryptData(token,JSON.parse(getPermissionGroupById.role_permission_group));
+    CovertArrPermissionbyId =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,JSON.parse(getPermissionGroupById.role_permission_group));
     console.log(CovertArrPermissionbyId);
   if(getPermissionGroupById) {
     res.json({
@@ -40,7 +41,7 @@ catch (err) {
 let InfotoStore = async (req, res) => {
     try {
     const token = req.headers.token;
-    getAllPermission = await cryptJSon.encryptData(token, await AllPermission.find());
+    getAllPermission = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await AllPermission.find());
     if (getAllPermission) {
         res.json({
             success: true,
@@ -69,8 +70,7 @@ catch (err) {
 }
 }
 let storePermisionsGroup = async (req, res) => {
-    try {
-        //console.log('Route Name:', req.route.path);
+    try {       
         getArray = req.body.getArray;
         getrole_permission_name = req.body.role_permission_name
         console.log(getArray);
@@ -105,16 +105,15 @@ let InfotoUpdatePermisionsGroup = async (req, res) => {
     const getAllRouteNameToJson = JSON.stringify(getAllRouteName.map(permission => ({ permision_group: permission.routes_group,permision_code: permission.routes_code, permision_name: permission.routes_name })));
     const _getAllPermissions = JSON.parse(getAllRouteNameToJson);    
     getRolePermissionbyId = await RolePermission.findOne({ _id: PermisionsGroupId });
-    getNameRolePermissionbyId=await cryptJSon.encryptData(token,getRolePermissionbyId.role_permission_name);
+    getNameRolePermissionbyId=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getRolePermissionbyId.role_permission_name);
     const _getPermissionGroupById = JSON.parse(getRolePermissionbyId.role_permission_group);
-    const checkboxStatus =await cryptJSon.encryptData(token, await Promise.all(_getAllPermissions.map(async (permission) => ({
+    const checkboxStatus =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Promise.all(_getAllPermissions.map(async (permission) => ({
         routes_group:permission.permision_group,
         routes_code: permission.permision_code,
         routes_name: permission.permision_name,
         checked: await checkPermissionByIdExist(_getPermissionGroupById, permission.permision_code),
-    }))));    
-   // console.log(checkboxStatus);
-    return res.json({
+    }))));  
+      return res.json({
         status:200,
         success: true,
         data:{getNameRolePermissionbyId,checkboxStatus}
@@ -171,7 +170,7 @@ let listUserRole=async(req,res)=>{
     try{
  const token = req.headers.token;
   getListUserRole=await RolePermission.find();
-  covertArrListUserRole=await cryptJSon.encryptData(token,JSON.stringify(getListUserRole.map(role=>({role_id:role._id,role_name:role.role_permission_name}))));
+  covertArrListUserRole=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,JSON.stringify(getListUserRole.map(role=>({role_id:role._id,role_name:role.role_permission_name}))));
   if (covertArrListUserRole) {
     res.json({
         status: 200,
@@ -238,7 +237,7 @@ let ShowDetailRoleByUser =async(req,res)=>
     try{
     const token = req.headers.token;    
     getUserId=new ObjectId(req.params.id);
-    getRoles=await cryptJSon.encryptData(token,await getRolesbyUser(getUserId));
+    getRoles=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await getRolesbyUser(getUserId));
     if (getRoles) {
         res.json({
             status: 200,
@@ -273,20 +272,17 @@ let infotoUpdateUserRole =async(req,res)=>
     covertArrListUserRole = JSON.stringify(getListUserRole.map(role => ({ role_id: role._id, role_name: role.role_permission_name })));
     const _getAllRoles = JSON.parse(covertArrListUserRole);
     console.log(_getAllRoles);
-    const checkboxStatus =await cryptJSon.encryptData(token, await Promise.all(_getAllRoles.map(async (role) => ({
+    const checkboxStatus =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Promise.all(_getAllRoles.map(async (role) => ({
         role_permission_id: role.role_id,
         role_permission_name: role.role_name,
         checked: await checkRoleByIdExist(_getRolesbyUser, role.role_name),
     }))));
     console.log(checkboxStatus);
-
         res.json({
             status: 200,
             message: 'Get Data Completed!!',
             data:checkboxStatus,
-        });
-   // res.json(_getRolesbyUser);
-
+        });  
 }
 catch (err) {
     console.log(err);
@@ -319,7 +315,7 @@ let UpdateUserRole = async (req,res) => {
             }
         }
     }
-    //thêm mới khi chưa tồn tại user_role
+    //create role when not exits
     if(checkExitsIdUser === 0)
     {
     for (let i = 0; i < getArrayRolesId.length; i++) {
@@ -540,6 +536,4 @@ module.exports = {
     checkRoleByIdExist:checkRoleByIdExist,
     DeleteUserRole:DeleteUserRole,
     getRolesbyIdUser:getRolesbyIdUser,
-
-
 }

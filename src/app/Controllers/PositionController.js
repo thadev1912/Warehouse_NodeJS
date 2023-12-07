@@ -1,10 +1,11 @@
 const Position = require('../models/position');
 const cryptJSon = require('../../helper/cryptJSon');
+const configCrypt = require('../../../config/cryptJson');
 let index = async (req, res) => {
     try {       
         const token = req.headers.token; 
         let _getData = await Position.find({});
-        getData= await cryptJSon.encryptData(token,_getData);  
+        getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);  
         if (getData) {
             res.json({
                 status: 200,
@@ -73,7 +74,7 @@ let edit = async (req, res) => {
         const token = req.headers.token; 
         id = req.query.id;
         _getId = await Position.findOne({ _id: id });
-        getId= await cryptJSon.encryptData(token,_getId);  
+        getId= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getId);  
         if (getId) {
             return res.json({
                 status:200,
