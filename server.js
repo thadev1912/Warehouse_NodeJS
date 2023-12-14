@@ -58,21 +58,16 @@ app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 route(app);
 connectDB();
-//Config HTTPS USE SSL ON SERVER NGINX:
+//HTTPS SSL
 // const options = {
-//   key: fs.readFileSync('/etc/letsencrypt/product.rynansaas.com/privkey.pem'),
-//   cert: fs.readFileSync('/etc/letsencrypt/product.rynansaas.com/fullchain.pem')
+//   key: fs.readFileSync('/etc/keyssl_api-product/privkey.pem'),
+//   cert: fs.readFileSync('/etc/keyssl_api-product/fullchain.pem')
 // };
-// const httpsServer = https.createServer(options,app);
-// httpsServer.listen(process.env.PORT_HTTPS,process.env.SERVER_URL, async() => {
-//   try{
-//     console.log(`Server running on ${process.env.SERVER_URL}:${process.env.PORT_HTTPS}`)
-   
-//   }
-//   catch (error) {
-//     console.log('Error occurred:', error);
-//   }
-// })
+// const server_https = https.createServer(options, app);
+// server_https.listen(process.env.PORT_HTTPS,process.env.SERVER_URL, async() => {
+//  await setIvoince.setInvoice();   
+//   console.log('Server is running on port 3001');
+// });
 //Config HTTP NO SSL
 app.listen(process.env.PORT_HTTP,process.env.SERVER_URL, async() => {
   try{

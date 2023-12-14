@@ -7,6 +7,8 @@ const QualityControl = require('../models/quality_control');
 const { ObjectId } = require('mongodb');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const updateSim = require('../../helper/updateSim');
+const setLogger = require('../../helper/setLogger');
 let WeldingList = async (req, res) => {
     try {
         const token = req.headers.token;
@@ -91,6 +93,47 @@ let WeldingList = async (req, res) => {
         });      
     }
 	
+}
+let WeldingListById=async(req,res)=>
+{
+   try
+   {
+    const token = req.headers.token; 
+    getJobSheetCode = req.params.id;      
+    getData ==await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Welding.aggregate([
+        {
+            $lookup: {
+                from: "jobsheets",
+                localField: "jobsheet_code",
+                foreignField: "jobsheet_code",
+                as: "getDetail"
+            }
+        },
+        {
+            $match:{ jobsheet_code:getJobSheetCode}
+        }
+    ]));
+    if (getData) {
+        return res.json({
+            status:200,
+            success: true,
+            data: getData,
+            message: 'Get Data Completed!!!'
+        });
+    }
+    else
+    {
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
+    }
+   }
+   catch
+   {
+
+   }
 }
 let showDetailWelding = async (req, res) => {
     try {
@@ -312,7 +355,7 @@ let approveWeldingOrder = async (req, res) => {
         getJobSheetCode = await SemiProduct.findOne({ semi_product_lot: getSemiProductLot });       
         await Welding.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { welding_status: 'Đang hàn mạch' })
         if (isCheck) {
-
+            setLogger.logAprrove(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true,              
@@ -355,7 +398,8 @@ let updateWeldingOrder = async (req, res) => {
                 semi_product_id: '',
                 manage_sim_note: '',
             });          
-            await CategoriesSim.findByIdAndUpdate(getOldSim, { use_sim: '0', $set: getCancelCategoriesSim });   
+            await CategoriesSim.findByIdAndUpdate(getOldSim, { use_sim: '0', $set: getCancelCategoriesSim }); 
+            await updateSim.updateStatusSim();  
             await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { $set:{semi_product_status:'10',semi_product_assembler:'',categories_sim_id:'',semi_product_assembly_date:''} });      
             isExits=await SemiProduct.findOne({ semi_product_lot: getSemiProductLot}).count();
             if(isExits>0)
@@ -377,7 +421,8 @@ let updateWeldingOrder = async (req, res) => {
                 semi_product_id: '',
                 manage_sim_note: '',
             })
-            await CategoriesSim.findByIdAndUpdate(OldId, { use_sim: '0', $set: getClearCategoriesSim });           
+            await CategoriesSim.findByIdAndUpdate(OldId, { use_sim: '0', $set: getClearCategoriesSim });      
+            await updateSim.updateStatusSim();     
         }            
         if (getNewSim) {
             const getId = new ObjectId(InfoSemiProduct.categories_sim_id);  
@@ -392,10 +437,12 @@ let updateWeldingOrder = async (req, res) => {
 
             });
             await CategoriesSim.findByIdAndUpdate(getId, { use_sim: '1', $set: getUpdateCategoriesSim }); 
+            await updateSim.updateStatusSim();
                
         }
         await QualityControl.findOneAndUpdate({ jobsheet_code: InfoSemiProduct.jobsheet_code }, { quality_control_status: 'Đang hàn mạch' });
         if (getData) {
+            setLogger.logUpdate(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true,
@@ -424,6 +471,7 @@ let checkWelding = async (req, res) => {
 }
 module.exports = {
     WeldingList: WeldingList,
+    WeldingListById:WeldingListById,
     showDetailWelding: showDetailWelding,
     approveWeldingOrder: approveWeldingOrder,
     updateWeldingOrder: updateWeldingOrder,

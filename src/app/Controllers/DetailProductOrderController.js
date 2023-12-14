@@ -2,6 +2,7 @@ const DetailProductOrder = require('../models/detail_product_order');
 const User = require('../models/user');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {         
        const token = req.headers.token; 
@@ -38,6 +39,7 @@ let store = async (req, res) => {
         const getDetailProductOrder = new DetailProductOrder(req.body);   
         let getData = await getDetailProductOrder.save();         
         if (getData) {
+            setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
@@ -71,6 +73,7 @@ let update = async (req, res) => {
         getData = await DetailProductOrder.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {           
             getNewData = await DetailProductOrder.findOne({ _id: id });
+            setLogger.logUpdate(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
@@ -101,7 +104,7 @@ let destroy = async (req, res) => {
         console.log(id);
         getId = await DetailProductOrder.findByIdAndRemove({ _id: id });        
         if (getId) {
-
+            setLogger.logDelete(getInfoUser,req); 
             return res.json({
                 status:200,
                 success: true, message: 'This field has been removed!!!',

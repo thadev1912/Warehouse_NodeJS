@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {    
            
@@ -97,6 +98,7 @@ let store = async (req, res) => {
                 messege: 'Add new field comleted!!!',
                 //data: getData,
             });
+            setLogger.logStore(getInfoUser,req);
         }
         else {
             return res.json({
@@ -251,14 +253,16 @@ catch (err) {
 }
 let update = async (req, res) => {
     try {
-        let id = req.params.id;
+        console.log(req.body);
+        let id = new ObjectId(req.params.id);      
         getData = await ProductOrder.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {
             getNewData = await ProductOrder.findOne({ _id: id });
-            return res.json({
+             res.json({
                 status:200,
                 success: true, message: 'Infomation field has been updated !!!'
             });
+            setLogger.logUpdate(getInfoUser,req);
         }
         else {
             return res.json({
@@ -319,10 +323,12 @@ let approve = async (req, res) => {
     });
     getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
     if (getData) {
+        setLogger.logAprrove(getInfoUser,req);
         return res.json({
             status:200,
             success: true, message: 'This field has been updated!!!',
         });
+        
     }
     else {
         return res.json({
@@ -352,6 +358,7 @@ let reapprove = async (req, res) => {
     });
     getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
     if (getData) {
+        setLogger.logAprrove(getInfoUser,req);
         return res.json({
             status:200,
             success: true, message: 'This field has been updated!!!',
@@ -385,6 +392,7 @@ let cancel = async (req, res) => {
     });
     getData = await ProductOrder.findByIdAndUpdate(id, { $set: updateInfo });
     if (getData) {
+        setLogger.logCancel(getInfoUser,req);
         return res.json({
             status:200,
             success: true, message: 'This field has been updated!!!',
@@ -417,7 +425,7 @@ let destroy = async (req, res) => {
         getId = await ProductOrder.findByIdAndRemove({ _id: id });
 
         if (getId) {
-
+            setLogger.logDelete(getInfoUser,req); 
             return res.json({
                 status:200,
                 success: true, message: 'This field has been removed!!!',

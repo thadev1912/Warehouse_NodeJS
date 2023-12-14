@@ -1,6 +1,8 @@
 const Position = require('../models/position');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
+
 let index = async (req, res) => {
     try {       
         const token = req.headers.token; 
@@ -14,7 +16,7 @@ let index = async (req, res) => {
             });
         }
         else {
-            return res.json({
+             res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
@@ -23,21 +25,19 @@ let index = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        return res.json({
+         res.json({
             status:500,
             success: false,           
             error: err.message,
-        });
-      
+        });      
     }
-
 }
 let create = async (req, res) => {
     try {
         const getPosition = new Position(req.body);      
         checkId = await Position.find({ position_code:req.body.position_code}).count();      
         if (checkId>0) {
-            return res.json({
+             res.json({
                 status:200,
                 success: true, message: 'This ID exits!!',
             });
@@ -49,9 +49,10 @@ let create = async (req, res) => {
                 message: 'Add new field comleted!!!',
                // data: getData,
             });
+            setLogger.logStore(getInfoUser,req);  
         }
         else {
-            return res.json({
+            res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
@@ -60,7 +61,7 @@ let create = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        return res.json({
+         res.json({
             status:500,
             success: false,           
             error: err.message,
@@ -76,13 +77,13 @@ let edit = async (req, res) => {
         _getId = await Position.findOne({ _id: id });
         getId= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getId);  
         if (getId) {
-            return res.json({
+            res.json({
                 status:200,
                 success: true, message: 'Infomation Field need to edit!!', data: getId,
             });
         }
         else {
-            return res.json({
+             res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
@@ -92,7 +93,7 @@ let edit = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        return res.json({
+            res.json({
             status:500,
             success: false,           
             error: err.message,
@@ -107,13 +108,14 @@ let update = async (req, res) => {
         getData = await Position.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {
             getNewData = await Position.findOne({ _id: id });
-            return res.json({
+            res.json({
                 status:200,
                 success: true, message: 'Infomation field has been updated !!!'
             });
+            setLogger.logUpdate(getInfoUser,req);
         }
         else {
-            return res.json({
+             res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
@@ -122,7 +124,7 @@ let update = async (req, res) => {
     } 
     catch (err) {
         console.log(err);
-        return res.json({
+           res.json({
             status:500,
             success: false,           
             error: err.message,
@@ -136,13 +138,14 @@ let destroy = async (req, res) => {
         let id = req.query.id;
         getId = await Position.findByIdAndRemove({ _id: id });
         if (getId) {
-            return res.json({
+             res.json({
                 status:200,
                 success: true, message: 'This field has been removed!!!',
             });
+            setLogger.logDelete(getInfoUser,req);
         }
         else {
-            return res.json({
+             res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
@@ -151,7 +154,7 @@ let destroy = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        return res.json({
+         res.json({
             status:500,
             success: false,           
             error: err.message,

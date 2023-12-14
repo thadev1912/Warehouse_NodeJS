@@ -17,4 +17,5 @@ router.put('/changePasswordUser/:id',Auth.checkAuth,Permision.checkPermision,use
 router.post('/testImage',Auth.checkAuth,Permision.checkPermision,upload.single('image'),user.uploadImage);
 router.post('/sendMailUser',user.sendMail);
 router.post('/resetPasswordUser/:id',user.resetPassword);
+router.get('/setConfigCryptJson',user.setConfigCryptJson);
 module.exports = router;

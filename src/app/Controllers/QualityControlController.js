@@ -4,21 +4,63 @@ const SemiProduct = require('../models/semi_product');
 const JobSheet = require('../models/jobsheet');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {
         const token = req.headers.token; 
-        let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await QualityControl.aggregate([
+        // let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await QualityControl.aggregate([
+        //     {
+        //         $lookup: {
+        //             from: "jobsheets",
+        //             pipeline:[                     
+        //                 {
+        //                     $addFields: {
+        //                         user_id: {
+        //                             $toObjectId: "$user_id"
+        //                         },
+        //                     }
+        //                 },       
+        //                 {
+        //                     $lookup: {
+        //                         from: "users",
+        //                         let: { userId: "$user_id" },
+        //                         pipeline: [
+        //                             {
+        //                                 $match: {
+        //                                     $expr: { $eq: ["$_id", "$$userId"] }
+        //                                 }
+        //                             },
+        //                             {
+        //                                 $project: { _id: 1, fullname: 1 }
+        //                             }
+                                  
+        //                         ],
+        //                         as: "detail_user"
+        //                     }
+        //                 },
+        //             ],
+        //             localField: "jobsheet_code",
+        //             foreignField: "jobsheet_code",
+        //             as: "getDetail"
+        //         },
+        //     }
+        // ]));
+        let getData = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await QualityControl.aggregate([
             {
                 $lookup: {
                     from: "jobsheets",
-                    pipeline:[                     
+                    let: { jobCode: "$jobsheet_code", userId: "$user_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$jobsheet_code", "$$jobCode"] }
+                            }
+                        },
                         {
                             $addFields: {
-                                user_id: {
-                                    $toObjectId: "$user_id"
-                                },
+                                user_id: { $toObjectId: "$$userId" }
                             }
-                        },       
+                        },
                         {
                             $lookup: {
                                 from: "users",
@@ -32,18 +74,16 @@ let index = async (req, res) => {
                                     {
                                         $project: { _id: 1, fullname: 1 }
                                     }
-                                  
                                 ],
                                 as: "detail_user"
                             }
                         },
                     ],
-                    localField: "jobsheet_code",
-                    foreignField: "jobsheet_code",
                     as: "getDetail"
-                },
+                }
             }
         ]));
+        
         if (getData) {
             res.json({
                 status: 200,
@@ -68,6 +108,77 @@ let index = async (req, res) => {
         });      
     }
 
+}
+let listByIdQC=async(req,res)=>
+{
+    try{
+    const token = req.headers.token;   
+    getJobSheetCode=req.params.id;
+    let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await QualityControl.aggregate([
+        {
+            $lookup: {                
+                from: "jobsheets",
+                let: { jobCode: "$jobsheet_code", userId: "$user_id" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ["$jobsheet_code", "$$jobCode"] }
+                        }
+                    },
+                    {
+                        $addFields: {
+                            user_id: { $toObjectId: "$$userId" }
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "users",
+                            let: { userId: "$user_id" },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: { $eq: ["$_id", "$$userId"] }
+                                    }
+                                },
+                                {
+                                    $project: { _id: 1, fullname: 1 }
+                                }
+                            ],
+                            as: "detail_user"
+                        }
+                    },
+                ],
+                as: "getDetail"
+            }
+        },
+        {
+            $match:{ jobsheet_code:getJobSheetCode}
+        }
+    ]));
+    
+    if (getData) {
+        res.json({
+            status: 200,
+            message: 'Get Data Completed!!',
+            data: getData,
+        });
+    }
+    else {
+        return res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
+    }
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
 }
 let detailQC = async (req, res) => {
     try
@@ -240,6 +351,7 @@ let orderQC = async (req, res) => {
                 }
             });
             if (getProduct) {
+                setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
                     message: 'Get Data Completed!!',
@@ -264,6 +376,7 @@ let orderQC = async (req, res) => {
                 }
             });
             if (getSemiProduct) {
+                setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
                     message: 'Get Data Completed!!',
@@ -291,6 +404,7 @@ catch (err) {
 
 module.exports = {
     index: index,
+    listByIdQC:listByIdQC,
     detailQC: detailQC,
     orderQC: orderQC,
 }

@@ -4,6 +4,7 @@ const qualitycontrol = require('../app/Controllers/QualityControlController');
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
 router.get('/listQualityControl',Auth.checkAuth,Permision.checkPermision,qualitycontrol.index);
+router.get('/listByIdQualityControl/:id',Auth.checkAuth,Permision.checkPermision,qualitycontrol.listByIdQC);
 router.get('/detailQualityControl/:id',Auth.checkAuth,Permision.checkPermision,qualitycontrol.detailQC);
 router.put('/orderQualityControl',Auth.checkAuth,Permision.checkPermision,qualitycontrol.orderQC);
 module.exports = router;

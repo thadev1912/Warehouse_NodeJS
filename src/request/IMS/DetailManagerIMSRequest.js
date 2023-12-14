@@ -6,6 +6,7 @@ const middlewareValidate = {
       name_station: Joi.string().required().messages({
         'string.empty': `Mã tỉnh không được để trống!`,
       }),
+
       installtion_date: Joi.string().required().messages({
         'string.empty': `Ngày lắp đặt không được để trống!`,
       }),
@@ -14,6 +15,12 @@ const middlewareValidate = {
       }),
       customer: Joi.string().required().messages({
         'string.empty': `Khách hàng lắp đặt không được để trống!`,
+      }),
+      trap_code: Joi.string().required().messages({
+        'string.empty': `Trap code không được để trống!`,
+      }),
+      serial_number: Joi.string().required().messages({
+        'string.empty': `Serial number không được để trống!`,
       }),
       image: Joi.string().allow(null).allow('').messages({  
       

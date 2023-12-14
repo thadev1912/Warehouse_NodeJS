@@ -5,53 +5,14 @@ const DetailManagerIMS = require('../../models/ims/detail_mangager_ims');
 const { paginate } = require('../../../helper/pagination');
 const cryptJSon = require('../../../helper/cryptJSon');
 const configCrypt = require('../../../../config/cryptJson');
+const { findOne } = require('../../models/user');
 let index = async (req, res) => {
     try {
-        const token = req.headers.token; 
-        let getProvinces =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProvinceISM.find({}));
+        const token = req.headers.token;
+        let getProvinces = await ProvinceISM.find({});
         const page = parseInt(req.query.page) || 1;
-        _countInstalled = await countInstalled(); 
-        getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ManagerISM.aggregate([
-            {   
-                $lookup: {
-                    from: "province_imsses",
-                    localField: "area_id",
-                    foreignField: "province_id",
-                    as: "getProvinceData"
-                }
-            },
-        ])); 
-        
-        if (getData) {
-            res.json({
-                status: 200,
-                message: 'Get Data Completed!!',
-                data: { getData, provinces: getProvinces },               
-                });
-        }
-       else {
-        return res.json({
-            status:500,
-            success: false,                
-            message: 'Error connecting Database on Server'
-        });
-        
-       }
-    }
-    catch (err) {
-        console.log(err);
-        return res.json({
-            status:500,
-            success: false,           
-            error: err.message,
-        });      
-    }
-}
-let testPaginatewithAggragate = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        //const result = await paginate(ManagerISM, {}, page, 10);
-        const pipeline = 
+        _countInstalled = await countInstalled();
+        getData = await ManagerISM.aggregate([
             {
                 $lookup: {
                     from: "province_imsses",
@@ -59,8 +20,48 @@ let testPaginatewithAggragate = async (req, res) => {
                     foreignField: "province_id",
                     as: "getProvinceData"
                 }
-            };
-        const result = await paginate(ManagerISM, {}, page, 10,true,pipeline);
+            },
+        ]);
+
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: { getData, provinces: getProvinces },
+            });
+        }
+        else {
+            return res.json({
+                status: 500,
+                success: false,
+                message: 'Error connecting Database on Server'
+            });
+
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status: 500,
+            success: false,
+            error: err.message,
+        });
+    }
+}
+let testPaginatewithAggragate = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        //const result = await paginate(ManagerISM, {}, page, 10);
+        const pipeline =
+        {
+            $lookup: {
+                from: "province_imsses",
+                localField: "area_id",
+                foreignField: "province_id",
+                as: "getProvinceData"
+            }
+        };
+        const result = await paginate(ManagerISM, {}, page, 10, true, pipeline);
         const { getData, totalPages, currentPage, pageSize, totalCount } = result;
         if (getData) {
             res.json({
@@ -85,7 +86,7 @@ let testPaginatewithAggragate = async (req, res) => {
 let testPaginatewithFind = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const result = await paginate(ManagerISM, {}, page,10,false);      
+        const result = await paginate(ManagerISM, {}, page, 10, false);
         const { getData, totalPages, currentPage, pageSize, totalCount } = result;
         if (getData) {
             res.json({
@@ -109,6 +110,9 @@ let testPaginatewithFind = async (req, res) => {
 }
 let store = async (req, res) => {
     try {
+        getAreaId = req.body.area_id;
+        location_area = getAreaId > 64 ? 'JP' : 'VN';
+        req.body.location_area = location_area;
         const getManagerISM = new ManagerISM(req.body);
         let getData = await getManagerISM.save();
         if (getData) {
@@ -136,16 +140,16 @@ let update = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Infomation field has been updated !!!',
-              //  data: getNewData,
+                //  data: getNewData,
             });
         }
         else {
             return res.json({
-                status:500,
-                success: false,                
+                status: 500,
+                success: false,
                 message: 'Error connecting Database on Server'
             });
-			
+
         }
     } catch (err) {
         console.log(err);
@@ -159,12 +163,18 @@ let update = async (req, res) => {
 }
 let destroy = async (req, res) => {
     try {
-       
         let id = req.params.id;
-        getProvinces=await ManagerISM.findOne({_id:id});
-        isDeleted=await DetailManagerIMS.findOneAndRemove({area_id:getProvinces.area_id});
+        console.log(id);
+        getInfo = await ManagerISM.findOne({ _id: id });
+        console.log('thông tin giá trị', getInfo);
+        checkIdProvince = await DetailManagerIMS.findOne({ area_id: getInfo.area_id }).count();
+        console.log('giá trị đếm được', checkIdProvince);
+         await countInstalled();
+        if (checkIdProvince > 0) {
+            await DetailManagerIMS.deleteMany({ area_id: getInfo.area_id });
+        }
         getId = await ManagerISM.findByIdAndRemove({ _id: id });
-        if (getId && isDeleted){
+        if (getId) {
             res.json({
                 success: true,
                 status: 200,
@@ -173,11 +183,11 @@ let destroy = async (req, res) => {
         }
         else {
             return res.json({
-                status:500,
-                success: false,                
+                status: 500,
+                success: false,
                 message: 'Error connecting Database on Server'
             });
-			
+
         }
     }
     catch (err) {
@@ -189,52 +199,52 @@ let destroy = async (req, res) => {
         });
     }
 }
-let countInstalled = async (req, res) => {    
-        _countInstalled= await ManagerISM.aggregate([
-            {
-                $lookup: {
-                    from: "detail_manager_imsses",
-                    localField: "area_id",
-                    foreignField: "area_id",
-                    as: "details"
-                }
-            },
-            {
-                $unwind: "$details" // Unwind để có thể tính tổng active_status trong từng document của ManagerIMSSchema
-            },
-            {
-                $group: {
-                    _id: "$area_id",
-                    totalActiveStatus: { $sum: { $toInt: "$details.active_status" } }
-                }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    totalActiveStatus: 1
-                }
+let countInstalled = async (req, res) => {
+    _countInstalled = await ManagerISM.aggregate([
+        {
+            $lookup: {
+                from: "detail_manager_imsses",
+                localField: "area_id",
+                foreignField: "area_id",
+                as: "details"
             }
-        ]);       
-        const updateManagerIMS = await _countInstalled.map(function(data) {
-            return ManagerISM.findOneAndUpdate(
-              { area_id: data._id },
-              { installed: data.totalActiveStatus },
-              { new: true }
-            );
-          });
-         return Promise.all(updateManagerIMS).then(data=>{
-            data.forEach(res=>{
-                res;
-            })            
-         })
-         .catch(err=>{
+        },
+        {
+            $unwind: "$details" // Unwind để có thể tính tổng active_status trong từng document của ManagerIMSSchema
+        },
+        {
+            $group: {
+                _id: "$area_id",
+                totalActiveStatus: { $sum: { $toInt: "$details.active_status" } }
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                totalActiveStatus: 1
+            }
+        }
+    ]);
+    const updateManagerIMS = await _countInstalled.map(function (data) {
+        return ManagerISM.findOneAndUpdate(
+            { area_id: data._id },
+            { installed: data.totalActiveStatus },
+            { new: true }
+        );
+    });
+    return Promise.all(updateManagerIMS).then(data => {
+        data.forEach(res => {
+            res;
+        })
+    })
+        .catch(err => {
             res.json({
                 status: 500,
                 success: false,
                 error: err.message
             });
-         });         
-    }
+        });
+}
 
 module.exports =
 {
@@ -243,6 +253,6 @@ module.exports =
     update: update,
     destroy: destroy,
     testPaginatewithAggragate: testPaginatewithAggragate,
-    testPaginatewithFind:testPaginatewithFind,
+    testPaginatewithFind: testPaginatewithFind,
     countInstalled: countInstalled,
 }

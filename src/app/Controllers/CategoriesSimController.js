@@ -4,11 +4,12 @@ const SemiProduct = require('../models/semi_product');
 const Notification = require('../models/notification_sim');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try { 
         const token = req.headers.token; 
-      await updateStatusSim();        
-        let getSemiProduct =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.aggregate([           
+       getStatus= await updateStatusSim();   
+     let getSemiProduct =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.aggregate([           
             {
                 $addFields: {                                      
                     semi_product_id: {
@@ -49,7 +50,7 @@ let index = async (req, res) => {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: getSemiProduct,
+                data: getSemiProduct,getStatus
             });
         } else {
             return res.json({
@@ -120,10 +121,14 @@ let updateStatusSim=async(res,req)=>
                         $cond: {
                             if: {
                                 $or: [
-                                    { $eq: ['$expiration_date', null] }, 
-                                    { $eq: ['$expiration_date', ''] },
-                                    { $eq: ['$activation_date', null] }, 
-                                    { $eq: ['$activation_date', ''] }   
+                                    // { $eq: ['$expiration_date', null] }, 
+                                    // { $eq: ['$expiration_date', ''] },
+                                    // { $eq: ['$activation_date', null] }, 
+                                    // { $eq: ['$activation_date', ''] } ,  
+                                    { $eq: [{ $ifNull: ['$activation_date', null] }, null] },
+                                   { $eq: [{ $ifNull: ['$activation_date', null] }, ''] },
+                                   { $eq: [{ $ifNull: ['$expiration_date', null] }, null] },
+                                   { $eq: [{ $ifNull: ['$expiration_date', null] }, ''] }                                 
                                 ]
                                                            },
                             then:"",
@@ -165,9 +170,8 @@ let updateStatusSim=async(res,req)=>
                 }
             }           
 
-        ]);
-        
-        console.log(updateStatusSim);
+        ]);        
+        //console.log(updateStatusSim);
         const updateCategoriesSim = await updateStatusSim.map(function(data) {
             const infoUpdate={
                 sim_status:data.sim_status,
@@ -188,9 +192,9 @@ let updateStatusSim=async(res,req)=>
                 success: false,
                 error: err.message
             });
-         });       
+         });     
     
-   
+  
 }
 let create = async (req, res) => {
     try {        
@@ -211,14 +215,14 @@ let create = async (req, res) => {
                 messege: 'Add new field comleted!!!',
                // data: getData,
             });
+            setLogger.logStore(getInfoUser,req);
         }
         else {
             return res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
-            });
-			
+            });			
         }
     }
     catch (err) {
@@ -271,10 +275,11 @@ let update = async (req, res) => {
         getData = await CategoriesSim.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {
             getNewData = await CategoriesSim.findOne({ _id: id });
-            return res.json({
+             res.json({
                 status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!'
             });
+            setLogger.logUpdate(getInfoUser,req);
         }
         else {
             return res.json({
@@ -301,11 +306,12 @@ const destroy = async (req, res) => {
         const id = req.query.id;       
         const semiProductCount = await SemiProduct.countDocuments({ categories_sim_id: id });
         if (semiProductCount > 0) {            
-            return res.json({
+             res.json({
                 status:400,
                 success: false,
                 message: 'Cannot delete Categories Sim as it is linked to Semi Products'
             });
+            setLogger.logDelete(getInfoUser,req); 
         }        
         await CategoriesSim.findByIdAndRemove(id)
         return res.json({

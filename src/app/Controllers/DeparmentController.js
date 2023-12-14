@@ -1,21 +1,22 @@
 const Department = require('../models/department');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger'); 
 let index = async (req, res) => {
     try {        
         const token = req.headers.token;    
         let _getData = await Department.find({});      
-      getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);   
-      //const covertData=await cryptJSon.decryptData(token,encryptionEnabled,getData) 
-        if (getData) {
-           return res.json({
+      getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData); 
+            if (getData) {
+           res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
                 data: getData,
-            });
+            });          
+           
         }       
         else {
-            return res.json({
+            res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
@@ -24,7 +25,7 @@ let index = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        return res.json({
+         res.json({
             status:500,
             success: false,           
             error: err.message,
@@ -44,13 +45,13 @@ let create = async (req, res) => {
                  message: 'This ID exits!!',
             });
         }
-        let getData = await getDepartment.save();       
+      let getData = await getDepartment.save();
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
-                
+                messege: 'Add new field comleted!!!',                
             });
+            setLogger.logStore(getInfoUser,req);           
         }
         else
         {
@@ -98,25 +99,25 @@ let edit = async (req, res) => {
             status:500,
             success: false,           
             error: err.message,
-        });
-      
+        });      
     }
-
 }
 
 let update = async (req, res) => {
     try {
+
         let id = req.params.id;
         getData = await Department.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {           
             getNewData = await Department.findOne({ _id: id });
-            return res.json({
+            res.json({
                 status:200,
                 success: true, message: 'Infomation field has been updated !!!'
             });
+            setLogger.logUpdate(getInfoUser,req)
         }
         else {
-            return res.json({
+             res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
@@ -125,27 +126,26 @@ let update = async (req, res) => {
     } 
     catch (err) {
         console.log(err);
-        return res.json({
+         res.json({
             status:500,
             success: false,           
             error: err.message,
-        });
-      
+        });      
     }
-
 }
 let destroy = async (req, res) => {
     try {
         let id = req.params.id;
         getId = await Department.findByIdAndRemove({ _id: id });
         if (getId) {
-            return res.json({
+             res.json({
                 status:200,
                 success: true, message: 'This field has been removed!!!',
             });
+            setLogger.logDelete(getInfoUser,req)
         }
         else {
-            return res.json({
+             res.json({
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
@@ -161,8 +161,6 @@ let destroy = async (req, res) => {
         });      
     }
 }
-
-
 
 module.exports = {
     index: index,

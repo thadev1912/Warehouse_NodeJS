@@ -1,11 +1,13 @@
 const ProductType = require('../models/product_type');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {
         const token = req.headers.token; 
         let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductType.find({}));
         if (getData) {
+           
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
@@ -41,6 +43,7 @@ let create = async (req, res) => {
         }
         let getData = await getProductType.save();       
         if (getData) {
+            setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
@@ -99,6 +102,7 @@ let update = async (req, res) => {
         getData = await ProductType.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {           
             getNewData = await ProductType.findOne({ _id: id });
+            setLogger.logUpdate(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
@@ -127,7 +131,7 @@ let destroy = async (req, res) => {
         let id = req.query.id;
         getId = await ProductType.findByIdAndRemove({ _id: id });
         if (getId) {
-
+            setLogger.logDelete(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true, message: 'This field has been removed!!!',

@@ -3,7 +3,6 @@ const User = require('../models/user');
 const Position = require('../models/position');
 const Region = require('../models/region');
 const Department = require('../models/department');
-const Role = require('../models/role');
 var bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
@@ -13,6 +12,8 @@ const StoreToken = require('../models/store_token');
 const TestImage = require('../models/test_image');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const fs = require('fs');
+const path = require('path');
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
@@ -183,12 +184,13 @@ let listRoleUser = async (req, res) => {
 }
 //Thêm mới user
 let register = async (req, res) => {
-    try {        
+    try {  
+              
         myObject = req.body;
         if (req.file) { 
             if (req.file.originalname !== undefined)
             {       
-            getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
+            getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;           
             reqName=new Date().toISOString().split('T')[0]+req.file.originalname;      
            getNameImage='uploads/'+reqName;          
             const getUser = new User({
@@ -257,7 +259,7 @@ let register = async (req, res) => {
                 message: 'Error connecting Database on Server'
             });
         }
-    }    
+    }   
           
     }
     catch (err) {
@@ -268,7 +270,6 @@ let register = async (req, res) => {
             error: err.message,
         });      
     }
-
 }
 let checkLogin = async (req, res) => {
     try
@@ -734,6 +735,15 @@ let generateResetToken = async (randomToken, getMail) => {
         { expiresIn: '3m' }
     );
 }
+const setConfigCryptJson=async(req,res)=>
+{
+    const configFilePath = path.resolve(__dirname, '../../../config/cryptJson.js');
+    console.log('giá trị đường đẫn',configFilePath);
+    const configContent = require(configFilePath);
+    configContent.encryptionEnabled = !configContent.encryptionEnabled;     
+    fs.writeFileSync(configFilePath, `module.exports = ${JSON.stringify(configContent, null, 2)};\n`);
+  res.json({ message: 'encryptionEnabled updated successfully.' });
+}
 module.exports =
 {
     listUser: listUser,
@@ -750,5 +760,7 @@ module.exports =
     sendMail: sendMail,
     generateRandomToken: generateRandomToken,
     resetPassword: resetPassword,
-    generateResetToken, generateResetToken
+    generateResetToken, generateResetToken,
+    setConfigCryptJson:setConfigCryptJson,
+
 }

@@ -55,7 +55,7 @@ const middlewareValidate = {
             repeat_password: Joi.string().allow(null).allow('').messages({
                 
             }),
-            email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required().messages({
+            email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net','vn'] } }).required().messages({
                 'string.empty': `Email không được bỏ trống`,
                 'string.email': `Email chưa đúng định dạng`,
             }),

@@ -1,6 +1,7 @@
 const ProductGroup = require('../models/product_group');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {
         const token = req.headers.token; 
@@ -11,6 +12,7 @@ let index = async (req, res) => {
                 message: 'Get Data Completed!!',
                 data: getData,
             });
+            
         }
         else {
             return res.json({
@@ -52,6 +54,7 @@ let create = async (req, res) => {
                 messege: 'Add new field comleted!!!',
                // data: getData,
             });
+            setLogger.logStore(getInfoUser,req);
         }
         else
         {
@@ -108,10 +111,11 @@ let update = async (req, res) => {
         getData = await ProductGroup.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {           
             getNewData = await ProductGroup.findOne({ _id: id });
-            return res.json({
+             res.json({
                 status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
             });
+            setLogger.logUpdate(getInfoUser,req);
         }
         else {
             return res.json({
@@ -136,10 +140,11 @@ let destroy = async (req, res) => {
         let id = req.query.id;
         getId = await ProductGroup.findByIdAndRemove({ _id: id });
         if (getId) {
-            return res.json({
+             res.json({
                 status:200,
                 success: true, message: 'This field has been removed!!!',
             });
+            setLogger.logDelete(getInfoUser,req);
         }
         else {
             return res.json({

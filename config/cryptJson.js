@@ -1,3 +1,3 @@
 module.exports = {
-  encryptionEnabled: true
-}
+  "encryptionEnabled": false
+};

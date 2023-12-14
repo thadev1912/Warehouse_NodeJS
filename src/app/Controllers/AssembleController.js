@@ -6,9 +6,9 @@ const CategoriesSim = require('../models/categories_sim');
 const SimPackage = require('../models/sim_packages');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let AssembleList = async (req, res) => {
-    try {
-                
+    try {                
         const token = req.headers.token; 
         getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Assemble.aggregate([
             {
@@ -20,12 +20,13 @@ let AssembleList = async (req, res) => {
                 }
             }]));     
         if (getData) {
-            return res.json({
+             res.json({
                 status:200,
                 success: true,
                 data: getData,
                 message: 'Get Data Completed!!!'
             });
+            setLogger.logStore(getInfoUser,req);
         }
     }
     catch (err) {
@@ -34,10 +35,44 @@ let AssembleList = async (req, res) => {
             status:500,
             success: false,           
             error: err.message,
-        });
-      
+        });      
     }
-
+}
+let AssembleListById= async(req,res)=>
+{
+    try{
+    const token = req.headers.token; 
+    getJobSheetCode = req.params.id;      
+    getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Assemble.aggregate([
+        {
+            $lookup: {
+                from: "jobsheets",
+                localField: "jobsheet_code",
+                foreignField: "jobsheet_code",
+                as: "getDetail"
+            }
+        },
+        {
+            $match:{ jobsheet_code:getJobSheetCode}
+        }
+    ]));     
+    if (getData) {
+        return res.json({
+            status:200,
+            success: true,
+            data: getData,
+            message: 'Get Data Completed!!!'
+        });
+    }
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });      
+}
 }
 let showDetailAssemble = async (req, res) => {
     try { 
@@ -104,7 +139,8 @@ let showDetailAssemble = async (req, res) => {
                                     then: '',
                                     else: { $toObjectId: "$product_assembler" }
                                 }
-                            },                     
+                            },  
+                            product_tester: {$toObjectId: "$product_tester"},                   
                             }
                         },
                         {
@@ -125,7 +161,24 @@ let showDetailAssemble = async (req, res) => {
                                 as: "getIdAssembler"
                             }
                         },
-                        
+                        {
+                            $lookup: {
+                                from: "users",
+                                let: { product_tester: "$product_tester" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: { $eq: ["$_id", "$$product_tester"] }
+                                        }
+                                    },
+                                    {
+                                        $project: { _id: 1, fullname: 1 }
+                                    }
+                                  
+                                ],
+                                as: "getIdTester"
+                            }
+                        },
                         {
                             $match: {
                                 $expr: {
@@ -227,6 +280,7 @@ let approveAssembleOrder = async (req, res) => {
         getJobSheetCode = await Product.findOne({ product_code: getProductCode });       
         await Assemble.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { assemble_status: 'Đang lắp ráp' });
         if (isCheck) {
+            setLogger.logAprrove(getInfoUser,req); 
             return res.json({
                 status:200,
                 success: true,               
@@ -328,6 +382,7 @@ let updateAssembleOrder = async (req, res) => {
             }      
        getData = await Product.findOneAndUpdate({ product_code: getProductCode }, { $set: { product_status:getStatus, semi_product_lot: req.body.semi_product_lot,product_assembler:req.body.product_assembler,product_assembly_date:req.body.product_assembly_date } });
                 if (getData) {
+                setLogger.logUpdate(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true,
@@ -379,6 +434,7 @@ let updateAssembleOrder = async (req, res) => {
 }
 module.exports = {
     AssembleList: AssembleList,
+    AssembleListById:AssembleListById,
     showDetailAssemble: showDetailAssemble,
     approveAssembleOrder: approveAssembleOrder,
     infotoUpdate: infotoUpdate,

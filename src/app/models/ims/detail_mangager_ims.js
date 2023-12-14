@@ -11,6 +11,8 @@ const DetailManagerIMSSchema = new Schema({
     active_status:{type: String,default:'1'},
     detail_installtion:{type: String},
     location:{type:String},
+    trap_code:{type:String},
+    serial_number:{type:String},
     created: {type: Date, default: Date.now},   
     updated: {type: Date, default: Date.now}
 });

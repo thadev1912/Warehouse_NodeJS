@@ -4,6 +4,7 @@ const CategoriesSim = require('../models/categories_sim');
 const updateSim = require('../../helper/updateSim');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {
         const token = req.headers.token; 
@@ -143,6 +144,7 @@ let create = async (req, res) => {
                 messege: 'Add new field comleted!!!',
                 //data: getData,
             });
+            setLogger.logStore(getInfoUser,req);
         }
         else {
             return res.json({
@@ -239,6 +241,7 @@ const update = async (req, res) => {
             };
             const updatedCategoriesSim = await CategoriesSim.findByIdAndUpdate(newCategoriesSimId, { use_sim: '1', $set: categoriesSimData });
             await updateSim.updateStatusSim();
+            setLogger.logUpdate(getInfoUser,req);
             if (!updatedCategoriesSim) {
                 return res.json({
                     status:500,
@@ -282,11 +285,12 @@ const destroy = async (req, res) => {
         } 
        
         await SemiProduct.findByIdAndRemove(id);   
-        return res.json({
+         res.json({
             status:200,
             success: true,
             message: 'Semi Product and associated Sim have been deleted'
         });
+        setLogger.logDelete(getInfoUser,req); 
     }
     catch (err) {
         console.log(err);

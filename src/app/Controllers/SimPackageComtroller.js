@@ -1,6 +1,7 @@
 const SimPackage = require('../models/sim_packages');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try { 
         const token = req.headers.token;        
@@ -42,6 +43,7 @@ let create = async (req, res) => {
         }
         let getData = await getSimPackage.save();       
         if (getData) {
+            setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
@@ -101,6 +103,7 @@ let update = async (req, res) => {
         getData = await SimPackage.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {           
             getNewData = await SimPackage.findOne({ _id: id });
+            setLogger.logUpdate(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true, message: 'Infomation field has been updated !!!'
@@ -128,7 +131,7 @@ let destroy = async (req, res) => {
         let id = req.query.id;
         getId = await SimPackage.findByIdAndRemove({ _id: id });
         if (getId) {
-
+            setLogger.logDelete(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true, message: 'This field has been removed!!!',

@@ -13,6 +13,7 @@ const Department = require('../models/department');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const { ObjectId } = require('mongodb');
+const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {        
         const token = req.headers.token; 
@@ -179,6 +180,7 @@ let store = async (req, res) => {
         getJobSheet.jobsheet_status = '0';
         let getData = await getJobSheet.save();
         if (getData) {
+            setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
@@ -358,6 +360,7 @@ let update = async (req, res) => {
         getData = await JobSheet.findByIdAndUpdate(id, { $set: req.body });
         if (getData) {
             getNewData = await JobSheet.findOne({ _id: id });
+            setLogger.logUpdate(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
@@ -433,6 +436,54 @@ let showDetail = async (req, res) => {
                     from: "products",
                     let: { code: "$jobsheet_code" },
                     pipeline: [
+                        {
+                            $addFields: {                  
+                               // product_assembler: {$toObjectId: "$product_assembler"},   
+                               product_assembler: {
+                                $cond: {
+                                    if: { $eq: ["$product_assembler", ''] },
+                                    then: '',
+                                    else: { $toObjectId: "$product_assembler" }
+                                }
+                            },    
+                            product_tester: {$toObjectId: "$product_tester"},                    
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                let: { product_assembler: "$product_assembler" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: { $eq: ["$_id", "$$product_assembler"] }
+                                        }
+                                    },
+                                    {
+                                        $project: { _id: 1, fullname: 1 }
+                                    }                                  
+                                ],
+                                as: "getIdAssembler"
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                let: { product_tester: "$product_tester" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: { $eq: ["$_id", "$$product_tester"] }
+                                        }
+                                    },
+                                    {
+                                        $project: { _id: 1, fullname: 1 }
+                                    }
+                                  
+                                ],
+                                as: "getIdTester"
+                            }
+                        },
                         {
                             $match: {
                                 $expr: { $eq: ["$jobsheet_code", "$$code"] }
@@ -528,7 +579,51 @@ let showDetail = async (req, res) => {
                                         then: '',
                                         else: { $toObjectId: "$categories_sim_id" }
                                     }
-                                },    
+                                },  
+                                semi_product_assembler: {
+                                    $cond: {
+                                        if: { $eq: ["$semi_product_assembler", ''] },
+                                        then: '',
+                                        else: { $toObjectId: "$semi_product_assembler" }
+                                    }
+                                },  
+                                semi_product_tester: {$toObjectId: "$semi_product_tester"},           
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: "users",
+                                    let: { semi_product_assembler: "$semi_product_assembler" },
+                                    pipeline: [
+                                        {
+                                            $match: {
+                                                $expr: { $eq: ["$_id", "$$semi_product_assembler"] }
+                                            }
+                                        },
+                                        {
+                                            $project: { _id: 1, fullname: 1 }
+                                        }
+                                      
+                                    ],
+                                    as: "getIdAssembler"
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: "users",
+                                    let: { semi_product_tester: "$semi_product_tester" },
+                                    pipeline: [
+                                        {
+                                            $match: {
+                                                $expr: { $eq: ["$_id", "$$semi_product_tester"] }
+                                            }
+                                        },
+                                        {
+                                            $project: { _id: 1, fullname: 1 }
+                                        }
+                                      
+                                    ],
+                                    as: "getIdTester"
                                 }
                             },
                             {
@@ -563,7 +658,7 @@ let showDetail = async (req, res) => {
                     }
                 }
             ]));
-            
+             //covertShowDetail= await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getshowDetail);
             return res.json({
                 status:200,
                 success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl,_isCheckWarehoue, message: 'Infomation field has been updated !!!'
@@ -594,6 +689,7 @@ let cancel = async (req, res) => {
         }
         if (getData) {
             getNewData = await JobSheet.findOne({ _id: id });
+            setLogger.logCancel(getInfoUser,req);
             return res.json({
                 status:200,
                 success: true, data: getNewData, message: 'Infomation field has been updated !!!'
@@ -638,6 +734,7 @@ let OrderExportMaterials = async (req, res) => {
         }
         isCompleted = await JobSheet.findOneAndUpdate({ jobsheet_code: getJobSheetCode }, { jobsheet_status: '1' });
         if (isCompleted) {
+            setLogger.logOrder(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Update field comleted!!!',
@@ -679,6 +776,7 @@ let ExportMaterials = async (req, res) => {
             }
         }
         if (getInfo) {
+            setLogger.logOrder(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Update field comleted!!!',
@@ -729,6 +827,7 @@ let OrderProduct = async (req, res) => {
                     assemble_status: '0'
                 });
                 getData = await getAssemble.save();
+                setLogger.logOrder(getInfoUser,req);
             }
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
@@ -750,9 +849,11 @@ let OrderProduct = async (req, res) => {
                     welding_status: '0'
                 });
                 getData = await getWelding.save();
+                setLogger.logOrder(getInfoUser,req);
             }
         }
         if (getInfo) {
+          
             res.json({
                 status: 200,
                 messege: 'Update field comleted!!!',
@@ -837,6 +938,7 @@ let OrderQC = async (req, res) => {
                         user_id: getUSer,
                     });
                     getData = await getQualityControl.save();
+                    
                 }
 
 
@@ -844,6 +946,7 @@ let OrderQC = async (req, res) => {
                 isCheckStatus = isCompleted ? true : false;
             }            
             if (isCheckStatus) {
+                setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
                     message: 'Update Completed!!',
@@ -872,10 +975,12 @@ let OrderQC = async (req, res) => {
                         user_id: getUSer,
                     });
                     getData = await getQualityControl.save();
+                    
                 }
                 isCompleted = await SemiProduct.updateOne({ semi_product_lot: getQCArray[i] }, { $set: { semi_product_status: '6', semi_product_qc_status: '1' } });
                 isCheckStatus = isCompleted ? true : false;            }           
             if (isCheckStatus) {
+                setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
                     message: 'Update Completed!!',
@@ -913,6 +1018,7 @@ let OrderStore = async (req, res) => {
                 isCompleted = await Product.findOneAndUpdate({ product_code: getOrderStoreArray[i] }, { product_status: '8' });
             }
             if (isCompleted) {
+                setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
                     message: 'Update Completed!!',
@@ -930,6 +1036,7 @@ let OrderStore = async (req, res) => {
                 isCompleted = await SemiProduct.findOneAndUpdate({ semi_product_lot: getOrderStoreArray[i] }, { semi_product_status: '8' });
             }
             if (isCompleted) {
+                setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
                     message: 'Update Completed!!',
@@ -1003,6 +1110,7 @@ let Store = async (req, res) => {
                 await JobSheet.updateOne({ jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }
             if (isCompleted) {
+                setLogger.logStore(getInfoUser,req);
                 res.json({
                     status: 200,
                     message: 'Update Completed!!',
@@ -1052,6 +1160,7 @@ let Store = async (req, res) => {
                 await JobSheet.updateOne({  jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }
             if (isCompleted) {
+                setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
                     message: 'Update Completed!!',
