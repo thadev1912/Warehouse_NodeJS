@@ -70,6 +70,7 @@ let store = async (req, res) => {
 let update = async (req, res) => {
     try {
         let id = req.params.id;
+        req.body.updated=new Date();
         getData = await DetailProductOrder.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {           
             getNewData = await DetailProductOrder.findOne({ _id: id });

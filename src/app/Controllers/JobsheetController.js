@@ -110,7 +110,9 @@ let store = async (req, res) => {
     try {
         const token = req.headers.token; 
         console.log(req.body);
-        const getDateTime = new Date();
+       // const getDateTime = new Date();      
+        const getDateTime = new Date(req.body.jobsheet_create_date);
+        console.log(getDateTime);
         const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
         //Rule: 21A02     N    1     R     N     010
         //------------------------------------------------------------------------
@@ -118,7 +120,7 @@ let store = async (req, res) => {
         createProductionStyle = req.body.production_style; //get type Production (N or F)
         createProductionSeries = req.body.product_series_code; //get Series Production 
         createProductionType = req.body.product_type_code; // ( Semi or Product) ;
-        countProductSeries= await countSeriesinDay(req.body.product_series_code);          
+        countProductSeries= await countSeriesinDay(req.body.product_series_code,getDateTime);          
         countProductSeries+=1   
         createQuantityProductSeries = countProductSeries; 
         //createQuantityProductSeries = '1';               
@@ -261,7 +263,6 @@ let edit = async (req, res) => {
       
     }
 }
-
 let update = async (req, res) => {
     try {             
         let id = req.params.id;
@@ -271,20 +272,21 @@ let update = async (req, res) => {
             res.json({
                 status: 400,
                 messege: 'This Id no exits!!!',
-
             });
         }        
         let getQuantity = req.body.product_quantity;
         if (getQuantity) {
-            const getDateTime = new Date();
-            const month = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+            //const getDateTime = new Date();           
+            const getDateTime = new Date(req.body.jobsheet_create_date);           
+            console.log('giá trị ngày nhận được là',getDateTime);
+            const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
             //   Rule: 21A02     N    1     R     N     010
             //------------------------------------------------------------------------
             createQuantity = String(req.body.product_quantity).padStart(3, '0');  //get quantity
             createProductionStyle = req.body.production_style; //get type product (N or F)
             createProductionSeries = req.body.product_series_code; //get series product  
             createProductionType = req.body.product_type_code; //( Product or Semi-product);
-            countProductSeries= await countSeriesinDay(req.body.product_series_code);          
+            countProductSeries= await countSeriesinDay(req.body.product_series_code,getDateTime);          
             countProductSeries+=1   
             createQuantityProductSeries = countProductSeries; 
             //createQuantityProductSeries = '1'; 
@@ -725,7 +727,6 @@ let OrderExportMaterials = async (req, res) => {
             for (let i = 0; i < getId.length; i++) {
                 await Product.findOneAndUpdate({ product_code: getId[i] }, { product_status: '1' })
             }
-
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
             for (let i = 0; i < getId.length; i++) {
@@ -1184,14 +1185,27 @@ let Store = async (req, res) => {
     }	
 }
 
-let countSeriesinDay=async(data)=>
-{
-    var start = new Date();
+// let countSeriesinDay=async(data)=>
+// {
+//     var start = new Date();
+//     start.setHours(0, 0, 0, 0);
+//     var end = new Date();
+//     end.setHours(23, 59, 59, 999);
+//     return await JobSheet.find({created: { $gte: start, $lt: end }, product_series_code:data}).count()      
+// }
+const countSeriesinDay = async (data, specificDate) => {
+    const start = new Date(specificDate);
     start.setHours(0, 0, 0, 0);
-    var end = new Date();
+    const end = new Date(specificDate);
     end.setHours(23, 59, 59, 999);
-    return await JobSheet.find({created: { $gte: start, $lt: end }, product_series_code:data}).count()      
+    const count = await JobSheet.find({ created: { $gte: start, $lt: end }, product_series_code: data }).count();
+    //console.log("Số lượng bản ghi có product_series_code là", data, "trong ngày", specificDate, "là", count);
+    return count;      
 }
+
+// Gọi hàm và truyền giá trị product_series_code cần tìm cùng với ngày cụ thể
+countSeriesinDay("ABC", "2017-02-15T00:00:00.000Z"); // Thay "ABC" bằng giá trị cần tìm kiếm
+
 module.exports = {
     index: index,
     store: store,

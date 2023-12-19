@@ -10,8 +10,8 @@ const middlewareValidate = {
       department_name: Joi.string().required().messages({
         'string.empty': `Tên phòng ban không được bỏ trống`,
       }),
-      department_note: Joi.string().allow(null).allow('').max(100).required().messages({     
-        'string.max': `Nội dung ghi chú không được vượt quá 100 ký tự`,
+      department_note: Joi.string().allow(null).allow('').messages({     
+       
       }),
     });
     const { error } = checkDepartment.validate(req.body, { abortEarly: false });

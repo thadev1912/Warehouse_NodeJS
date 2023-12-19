@@ -9,8 +9,8 @@ const middlewareValidate = {
             region_name: Joi.string().required().messages({ 
                 'string.empty': `Tên khu vực không được bỏ trống`,   
               }),
-            region_note: Joi.string().allow(null).allow('').max(100).required().messages({                  
-                'string.max': `Ghi chú đã vượt tối đa 100 ký tự`,  
+            region_note: Joi.string().allow(null).allow('').messages({                  
+                
               }) });
               const {error}=checkDepartment.validate(req.body,{abortEarly:false});              
               if(error)

@@ -5,15 +5,16 @@ const ProvincesIMS = require('../../models/ims/province_ims');
 const { ObjectId } = require('mongodb');
 const cryptJSon = require('../../../helper/cryptJSon');
 const configCrypt = require('../../../../config/cryptJson');
+const setLogger = require('../../../helper/setLogger');
 const fs = require('fs');
 let index = async (req, res) => {
     try {
         const token = req.headers.token;
-        getId = req.params.id;
-        console.log('giá trị id là là',getId);         
+        getId = req.params.id;               
         getinfoManagerIMS = await ManagerIMS.findOne({ _id: getId });       
-        getProvinceId = await ProvincesIMS.findOne({ province_id: getinfoManagerIMS.area_id });
-        getData = await DetailManagerIMS.find({ area_id: getProvinceId.province_id });
+        _getProvinceId = await ProvincesIMS.findOne({ province_id: getinfoManagerIMS.area_id });
+        getProvinceId =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProvincesIMS.findOne({ province_id: getinfoManagerIMS.area_id }).select(['province_id','province_name']));
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await DetailManagerIMS.find({area_id: _getProvinceId.province_id}));     
         if (getData) {
             res.json({
                 status: 200,
@@ -51,6 +52,7 @@ let store = async (req, res) => {
         await updatecountInstalled();
         await updateLocationReportIMS();
         if (getData) {
+            setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
@@ -111,6 +113,7 @@ let update = async (req, res) => {
                 getData = await DetailManagerIMS.findByIdAndUpdate(id, { $set: req.body });               
                 if (getData) {
                     getNewData = await DetailManagerIMS.findOne({ _id: id });
+                    setLogger.logUpdate(getInfoUser,req);
                     res.json({
                         status: 200,
                         messege: 'Infomation field has been updated !!!',
@@ -159,6 +162,7 @@ let update = async (req, res) => {
                   };
                   if (isComplete) {
                     getNewData = await DetailManagerIMS.findOne({ _id: id });
+                    setLogger.logUpdate(getInfoUser,req);
                     res.json({
                         status: 200,
                         messege: 'Infomation field has been updated !!!',
@@ -180,6 +184,7 @@ let update = async (req, res) => {
             getData = await DetailManagerIMS.findByIdAndUpdate(id, { $set: req.body });
             if (getData) {
                 getNewData = await DetailManagerIMS.findOne({ _id: id });
+                setLogger.logUpdate(getInfoUser,req);
                 res.json({
                     status: 200,
                     messege: 'Infomation field has been updated !!!',
@@ -211,6 +216,7 @@ let destroy = async (req, res) => {
         await updatecountInstalled();
         await updateLocationReportIMS();
         if (getId) {
+            setLogger.logDelete(getInfoUser,req);
             res.json({
                 success: true,
                 status: 200,

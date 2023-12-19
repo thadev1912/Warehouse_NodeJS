@@ -3,16 +3,16 @@ const ManagerISM = require('../../models/ims/manager_ims');
 const ProvinceISM = require('../../models/ims/province_ims');
 const DetailManagerIMS = require('../../models/ims/detail_mangager_ims');
 const { paginate } = require('../../../helper/pagination');
+const { paginate1 } = require('../../../helper/pagination');
 const cryptJSon = require('../../../helper/cryptJSon');
 const configCrypt = require('../../../../config/cryptJson');
-const { findOne } = require('../../models/user');
+const setLogger = require('../../../helper/setLogger');
 let index = async (req, res) => {
     try {
         const token = req.headers.token;
-        let getProvinces = await ProvinceISM.find({});
-        const page = parseInt(req.query.page) || 1;
+        let getProvinces =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProvinceISM.find({}));        
         _countInstalled = await countInstalled();
-        getData = await ManagerISM.aggregate([
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ManagerISM.aggregate([
             {
                 $lookup: {
                     from: "province_imsses",
@@ -21,8 +21,7 @@ let index = async (req, res) => {
                     as: "getProvinceData"
                 }
             },
-        ]);
-
+        ]));
         if (getData) {
             res.json({
                 status: 200,
@@ -48,41 +47,113 @@ let index = async (req, res) => {
         });
     }
 }
-let testPaginatewithAggragate = async (req, res) => {
+let testlist = async (req, res) => {
     try {
+        const token = req.headers.token;
         const page = parseInt(req.query.page) || 1;
-        //const result = await paginate(ManagerISM, {}, page, 10);
-        const pipeline =
-        {
-            $lookup: {
-                from: "province_imsses",
-                localField: "area_id",
-                foreignField: "province_id",
-                as: "getProvinceData"
-            }
-        };
-        const result = await paginate(ManagerISM, {}, page, 10, true, pipeline);
-        const { getData, totalPages, currentPage, pageSize, totalCount } = result;
+        const limit = parseInt(req.query.limit) || 10;       
+             
+        let getProvinces =await ProvinceISM.find({});        
+        _countInstalled = await countInstalled();
+      
+               const pipeline =     
+            {
+                $lookup: {
+                    from: "province_imsses",
+                    localField: "area_id",
+                    foreignField: "province_id",
+                    as: "getProvinceData"
+                }
+           } ;        
+         
+                 
+          
+             result = await paginate(ManagerISM, {}, page, limit,true, pipeline); 
+            const { getData, totalPages, currentPage, pageSize, totalCount } = result;      
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: getData,
+                data: { getData, provinces: getProvinces },
                 totalPages,
                 currentPage,
                 pageSize,
                 totalCount
             });
         }
-        else {
-            throw new Error('Error connecting Database on Server');
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status: 500,
+            success: false,
+            error: err.message,
+        });
+    }
+}
+let testlist1 = async (req, res) => {
+    try {
+        const token = req.headers.token;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const getSearch = req.body.search || null;
+        console.log(getSearch);       
+        let getProvinces =await ProvinceISM.find({});        
+        _countInstalled = await countInstalled();
+        if (getSearch) {          
+            query = {               
+                $or: [
+                    { area_id: { $regex: getSearch, $options: 'i' } },                   
+                ]
+            };
+        }
+        // const pipeline =        
+        //     {
+        //         $lookup: {
+        //             from: "province_imsses",
+        //             localField: "area_id",
+        //             foreignField: "province_id",
+        //             as: "getProvinceData"
+        //         }
+        //    };         
+               const pipeline =[     
+            {
+                $lookup: {
+                    from: "province_imsses",
+                    localField: "area_id",
+                    foreignField: "province_id",
+                    as: "getProvinceData"
+                }
+           },          
+         
+        ];          
+           if (getSearch) {
+            pipeline.push({ $match: { area_id: getSearch } });
+          }
+             result = await paginate1(ManagerISM, {}, page, limit,true, pipeline); 
+            const { getData, totalPages, currentPage, pageSize, totalCount } = result;      
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: { getData, provinces: getProvinces },
+                totalPages,
+                currentPage,
+                pageSize,
+                totalCount
+            });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, error: err.message });
+        return res.json({
+            status: 500,
+            success: false,
+            error: err.message,
+        });
     }
 }
+
 let testPaginatewithFind = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -108,6 +179,42 @@ let testPaginatewithFind = async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
+let testPaginatewithAggragate = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        //const result = await paginate(ManagerISM, {}, page, 10);
+        const pipeline =
+        {
+            $lookup: {
+                from: "province_imsses",
+                localField: "area_id",
+                foreignField: "province_id",
+                as: "getProvinceData"
+            }
+        };
+        const result = await paginate(ManagerISM, {}, page, 6, true, pipeline);
+        const { getData, totalPages, currentPage, pageSize, totalCount } = result;
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData,
+                totalPages,
+                currentPage,
+                pageSize,
+                totalCount
+            });
+        }
+        else {
+            throw new Error('Error connecting Database on Server');
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
 let store = async (req, res) => {
     try {
         getAreaId = req.body.area_id;
@@ -116,6 +223,7 @@ let store = async (req, res) => {
         const getManagerISM = new ManagerISM(req.body);
         let getData = await getManagerISM.save();
         if (getData) {
+            setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',
@@ -134,9 +242,11 @@ let store = async (req, res) => {
 let update = async (req, res) => {
     try {
         let id = req.params.id;
+        req.body.updated=new Date();
         getData = await ManagerISM.findByIdAndUpdate(id, { $set: req.body });
         if (getData) {
             getNewData = await ManagerISM.findOne({ _id: id });
+            setLogger.logUpdate(getInfoUser,req);
             res.json({
                 status: 200,
                 messege: 'Infomation field has been updated !!!',
@@ -149,7 +259,6 @@ let update = async (req, res) => {
                 success: false,
                 message: 'Error connecting Database on Server'
             });
-
         }
     } catch (err) {
         console.log(err);
@@ -159,7 +268,6 @@ let update = async (req, res) => {
             error: err.message
         });
     }
-
 }
 let destroy = async (req, res) => {
     try {
@@ -175,6 +283,7 @@ let destroy = async (req, res) => {
         }
         getId = await ManagerISM.findByIdAndRemove({ _id: id });
         if (getId) {
+            setLogger.logDelete(getInfoUser,req);
             res.json({
                 success: true,
                 status: 200,
@@ -252,7 +361,9 @@ module.exports =
     store: store,
     update: update,
     destroy: destroy,
-    testPaginatewithAggragate: testPaginatewithAggragate,
     testPaginatewithFind: testPaginatewithFind,
+    testPaginatewithAggragate: testPaginatewithAggragate,   
     countInstalled: countInstalled,
+    testlist:testlist,
+    testlist1:testlist1,
 }

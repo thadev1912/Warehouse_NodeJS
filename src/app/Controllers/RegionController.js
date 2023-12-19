@@ -13,8 +13,7 @@ let index = async (req, res) => {
                 status: 200,
                 message: 'Get Data Completed!!',
                 data:getData,
-            });
-            
+            });            
         }
         else {
             return res.json({
@@ -104,7 +103,8 @@ let edit = async (req, res) => {
 
 let update = async (req, res) => {
     try {        
-        let id = req.params.id;        
+        let id = req.params.id; 
+        req.body.updated=new Date();       
         getData = await Region.findByIdAndUpdate(id, { $set: req.body });        
         if (getData) {
             getNewData = await Region.findOne({ _id: id });

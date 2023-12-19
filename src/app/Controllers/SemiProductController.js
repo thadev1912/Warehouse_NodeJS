@@ -120,8 +120,7 @@ let create = async (req, res) => {
         console.log(getSemiProduct._id.toString());
         getNha=getSemiProduct._id.toString();
         getSemiProduct.semi_product_used='0';
-        let getIdSim = req.body.categories_sim_id;
-        
+        let getIdSim = req.body.categories_sim_id;        
         PassInfo = new CategoriesSim({
             _id: req.body.categories_sim_id,
             board_name: req.body.semi_product_name,

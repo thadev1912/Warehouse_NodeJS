@@ -5,6 +5,7 @@ const { ObjectId } = require('mongodb');
 const AllPermission = require('../models/all_routes_name');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const setLogger = require('../../helper/setLogger');
 let listPermissionGroup=async(req,res)=>{   //can show detail Roles
     try{
    //Show detail infomation PermissionGroup
@@ -82,6 +83,7 @@ let storePermisionsGroup = async (req, res) => {
         });
         isComplete = await _rolePermission.save();
         if (isComplete) {
+           setLogger.logStore(getInfoUser,req);
            res.json({
             status: 200,
             messege: 'lưu giá trị thành công!!!',
@@ -144,6 +146,7 @@ let updatePermisionsGroup = async (req, res) => {
     });
    isCompleted=  await RolePermission.findOneAndUpdate(getId, {$set:_updaterolePermission});
    if (isCompleted) {
+    setLogger.logUpdate(getInfoUser,req);
     res.json({
         status: 200,
         message: 'Update Completed!!',
@@ -328,7 +331,8 @@ let UpdateUserRole = async (req,res) => {
     }
 }
     if (ischeckStatus) {
-        res.json({
+        setLogger.logUpdate(getInfoUser,req);
+        res.json({            
             status: 200,
             message: 'Update Data Completed!!',
         });
@@ -386,6 +390,7 @@ let DeleteUserRole = async (res,req) => {
         await UserRole.deleteMany({ role_permission_id: getIdPermissionGroup });
     }
     if (isComplete) {
+        setLogger.logDelete(getInfoUser,req); 
         res.json({
             status: 200,
             message: 'Delete Data Completed!!',

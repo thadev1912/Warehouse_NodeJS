@@ -8,20 +8,4 @@ const DepartmentSchema = new Schema({
     created: { type: Date, default: Date.now },
     updated: { type: Date, default: Date.now }
 });
-DepartmentSchema.pre('save', function (next) {   
-   
-    if (this.isNew) {
-        console.log('ban đang tạo mới');
-        this.created = new Date();
-        this.updated = new Date();        
-    }    
-    next();
-});
-DepartmentSchema.pre(["updateOne", "findByIdAndUpdate", "findOneAndUpdate"], function (next) { 
-        console.log('ban đang cập nhật');       
-        this.updated = new Date();    
-        next();
-});
-const Department = mongoose.model('departments', DepartmentSchema);
-module.exports = Department;
-//module.exports = mongoose.model('departments', DepartmentSchema)
+module.exports = mongoose.model('departments', DepartmentSchema)

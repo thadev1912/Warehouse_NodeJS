@@ -254,6 +254,7 @@ catch (err) {
 let update = async (req, res) => {
     try {
         console.log(req.body);
+        req.body.updated=new Date();
         let id = new ObjectId(req.params.id);      
         getData = await ProductOrder.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {

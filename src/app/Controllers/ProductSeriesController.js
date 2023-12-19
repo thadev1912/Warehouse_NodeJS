@@ -36,6 +36,7 @@ let index = async (req, res) => {
 let create = async (req, res) => {
     try {
      console.log(req.body);
+        req.body.updated=new Date();
         const getProductseries = new ProductSeries(req.body);      
         checkId = await ProductSeries.find({ product_series_code:req.body.product_series_code}).count();      
         if (checkId>0) {

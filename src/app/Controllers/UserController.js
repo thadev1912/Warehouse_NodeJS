@@ -14,6 +14,7 @@ const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const fs = require('fs');
 const path = require('path');
+const setLogger = require('../../helper/setLogger');
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
@@ -246,6 +247,7 @@ let register = async (req, res) => {
         });
         let getData = await getUser.save();
         if (getData) {
+            setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
@@ -475,6 +477,7 @@ let destroyUser = async (req, res) => {
         let id = req.query.id;
         getId = await User.findByIdAndRemove({ _id: id });
         if (getId) {
+            setLogger.logDelete(getInfoUser,req); 
             return res.json({
                 status:200,
                 success: true, message: 'This field has been removed!!!',
@@ -510,6 +513,7 @@ let updateUser = async (req, res) => {
                 getData = await User.findByIdAndUpdate(id, { $set: req.body });
                 if (getData) {
                     getNewData = await User.findOne({ _id: id });
+                    setLogger.logUpdate(getInfoUser,req);
                     return res.json({
                         status:200,
                         success: true, message: 'Infomation field has been updated !!!'
@@ -742,7 +746,7 @@ const setConfigCryptJson=async(req,res)=>
     const configContent = require(configFilePath);
     configContent.encryptionEnabled = !configContent.encryptionEnabled;     
     fs.writeFileSync(configFilePath, `module.exports = ${JSON.stringify(configContent, null, 2)};\n`);
-  res.json({ message: 'encryptionEnabled updated successfully.' });
+  res.json({ message: 'encryptionEnabled updated config to '+configContent.encryptionEnabled+' successfully.' });
 }
 module.exports =
 {

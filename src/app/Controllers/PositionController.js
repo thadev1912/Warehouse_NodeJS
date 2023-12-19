@@ -104,6 +104,7 @@ let edit = async (req, res) => {
 }
 let update = async (req, res) => {
     try {
+        req.body.updated=new Date();
         let id = req.params.id;
         getData = await Position.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {

@@ -61,7 +61,8 @@ let updateStatusSim=async(res,req)=>
                                 $cond: {
                                     if: {
                                         $and: [
-                                            { $lt: ['$expiration_date', new Date()] },                                                                 
+                                          //  { $lt: ['$expiration_date', new Date()] },  
+                                          {  $lt: [{ $add: ['$expiration_date', 24 * 60 * 60 * 1000] }, new Date()]} ,                                                              
                                           
                                         ]
                                                                    },
@@ -70,7 +71,7 @@ let updateStatusSim=async(res,req)=>
                                     $cond: {
                                         if: {
                                             $and: [
-                                                { $gt: ['$expiration_date', new Date()] },
+                                                { $gt: [{ $add: ['$expiration_date', 24 * 60 * 60 * 1000] }, new Date()] },
                                                 { $lt: ['$expiration_date', { $add: [new Date(), 30 * 24 * 60 * 60 * 1000] }] },
                                                 { $lte: ['$warningDate', new Date()] }                                               
                                             ]

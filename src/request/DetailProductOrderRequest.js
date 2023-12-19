@@ -15,14 +15,14 @@ const middlewareValidate = {
       detail_product_order_unit: Joi.string().required().messages({  
         'string.empty': `Đơn vị tính không được bỏ trống`,         
       }),  
-      detail_product_order_finish: Joi.string().required().messages({  
-        'string.empty': `Ngày dự kiến hoàn thành không được bỏ trống`,         
+      detail_product_order_finish: Joi.string().allow(null).allow('').messages({  
+           
       }),  
-      detail_product_order_packing: Joi.string().required().messages({  
-        'string.empty': `Quy cách đóng gói không được bỏ trống`,         
+      detail_product_order_packing: Joi.string().allow(null).allow('').messages({  
+              
       }),  
       detail_product_order_detail: Joi.string().allow(null).allow('').messages({  
-        'string.empty': `Yêu cầu chi tiết không được bỏ trống`,         
+          
       }), 
       
     });

@@ -26,7 +26,7 @@ let AssembleList = async (req, res) => {
                 data: getData,
                 message: 'Get Data Completed!!!'
             });
-            setLogger.logStore(getInfoUser,req);
+           
         }
     }
     catch (err) {

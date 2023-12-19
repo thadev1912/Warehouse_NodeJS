@@ -16,8 +16,10 @@ let LocationReportIMS = async (req, res) => {
             },         
         ]); 
       
-        _totalInstalled=gettotalCount?.[0]?.totalInstalled ?? 0; 
-         _totalNextPhase=gettotalCount?.[0]?.totalNextPhase ?? 0; 
+       // _totalInstalled=gettotalCount?.[0]?.totalInstalled ?? 0; 
+        // _totalNextPhase=gettotalCount?.[0]?.totalNextPhase ?? 0; 
+         _totalInstalled=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,gettotalCount?.[0]?.totalInstalled ?? 0); 
+        _totalNextPhase=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,gettotalCount?.[0]?.totalNextPhase ?? 0); 
         getData =await ManagerISM.aggregate([
             {
                 $project:{ _id:1,area_id:1,installed:1,next_phase:1}
@@ -64,7 +66,7 @@ let YearReportIMS =async(req,res)=>
     try {
     const token = req.headers.token; 
     //Sum by Year
-    getTotalInstalledSumbyYear =await DetailManagerISM.aggregate([       
+    getTotalInstalledSumbyYear =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await DetailManagerISM.aggregate([       
        {
          $group: {
             _id: { $year: "$installtion_date" }, 
@@ -79,7 +81,7 @@ let YearReportIMS =async(req,res)=>
             }
         }
        
-    ]);   
+    ]));   
  //Sum all Installed
  getTotalInstalled =await DetailManagerISM.aggregate([
     {
@@ -90,7 +92,7 @@ let YearReportIMS =async(req,res)=>
             }              
         }
       }        ]);    
-      _SumInstalled = getTotalInstalled?.[0]?.qty ?? 0;
+      _SumInstalled = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getTotalInstalled?.[0]?.qty ?? 0);
 //Sum all Next phase
 getTotalNextPhase = await ManagerISM.aggregate([
 {
@@ -102,7 +104,7 @@ getTotalNextPhase = await ManagerISM.aggregate([
     }
   }    
 ]);       
-_totalNextPhase = getTotalNextPhase?.[0]?.qty ?? 0;
+_totalNextPhase = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getTotalNextPhase?.[0]?.qty ?? 0);
  if((getTotalInstalledSumbyYear) &&(getTotalInstalled) &&(getTotalNextPhase)) {
     res.json({
         status: 200,
@@ -135,7 +137,7 @@ catch (err) {
 }
 let HeadersReportIMS =async (req,res)=>
 {
-   //res.json('bạn gọi tôi à!!!');
+    const token = req.headers.token; 
    //Sum all Installed
    getTotalInstalled =await ManagerISM.aggregate([
     {
@@ -146,7 +148,7 @@ let HeadersReportIMS =async (req,res)=>
             }              
         }
       }        ]);    
-      _SumInstalled = getTotalInstalled?.[0]?.qty ?? 0;
+      _SumInstalled =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, getTotalInstalled?.[0]?.qty ?? 0);
 //Sum all Next phase
 getTotalNextPhase = await ManagerISM.aggregate([
 {
@@ -158,7 +160,7 @@ getTotalNextPhase = await ManagerISM.aggregate([
     }
   }    
 ]);       
-_totalNextPhase = getTotalNextPhase?.[0]?.qty ?? 0;
+_totalNextPhase = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getTotalNextPhase?.[0]?.qty ?? 0);
 // Location in International
 getLocationJaPan = await ManagerISM.aggregate([
     {
@@ -175,7 +177,7 @@ getLocationJaPan = await ManagerISM.aggregate([
         }
       },
     ]);     
-    _getLocationJaPan = getLocationJaPan?.[0]?.qty ?? 0;
+    _getLocationJaPan = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getLocationJaPan?.[0]?.qty ?? 0);
 // Location in VietNam
 getLocationVietNam = await ManagerISM.aggregate([
     {
@@ -192,7 +194,7 @@ getLocationVietNam = await ManagerISM.aggregate([
         }
       },
     ]);     
-    _getLocationVietNam = getLocationVietNam?.[0]?.qty ?? 0;
+    _getLocationVietNam = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getLocationVietNam?.[0]?.qty ?? 0);
 if((getTotalInstalled) &&(getTotalNextPhase)) {
     res.json({
         status: 200,
@@ -214,18 +216,18 @@ if((getTotalInstalled) &&(getTotalNextPhase)) {
 }
 }
 let showAllDetailIMS =async(req,res)=>
-{
-    console.log(req.body);
+{  
+   const token = req.headers.token;
    getId=req.params.id;   
    getAllDetailIMS='';
    checkgetId=await DetailManagerISM.find({area_id:getId}).count();   
    if(checkgetId>0) 
    {
-    getAllDetailIMS= await DetailManagerISM.find({area_id:getId});
+    getAllDetailIMS=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await DetailManagerISM.find({area_id:getId}));
    }
   else
   {
-    getAllDetailIMS= await DetailManagerISM.find();   
+    getAllDetailIMS=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await DetailManagerISM.find());   
   }
      
    if(getAllDetailIMS)  {
@@ -242,7 +244,6 @@ let showAllDetailIMS =async(req,res)=>
         message: 'Error connecting Database on Server'
     });
 }
-
 }
 module.exports = {
     LocationReportIMS: LocationReportIMS,

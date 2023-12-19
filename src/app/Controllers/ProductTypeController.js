@@ -99,6 +99,7 @@ let edit = async (req, res) => {
 let update = async (req, res) => {
     try {
         let id = req.params.id;
+        req.body.updated=new Date();
         getData = await ProductType.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {           
             getNewData = await ProductType.findOne({ _id: id });

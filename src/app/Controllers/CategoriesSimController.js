@@ -106,11 +106,11 @@ let updateStatusSim=async(res,req)=>
                                     if:{                                   
                                               $eq: ["$activation_date", ""],                                        
                                           },
-                                     then: "",
+                                     then: "Chưa kích hoạt",
                                       else: {
                                         $cond:{
                                             if:{$eq: [ { $ifNull: ["$activation_date", null] }, null]},
-                                            then:'',
+                                            then:'Chưa kích hoạt',
                                             else: "Đã kích hoạt"
                                         }
                                       } }
@@ -136,8 +136,8 @@ let updateStatusSim=async(res,req)=>
                                 $cond: {
                                     if: {
                                         $and: [
-                                            { $lt: ['$expiration_date', new Date()] },                                                                 
-                                          
+                                          //  { $lt: ['$expiration_date', new Date()] },                                                                 
+                                          {  $lt: [{ $add: ['$expiration_date', 24 * 60 * 60 * 1000] }, new Date()]} ,   
                                         ]
                                                                    },
                                   then: 'Đã hết hạn',    //still return null                       
@@ -145,7 +145,7 @@ let updateStatusSim=async(res,req)=>
                                     $cond: {
                                         if: {
                                             $and: [
-                                                { $gt: ['$expiration_date', new Date()] },
+                                                { $gt: [{ $add: ['$expiration_date', 24 * 60 * 60 * 1000] }, new Date()] },
                                                 { $lt: ['$expiration_date', { $add: [new Date(), 30 * 24 * 60 * 60 * 1000] }] },
                                                 { $lte: ['$warningDate', new Date()] }                                               
                                             ]
@@ -192,7 +192,7 @@ let updateStatusSim=async(res,req)=>
                 success: false,
                 error: err.message
             });
-         });     
+         });    
     
   
 }
@@ -263,14 +263,13 @@ let edit = async (req, res) => {
             status:500,
             success: false,           
             error: err.message,
-        });
-      
+        });      
     }
-
 }
 
 let update = async (req, res) => {
     try {
+        req.body.updated=new Date();
         let id = req.params.id;
         getData = await CategoriesSim.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {
@@ -286,8 +285,7 @@ let update = async (req, res) => {
                 status:500,
                 success: false,                
                 message: 'Error connecting Database on Server'
-            });
-			
+            });			
         }
     } 
     catch (err) {

@@ -9,8 +9,8 @@ const middlewareValidate = {
       production_order_create: Joi.string().required().messages({  
         'string.empty': `Ngày tạo Yêu Cầu Sản Xuất không được bỏ trống`,         
       }),  
-      production_order_invoice: Joi.string().required().messages({  
-        'string.empty': `Số báo giá/đơn hàng không được bỏ trống`,         
+      production_order_invoice: Joi.string().allow(null).allow('').messages({ 
+              
       }),  
       user_create_by: Joi.string().required().messages({  
         'string.empty': `Người tạo yêu cầu không được bỏ trống`,         

@@ -8,8 +8,8 @@ const middlewareValidate = {
             position_name: Joi.string() .required().messages({ 
                 'string.empty': `Tên phòng ban không được bỏ trống`,   
               }),
-              position_note: Joi.string().allow(null).allow('').max(100).required().messages({                  
-                'string.max': `Nội dung ghi chú đã vượt quá 100 ký tự`, 
+              position_note: Joi.string().allow(null).allow('').messages({                  
+               
               }),
              });
               const {error}=checkposition.validate(req.body,{abortEarly:false});              

@@ -8,8 +8,8 @@ const middlewareValidate = {
       jobsheet_create_date: Joi.string().required().messages({
         'string.empty': `Ngày tạo jobsheet không được bỏ trống`,       
       }),    
-      jobsheet_finish_date: Joi.string().required().messages({
-        'string.empty': `Ngày hoàn thành jobsheet không được bỏ trống`,       
+      jobsheet_finish_date: Joi.string().allow(null).allow('').messages({
+        
       }),  
       production_order_code: Joi.string().required().messages({
         'string.empty': `Lịch yêu cầu sản xuất không được bỏ trống`,       

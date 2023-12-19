@@ -2,6 +2,7 @@ const Department = require('../models/department');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger'); 
+const { paginate } = require('../../helper/pagination');
 let index = async (req, res) => {
     try {        
         const token = req.headers.token;    
@@ -29,10 +30,8 @@ let index = async (req, res) => {
             status:500,
             success: false,           
             error: err.message,
-        });
-      
+        });      
     }
-
 }
 let create = async (req, res) => {
     try {
@@ -107,6 +106,7 @@ let update = async (req, res) => {
     try {
 
         let id = req.params.id;
+        req.body.updated=new Date();
         getData = await Department.findByIdAndUpdate(id, { $set: req.body })
         if (getData) {           
             getNewData = await Department.findOne({ _id: id });
@@ -161,12 +161,39 @@ let destroy = async (req, res) => {
         });      
     }
 }
-
+const PaginatewithFind =async(req,res)=>
+{
+    try {
+        const limit=parseInt(req.query.limit)||3;
+        const page = parseInt(req.query.page) || 1;
+        const result = await paginate(Department, {}, page, limit, false);
+        const { getData, totalPages, currentPage, pageSize, totalCount } = result;
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData,
+                totalPages,
+                currentPage,
+                pageSize,
+                totalCount
+            });
+        }
+        else {
+            throw new Error('Error connecting Database on Server');
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
 module.exports = {
     index: index,
     create: create,
     edit: edit,
     update: update,
-    destroy: destroy,    
+    destroy: destroy,   
+    PaginatewithFind:PaginatewithFind, 
    
 }
