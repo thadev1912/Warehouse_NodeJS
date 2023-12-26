@@ -7,9 +7,9 @@ const { ObjectId } = require('mongodb');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger');
+const { paginate1 } = require('../../helper/pagination');
 let index = async (req, res) => {
-    try {    
-           
+    try { 
             const token = req.headers.token;
             _getData = await ProductOrder.aggregate([
                 {
@@ -23,21 +23,7 @@ let index = async (req, res) => {
                     $match: {
                         user_create_by: { $exists: true } 
                     }
-                },
-                // {
-                //     $match:{user_create_by:getInfoUser._id}
-                // },
-                // {
-                //     $match: {
-                //       $expr: {
-                //         $cond: {
-                //           if: { $eq: [getInfoUser.roles.isAdmin, 'admin'] },
-                //           then: {}, 
-                //           else: { $eq: ["$user_create_by", getInfoUser._id] } 
-                //         }
-                //       }
-                //     }
-                // },
+                },               
                 {
                     $lookup: {
                         from: "users",
@@ -55,6 +41,14 @@ let index = async (req, res) => {
                         as: "detail_user"
                     }
                 },
+                {
+                    $sort: {
+                        created: -1 
+                    }
+                },
+
+              
+                
             ]);            
             getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);  
             if (getData) {
@@ -62,6 +56,196 @@ let index = async (req, res) => {
                     status: 200,
                     message: 'Get Data Completed!!',
                     data: getData
+                });
+            } 
+            else
+            {
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
+            } 
+                 
+        
+            }    
+            catch (err) {
+                console.log(err);
+                return res.json({
+                    status:500,
+                    success: false,           
+                    error: err.message,
+                });              
+            }
+}
+let indexSemiProduct = async (req, res) => {
+    try {    
+           getTypeProductOrder=parseInt(req.params.id);   
+           console.log('giá trị nhận được từ params',getTypeProductOrder);       
+            const token = req.headers.token;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;   
+            const getSearch = req.body.getSearch || null;  
+            console.log(getSearch);
+            const pipeline = [              
+                {
+                    $addFields: {
+                        user_create_by: {
+                            $toObjectId: "$user_create_by"
+                        },
+                    }
+                },
+                {
+                    $match: {
+                        
+                            $and:[
+                               { user_create_by: { $exists: true } }, 
+                               {  product_order_type:0},                             
+                            ]                        
+                    }
+                },               
+                {
+                    $lookup: {
+                        from: "users",
+                        let: { userId: "$user_create_by" },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: { $eq: ["$_id", "$$userId"] }
+                                }
+                            },
+                            {
+                                $project: { _id: 1, fullname: 1 }
+                            }
+                        ],
+                        as: "detail_user"
+                    }
+                },              
+                {
+                    $sort: {
+                        created: -1 
+                    }
+                }    
+            ]; 
+            if (getSearch) {
+                pipeline.push(
+                    {
+                        $match: {
+                            $or:[                          
+                              { product_order_No: { $regex: getSearch, $options: "i" }} , 
+                              { production_order_invoice: { $regex: getSearch, $options: "i" }} ,                           
+                            ]
+                        }
+                    },
+                     );
+              }
+            result = await paginate1(ProductOrder, {}, page, limit,true, pipeline,token); 
+            const { getData, totalPages, currentPage, pageSize, totalCount } = result; 
+             
+            if (getData) {
+                res.json({
+                    status: 200,
+                    message: 'Get Data Completed!!',
+                    data: await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getData),
+                    totalPages,
+                    currentPage,
+                    pageSize,
+                    totalCount
+                });
+            } 
+            else
+            {
+                return res.json({
+                    status:500,
+                    success: false,                
+                    message: 'Error connecting Database on Server'
+                });
+            }   
+                 
+        
+            }    
+            catch (err) {
+                console.log(err);
+                return res.json({
+                    status:500,
+                    success: false,           
+                    error: err.message,
+                });              
+            }
+}
+let indexProduct = async (req, res) => {
+    try {    
+           getTypeProductOrder=parseInt(req.params.id);   
+           console.log('giá trị nhận được từ params',getTypeProductOrder);       
+            const token = req.headers.token;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;   
+            const getSearch = req.body.getSearch || null;  
+            console.log(getSearch);
+            const pipeline = [              
+                {
+                    $addFields: {
+                        user_create_by: {
+                            $toObjectId: "$user_create_by"
+                        },
+                    }
+                },
+                {
+                    $match: {
+                        
+                            $and:[
+                               { user_create_by: { $exists: true } }, 
+                               {  product_order_type:1},                             
+                            ]                        
+                    }
+                },               
+                {
+                    $lookup: {
+                        from: "users",
+                        let: { userId: "$user_create_by" },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: { $eq: ["$_id", "$$userId"] }
+                                }
+                            },
+                            {
+                                $project: { _id: 1, fullname: 1 }
+                            }
+                        ],
+                        as: "detail_user"
+                    }
+                },              
+                {
+                    $sort: {
+                        created: -1 
+                    }
+                }    
+            ]; 
+            if (getSearch) {
+                pipeline.push(
+                    {
+                        $match: {
+                            $or:[                          
+                              { product_order_No: { $regex: getSearch, $options: "i" }} , 
+                              { production_order_invoice: { $regex: getSearch, $options: "i" }} ,                           
+                            ]
+                        }
+                    },
+                     );
+              }
+            result = await paginate1(ProductOrder, {}, page, limit,true, pipeline,token); 
+            const { getData, totalPages, currentPage, pageSize, totalCount } = result; 
+             
+            if (getData) {
+                res.json({
+                    status: 200,
+                    message: 'Get Data Completed!!',
+                    data: await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getData),
+                    totalPages,
+                    currentPage,
+                    pageSize,
+                    totalCount
                 });
             } 
             else
@@ -85,12 +269,20 @@ let index = async (req, res) => {
             }
 }
 let store = async (req, res) => {
-    try { 
-           
+    try {  
+        console.log(req.body);   
         const getProductOrder = new ProductOrder(req.body);
         getProductOrder.production_order_status = '0';
         getProductOrder.production_order_receiver = null;
-        let getData = await getProductOrder.save();
+        //check Id exits
+        checkId = await ProductOrder.find({ product_order_No: req.body.product_order_No }).count();
+        if (checkId > 0) {
+            return res.json({
+                status: 422,
+                success: true, message: 'This ID exits!!',
+            });
+        }
+        let getData = await getProductOrder.save();       
         runIncrementInvoice();
         if (getData) {
             res.json({
@@ -450,14 +642,16 @@ let destroy = async (req, res) => {
     }
 }
 let runIncrementInvoice = async (req, res) => {
-    let currentYear = new Date().getFullYear().toString().slice(-2);  
+     currentYear ='23'
+    //let currentYear = new Date().getFullYear().toString().slice(-2);  
         //get year in the last record
         getlastInvoice=await IncrementCode.findOne().sort({ created: -1 }).select('invoice_number');        
         let invoiceNumber =getlastInvoice.invoice_number;
         let getlastYear = invoiceNumber.match(/YCSX(\d+)\.\d+/);
         let _getlastYear = getlastYear ? getlastYear[1] : null;
-        console.log(_getlastYear); 
-        latest = await IncrementCode.findOne().sort({ invoice_number: -1 }).limit(1);      
+       // console.log(_getlastYear); 
+      //  latest = await IncrementCode.findOne().sort({ invoice_number: -1 }).limit(1);      
+      let latest = await IncrementCode.findOne({ invoice_number: { $regex: 'YCSX' + currentYear } }).sort({ invoice_number: -1 });    
         string = latest.invoice_number.match(/\.(\d+)/);
         getvalue = parseInt(string[1]);       
         getvalue += 1;                      
@@ -467,6 +661,35 @@ let runIncrementInvoice = async (req, res) => {
         });
         await getInvoice.save();
     }
+    let runIncrementInvoicefix = async (getDay) => {
+        console.log(getDay);
+        let currentYear = new Date(getDay).getFullYear().toString().slice(-2);
+     //   let currentYear = new Date().getFullYear().toString().slice(-2);  
+            //get year in the last record
+            getlastInvoice=await IncrementCode.findOne().sort({ created: -1 }).select('invoice_number');        
+            let invoiceNumber =getlastInvoice.invoice_number;
+            let getlastYear = invoiceNumber.match(/YCSX(\d+)\.\d+/);
+            let _getlastYear = getlastYear ? getlastYear[1] : null;
+            if(currentYear!==_getlastYear) 
+                {
+                    getvalue='001';
+                    invoice_number = 'YCSX'+currentYear+'.'+getvalue;
+                    const getInvoice = new IncrementCode({
+                        invoice_number: invoice_number,
+                    });
+                    await getInvoice.save();
+                }       
+            console.log(_getlastYear); 
+            latest = await IncrementCode.findOne().sort({ invoice_number: -1 }).limit(1);      
+            string = latest.invoice_number.match(/\.(\d+)/);
+            getvalue = parseInt(string[1]);       
+            getvalue += 1;                      
+            invoice_number = 'YCSX'+currentYear+'.'+ String(getvalue).padStart(3, '0');
+            const getInvoice = new IncrementCode({
+                invoice_number: invoice_number,
+            });
+            await getInvoice.save();
+        }
 let getRoles= async (data) => {
     getData = await User.aggregate([
         {
@@ -483,6 +706,8 @@ let getRoles= async (data) => {
 }
 module.exports = {
     index: index,
+    indexSemiProduct:indexSemiProduct, 
+    indexProduct:indexProduct, 
     store: store,
     edit: edit,
     update: update,
@@ -493,5 +718,6 @@ module.exports = {
     destroy: destroy,
     infotoCreate: infotoCreate,
     runIncrementInvoice: runIncrementInvoice,
+    runIncrementInvoicefix:runIncrementInvoicefix,
     getRoles:getRoles
 }

@@ -14,6 +14,7 @@ const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const { ObjectId } = require('mongodb');
 const setLogger = require('../../helper/setLogger');
+const { paginate1 } = require('../../helper/pagination');
 let index = async (req, res) => {
     try {        
         const token = req.headers.token; 
@@ -46,14 +47,202 @@ let index = async (req, res) => {
                 ],
                 as: "detail_user"
             }
-        },
-       
+        },       
        ]));
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
                 data: getData, getproductOrderNo, getproductType, getproductSeries
+            });
+        }      
+        else {
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
+    }
+
+}
+let indexSemiProduct = async (req, res) => {
+    try {        
+        const token = req.headers.token;       
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;  
+        const getSearch = req.body.getSearch || null;  
+        console.log(getSearch);   
+        let getproductOrderNo =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find().select('product_order_No'));
+        let getproductType =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductType.find());
+        let getproductSeries =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductSeries.find());
+      //  let getData =await cryptJSon.encryptData(token,await JobSheet.find({}));
+      const pipeline=[
+        {
+            $addFields: {
+                user_id: {
+                    $toObjectId: "$user_id"
+                },
+            }
+        },   
+        {
+            $match:{
+                $or:[
+                    {product_type_code:'N'},  
+                    {product_type_code:'S'},         
+                ]              
+            }
+        },    
+        {
+            $lookup: {
+                from: "users",
+                let: { userId: "$user_id" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ["$_id", "$$userId"] }
+                        }
+                    },
+                    {
+                        $project: { _id: 1, fullname: 1 }
+                    }
+                  
+                ],
+                as: "detail_user"
+            }
+        }, 
+        {
+            $sort: {
+                created: -1 
+            }
+        },
+     
+       ];
+       if (getSearch) {
+        pipeline.push(
+            {
+                $match: {
+                    $or:[                          
+                      { production_order_code: { $regex: getSearch, $options: "i" }} , 
+                      { product_name: { $regex: getSearch, $options: "i" }} ,                           
+                    ]
+                }
+            },
+             );
+      }
+       result = await paginate1(JobSheet, {}, page, limit,true, pipeline,token); 
+       const { getData, totalPages, currentPage, pageSize, totalCount } = result;    
+       console.log(getData);  
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData, getproductOrderNo, getproductType, getproductSeries,
+                totalPages,
+                currentPage,
+                pageSize,
+                totalCount
+
+            });
+        }      
+        else {
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
+    }
+
+}
+let indexProduct = async (req, res) => {
+    try {        
+        const token = req.headers.token;       
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;      
+        let getproductOrderNo =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find().select('product_order_No'));
+        let getproductType =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductType.find());
+        let getproductSeries =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductSeries.find());
+      //  let getData =await cryptJSon.encryptData(token,await JobSheet.find({}));
+      const pipeline=[
+        {
+            $addFields: {
+                user_id: {
+                    $toObjectId: "$user_id"
+                },
+            }
+        },   
+        {
+            $match:{
+                $or:[
+                    {product_type_code:'P'},  
+                    {product_type_code:'R'},         
+                ]              
+            }
+        },    
+        {
+            $lookup: {
+                from: "users",
+                let: { userId: "$user_id" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ["$_id", "$$userId"] }
+                        }
+                    },
+                    {
+                        $project: { _id: 1, fullname: 1 }
+                    }
+                  
+                ],
+                as: "detail_user"
+            }
+        }, 
+             
+       ];
+       if (getSearch) {
+        pipeline.push(
+            {
+                $match: {
+                    $or:[                          
+                      { production_order_code: { $regex: getSearch, $options: "i" }} , 
+                      { product_name: { $regex: getSearch, $options: "i" }} ,                           
+                    ]
+                }
+            },
+             );
+                  }
+       result = await paginate1(JobSheet, {}, page, limit,true, pipeline,token); 
+       const { getData, totalPages, currentPage, pageSize, totalCount } = result;    
+       console.log(getData);  
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData, getproductOrderNo, getproductType, getproductSeries,
+                totalPages,
+                currentPage,
+                pageSize,
+                totalCount
+
             });
         }      
         else {
@@ -136,7 +325,8 @@ let store = async (req, res) => {
                 let incrementQuantity = String(i).padStart(3, '0');
                 mergeProductCode = createYear + createMonth + createDay + createProductionType + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
                 mergeProductSerial = createMonth + createDay + createYear + createProductionType + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
-                const getProduct = new Product({
+             
+               const getProduct = new Product({
                     jobsheet_code: mergeCodeJobsheet,
                     product_code: mergeProductCode,
                     product_serial: mergeProductSerial,
@@ -155,8 +345,9 @@ let store = async (req, res) => {
             for (let i = 1; i <= req.body.product_quantity; i++) {
                 let incrementQuantity = String(i).padStart(3, '0');
                 let IdSemiProduct = req.body.product_id
-                mergeSemiProductLot = createYear + createMonth + createDay + IdSemiProduct + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
-                const getSemiProduct = new SemiProduct({
+              //  mergeSemiProductLot = createYear + createMonth + createDay + IdSemiProduct + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
+              mergeSemiProductLot = createYear + createMonth + createDay + IdSemiProduct + incrementQuantity + createProductionStyle + createQuantity;
+              const getSemiProduct = new SemiProduct({
                     jobsheet_code: mergeCodeJobsheet,
                     semi_product_lot: mergeSemiProductLot,
                     semi_product_code: req.body.product_id,
@@ -182,6 +373,7 @@ let store = async (req, res) => {
         getJobSheet.jobsheet_status = '0';
         let getData = await getJobSheet.save();
         if (getData) {
+            global.io.emit('eventChange','Jobsheet mới vừa được tạo bởi '+ getInfoUser.user);    
             setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
@@ -336,8 +528,9 @@ let update = async (req, res) => {
                 for (let i = 1; i <= getQuantity; i++) {
                     let incrementQuantity = String(i).padStart(3, '0');
                     let IdSemiProduct = req.body.product_id
-                    mergeSemiProductLot = createYear + createMonth + createDay + IdSemiProduct + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
-                    const getSemiProduct = new SemiProduct({
+                   // mergeSemiProductLot = createYear + createMonth + createDay + IdSemiProduct + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
+                   mergeSemiProductLot = createYear + createMonth + createDay + IdSemiProduct + incrementQuantity + createProductionStyle + createQuantity;
+                   const getSemiProduct = new SemiProduct({
                         jobsheet_code: mergeCodeJobsheet,
                         semi_product_lot: mergeSemiProductLot,
                         semi_product_code: req.body.product_id,
@@ -1208,6 +1401,8 @@ countSeriesinDay("ABC", "2017-02-15T00:00:00.000Z"); // Thay "ABC" bằng giá t
 
 module.exports = {
     index: index,
+    indexSemiProduct: indexSemiProduct,
+    indexProduct:indexProduct,
     store: store,
     infotoCreate: infotoCreate,
     edit: edit,

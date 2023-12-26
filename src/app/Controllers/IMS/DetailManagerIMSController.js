@@ -7,6 +7,7 @@ const cryptJSon = require('../../../helper/cryptJSon');
 const configCrypt = require('../../../../config/cryptJson');
 const setLogger = require('../../../helper/setLogger');
 const fs = require('fs');
+const { paginate1 } = require('../../../helper/pagination');
 let index = async (req, res) => {
     try {
         const token = req.headers.token;
@@ -20,6 +21,69 @@ let index = async (req, res) => {
                 status: 200,
                 message: 'Get Data Completed!!',
                 data: getData, getProvinceId,
+            });
+        }
+        else {
+            return res.json({
+                status: 500,
+                success: false,
+                message: 'Error connecting Database on Server'
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status: 500,
+            success: false,
+            error: err.message,
+        });
+    }
+}
+let index1 = async (req, res) => {
+    try {
+        const token = req.headers.token;
+        getId = req.params.id; 
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;    
+        const getSearch = req.body.getSearch || null;               
+        getinfoManagerIMS = await ManagerIMS.findOne({ _id: getId });       
+        _getProvinceId = await ProvincesIMS.findOne({ province_id: getinfoManagerIMS.area_id });
+        getProvinceId =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProvincesIMS.findOne({ province_id: getinfoManagerIMS.area_id }).select(['province_id','province_name']));
+        //getData =await DetailManagerIMS.find({area_id: _getProvinceId.province_id});   
+       const pipeline =[
+        {
+            $match: {             
+                area_id: _getProvinceId.province_id ,                                        
+                                         
+            }
+        },   
+       ];
+       if (getSearch) {
+        pipeline.push(
+            {
+                $match: {
+                    $or:[                          
+                      { name_station: { $regex: getSearch, $options: "i" }} ,
+                      { address_of_station: { $regex: getSearch, $options: "i" }} ,
+                      { customer: { $regex: getSearch, $options: "i" }} ,
+                                             
+                    ]
+                }
+            },
+             );
+      }
+       result = await paginate1(DetailManagerIMS, {}, page, limit,true, pipeline,token); 
+       const { getData, totalPages, currentPage, pageSize, totalCount } = result; 
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData, getProvinceId,
+                totalPages,
+                currentPage,
+                pageSize,
+                totalCount
             });
         }
         else {
@@ -323,6 +387,7 @@ let updatecountInstalled = async (req, res) => {
 module.exports =
 {
     index: index,
+    index1: index1,
     store: store,
     update: update,
     destroy: destroy,

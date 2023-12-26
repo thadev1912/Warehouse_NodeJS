@@ -5,6 +5,8 @@ const validate=require('../request/JobsheetRequest');
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
 router.get('/listJobsheet',Auth.checkAuth,Permision.checkPermision,jobsheet.index);
+router.get('/listJobsheetSemiProduct',Auth.checkAuth,jobsheet.indexSemiProduct);
+router.get('/listJobsheetProduct',Auth.checkAuth,jobsheet.indexProduct);
 router.get('/create',Auth.checkAuth,Permision.checkPermision,jobsheet.infotoCreate);
 router.post('/storeJobSheet',Auth.checkAuth,Permision.checkPermision,validate.checkValidate,jobsheet.store);
 router.get('/editJobSheet/:id',Auth.checkAuth,Permision.checkPermision,jobsheet.edit);

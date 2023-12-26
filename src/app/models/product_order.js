@@ -9,6 +9,8 @@ const ProductOrderSchema = new Schema({
     production_order_note:{type:String},
     production_order_status:{type:String},
     production_order_receiver:{type:String},
+    purpose:{type:String},
+    product_order_type:{type:Number},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},
 });

@@ -5,6 +5,7 @@ const Notification = require('../models/notification_sim');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger');
+const { paginate1 } = require('../../helper/pagination');
 let index = async (req, res) => {
     try { 
         const token = req.headers.token; 
@@ -70,7 +71,148 @@ let index = async (req, res) => {
         });      
     }
 }
- //const covertData=await cryptJSon.decryptData(token,encryptionEnabled,getData) 
+let indexEsim = async (req, res) => {
+    try { 
+        const token = req.headers.token; 
+       getStatus= await updateStatusSim();   
+     let getSemiProduct =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.aggregate([  
+        {
+            $match:
+            {
+                sim_type:'E-SIM'
+            }
+        },              
+            {
+                $addFields: {                                      
+                    semi_product_id: {
+                        $cond: {
+                            if: { $eq: ["$semi_product_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$semi_product_id" }
+                        }
+                    },
+                    sim_package_id: {
+                        $cond: {
+                            if: { $eq: ["$sim_package_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$sim_package_id" }
+                        }
+                    },        
+                   
+                },
+            },
+            {
+                $lookup: {
+                    from: "semi_products",
+                    localField: "semi_product_id",
+                    foreignField: "_id",
+                    as: "semi_products"
+                }
+            },
+            {
+                $lookup: {
+                    from: "sim-packages",
+                    localField: "sim_package_id",
+                    foreignField: "_id",
+                    as: "sim_package"
+                }
+            },
+        ]));
+        if (getSemiProduct) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getSemiProduct,getStatus
+            });
+        } else {
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+        }
+    }
+    
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
+    }
+}
+let indexSim = async (req, res) => {
+    try { 
+        const token = req.headers.token; 
+       getStatus= await updateStatusSim();   
+     let getSemiProduct =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.aggregate([  
+        {
+            $match:
+            {
+                sim_type:'SIM'
+            }
+        },              
+            {
+                $addFields: {                                      
+                    semi_product_id: {
+                        $cond: {
+                            if: { $eq: ["$semi_product_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$semi_product_id" }
+                        }
+                    },
+                    sim_package_id: {
+                        $cond: {
+                            if: { $eq: ["$sim_package_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$sim_package_id" }
+                        }
+                    },        
+                   
+                },
+            },
+            {
+                $lookup: {
+                    from: "semi_products",
+                    localField: "semi_product_id",
+                    foreignField: "_id",
+                    as: "semi_products"
+                }
+            },
+            {
+                $lookup: {
+                    from: "sim-packages",
+                    localField: "sim_package_id",
+                    foreignField: "_id",
+                    as: "sim_package"
+                }
+            },
+        ]));
+        if (getSemiProduct) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getSemiProduct,getStatus
+            });
+        } else {
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+        }
+    }
+    
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });      
+    }
+}
 let updateStatusSim=async(res,req)=>
 {          
         let updateStatusSim = await CategoriesSim.aggregate([           
@@ -178,7 +320,7 @@ let updateStatusSim=async(res,req)=>
                 deadline_warning: data.deadline_warning,
             }
             return CategoriesSim.findOneAndUpdate(
-             data._id,{$set:infoUpdate}
+             data._id,{$set:infoUpdate},{ new: true, useFindAndModify: false }
             );
           });
          return Promise.all(updateCategoriesSim).then(data=>{
@@ -342,6 +484,8 @@ let showNotification =async(req,res)=>
 }
 module.exports = {
     index: index,
+    indexEsim,
+    indexSim,
     create: create,
     edit: edit,
     update: update,

@@ -5,6 +5,7 @@ const validate=require('../request//ProductGroupRequest');
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
 router.get('/listProductGroup',Auth.checkAuth,Permision.checkPermision,ProductGroup.index);
+router.get('/listProductGroup1',Auth.checkAuth,ProductGroup.index1);
 router.post('/storeProductGroup',Auth.checkAuth,Permision.checkPermision,validate.checkValidate,ProductGroup.create);
 router.get('/editProductGroup',Auth.checkAuth,Permision.checkPermision,ProductGroup.edit);
 router.put('/updateProductGroup/:id',Auth.checkAuth,Permision.checkPermision,validate.checkValidate,ProductGroup.update);

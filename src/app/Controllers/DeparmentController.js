@@ -49,7 +49,8 @@ let create = async (req, res) => {
             res.json({
                 status: 200,
                 messege: 'Add new field comleted!!!',                
-            });
+            });                
+            global.io.emit('eventChange',`Phòng ban vừa được tạo bởi ${getInfoUser.user}`);
             setLogger.logStore(getInfoUser,req);           
         }
         else
@@ -114,6 +115,7 @@ let update = async (req, res) => {
                 status:200,
                 success: true, message: 'Infomation field has been updated !!!'
             });
+            global.io.emit('eventUpdate',`Phòng ban vừa được cập nhật bởi ${getInfoUser.user}`);
             setLogger.logUpdate(getInfoUser,req)
         }
         else {
@@ -188,6 +190,11 @@ const PaginatewithFind =async(req,res)=>
         res.status(500).json({ success: false, error: err.message });
     }
 }
+const NotificationToClient = async (req, res) => {
+   
+    global.io.emit('eventChange','Jobsheet mới vừa được tạo bởi A');    
+    res.json({ message: 'Event sent successfully' });
+  }  
 module.exports = {
     index: index,
     create: create,
@@ -195,5 +202,6 @@ module.exports = {
     update: update,
     destroy: destroy,   
     PaginatewithFind:PaginatewithFind, 
-   
+    NotificationToClient:NotificationToClient,
+    NotificationToClient:NotificationToClient,   
 }

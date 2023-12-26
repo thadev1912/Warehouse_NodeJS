@@ -44,13 +44,11 @@ app.use(session({
   resave: 'true',
   secret: 'secret'
 }));
-
+//config Socket IO
 const server = http.createServer(app);
-const socketIo = require("socket.io")(server, {
-  cors: {
-    origin: "*",
-  }
-});
+const socketService = require('./src/helper/socketIO'); //mới thêm
+socketService.initializeSocket(server);
+global.io = socketService.getIO();
 app.use(flash());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -81,23 +79,6 @@ app.listen(process.env.PORT_HTTP,process.env.SERVER_URL, async() => {
 server.listen(process.env.SOCKET_PORT, process.env.SERVER_URL, () => {
   console.log(`Chat System already open on ${process.env.SERVER_URL}:${process.env.SOCKET_PORT}`);
 });
-//***********Socket IO*******************//
-//Task: get token from api
-//provider token for socket..
-socketIo.on("connection", (socket) => {
-  console.log("User " + socket.id + " connected into room");
-
-  socket.emit("getId", socket.id);
-
-  socket.on("sendDataClient", function (data) {
-    console.log(data)
-    socketIo.emit("sendDataServer", { data });
-  })
-
-  socket.on("disconnect", () => {
-    console.log("User " + socket.id + " leave room");
-  });
-});
 //Config Swagger Document
 const swaggerOptions = {
   definition: {
@@ -122,9 +103,7 @@ app.get('/', (req, res) => {
 });
 //Midleware Static View
 app.use(express.static('public'));
-
 app.set('view engine', 'ejs');
-
 //Api get all Router Name
 app.get('/api/routes', (req, res) => {
   ischeckStatus = true;

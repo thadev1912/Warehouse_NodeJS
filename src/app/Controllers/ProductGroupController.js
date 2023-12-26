@@ -34,7 +34,38 @@ let index = async (req, res) => {
 	
 
 }
+let index1 = async (req, res) => {
+    try {
+        const token = req.headers.token; 
+        let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProductGroup.find({}));
+        if (getData) {
+            res.json({
+                status: 200,
+                message: 'Get Data Completed!!',
+                data: getData,
+            });
+            
+        }
+        else {
+            return res.json({
+                status:500,
+                success: false,                
+                message: 'Error connecting Database on Server'
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status:500,
+            success: false,           
+            error: err.message,
+        });
+      
+    }
+	
 
+}
 let create = async (req, res) => {
     try {
 
@@ -166,6 +197,7 @@ let destroy = async (req, res) => {
 }
 module.exports = {
     index: index,
+    index1:index1,
     create: create,
     edit: edit,
     update: update,

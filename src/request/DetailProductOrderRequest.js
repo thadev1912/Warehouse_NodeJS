@@ -23,8 +23,13 @@ const middlewareValidate = {
       }),  
       detail_product_order_detail: Joi.string().allow(null).allow('').messages({  
           
+      }),       
+      detail_product_order_purpose: Joi.string().allow(null).allow('').messages({ 
+          
       }), 
-      
+      detail_product_order_type: Joi.string().allow(null).allow('').messages({  
+          
+      }), 
     });
     const { error } = checkDetailProductOrder.validate(req.body, { abortEarly: false });
     if (error) {

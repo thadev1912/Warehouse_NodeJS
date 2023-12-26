@@ -8,7 +8,9 @@ const DetailProductOrderSchema = new Schema({
     detail_product_order_unit:{type:String},
     detail_product_order_finish:{type:String},
     detail_product_order_packing:{type:String},
-    detail_product_order_detail:{type:String},   
+    detail_product_order_detail:{type:String}, 
+    detail_product_order_purpose:{type:String}, 
+    detail_product_order_type:{type:String},    
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},
 });

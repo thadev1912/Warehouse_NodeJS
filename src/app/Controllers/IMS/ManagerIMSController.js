@@ -9,6 +9,8 @@ const configCrypt = require('../../../../config/cryptJson');
 const setLogger = require('../../../helper/setLogger');
 let index = async (req, res) => {
     try {
+        console.log(req.body);
+        console.log(req.query.limit);       
         const token = req.headers.token;
         let getProvinces =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProvinceISM.find({}));        
         _countInstalled = await countInstalled();
@@ -93,44 +95,41 @@ let testlist = async (req, res) => {
 }
 let testlist1 = async (req, res) => {
     try {
+        console.log(req.body);
+        console.log(req.query);       
         const token = req.headers.token;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const getSearch = req.body.search || null;
+        const getSearch = req.query.getSearch || null;
         console.log(getSearch);       
         let getProvinces =await ProvinceISM.find({});        
-        _countInstalled = await countInstalled();
-        if (getSearch) {          
-            query = {               
-                $or: [
-                    { area_id: { $regex: getSearch, $options: 'i' } },                   
-                ]
-            };
-        }
-        // const pipeline =        
-        //     {
-        //         $lookup: {
-        //             from: "province_imsses",
-        //             localField: "area_id",
-        //             foreignField: "province_id",
-        //             as: "getProvinceData"
-        //         }
-        //    };         
-               const pipeline =[     
-            {
-                $lookup: {
-                    from: "province_imsses",
-                    localField: "area_id",
-                    foreignField: "province_id",
-                    as: "getProvinceData"
-                }
-           },          
+        _countInstalled = await countInstalled(); 
+               const pipeline =[              
+                {
+                    $lookup: {
+                        from: "province_imsses",
+                        localField: "area_id",
+                        foreignField: "province_id",
+                        as: "getProvinceData"
+                    }
+                },
+           { $unwind: "$getProvinceData" }, 
+
          
         ];          
            if (getSearch) {
-            pipeline.push({ $match: { area_id: getSearch } });
+            pipeline.push(
+                { $match:
+                    {                    
+                        $or: [
+                          { "getProvinceData.province_name": { $regex: getSearch, $options: "i" } },   
+                                          
+                           ]
+                      },                                        
+                }             
+                 );
           }
-             result = await paginate1(ManagerISM, {}, page, limit,true, pipeline); 
+             result = await paginate1(ManagerISM, {}, page, limit,true, pipeline,token); 
             const { getData, totalPages, currentPage, pageSize, totalCount } = result;      
         if (getData) {
             res.json({

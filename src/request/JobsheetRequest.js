@@ -50,7 +50,9 @@ const middlewareValidate = {
         'string.empty': ` Loại sản xuất không được bỏ trống`,   
       }),
       jobsheet_status: Joi.string().allow(null).allow('').messages({              
-      }),    
+      }),   
+      jobsheet_purpose: Joi.string().allow(null).allow('').messages({              
+      }),  
     });
     const { error } = checkJobsheet.validate(req.body, { abortEarly: false });
     if (error) {

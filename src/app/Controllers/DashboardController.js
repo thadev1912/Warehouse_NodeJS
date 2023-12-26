@@ -563,16 +563,18 @@ const listDetailMonthJobsheetbyYear = async (req, res) => {
       },
       {
         $project: {
-          month: { $month: "$jobsheet_create_date" },       
+          month: { $month: "$jobsheet_create_date" }, 
+          createNewJobSheet: { $eq: ["$jobsheet_status", "0"] },        
           processingJobSheet: { $eq: ["$jobsheet_status", "4"] },  
           completedJobSheet: { $eq: ["$jobsheet_status", "5"] },  
-          cancelJobSheet  : { $eq: ["$jobsheet_status", "6"] }  
+          cancelJobSheet  : { $eq: ["$jobsheet_status", "3"] }  
         }
       },
       {
         $group: {
           _id: "$month",
           count: { $sum: 1 },
+          createNewJobSheet: { $sum: { $cond: [{ $eq: ["$createNewJobSheet", true] }, 1, 0] } },
           processingJobSheet: { $sum: { $cond: [{ $eq: ["$processingJobSheet", true] }, 1, 0] } },
           completedJobSheet: { $sum: { $cond: [{ $eq: ["$completedJobSheet", true] }, 1, 0] } },
           cancelJobSheet: { $sum: { $cond: [{ $eq: ["$cancelJobSheet", true] }, 1, 0] } },
@@ -675,6 +677,7 @@ const listDetailMonthProductOrderbyYear = async (req, res) => {
       {
         $project: {
           month: { $month: "$production_order_create" }, 
+          createNewProductOrder: { $eq: ["$production_order_status", "0"] }, 
           acceptProductOrder: { $eq: ["$production_order_status", "1"] }, 
           cancelProductOrder: { $eq: ["$production_order_status", "2"] },  
                 
@@ -684,6 +687,7 @@ const listDetailMonthProductOrderbyYear = async (req, res) => {
         $group: {
           _id: "$month",
           count: { $sum: 1 },  
+          createNewProductOrder: { $sum: { $cond: [{ $eq: ["$createNewProductOrder", true] }, 1, 0] } },
           acceptProductOrder: { $sum: { $cond: [{ $eq: ["$acceptProductOrder", true] }, 1, 0] } },
           cancelProductOrder: { $sum: { $cond: [{ $eq: ["$cancelProductOrder", true] }, 1, 0] } }        
         }
@@ -717,6 +721,7 @@ const listDetailMonthProductOrderbyYear = async (req, res) => {
     });
   }
 }
+
 const listSemiProductByYear = async (req, res) => {
   try {
     const token = req.headers.token;
@@ -798,7 +803,7 @@ const listDetailMonthSemiProductbyYear =async(req,res)=>
       },     
       {
         $project: {
-          month: { $month: "$jobSheetData.jobsheet_create_date" },         
+          month: { $month: "$jobSheetData.jobsheet_create_date" },                  
           passSemiProduct:{ $eq: ["$semi_product_status","1"] }, 
           failSemiProduct:{ $eq: ["$semi_product_status","1"] }, 
         }
@@ -806,8 +811,7 @@ const listDetailMonthSemiProductbyYear =async(req,res)=>
       {
         $group: {
           _id: "$month",   
-          count: { $sum: 1 }, 
-         
+          count: { $sum: 1 },           
           passSemiProduct:{ $sum: { $cond: [{ $eq: ["$passSemiProduct", true] }, 1, 0] } },
           failSemiProduct:{ $sum: { $cond: [{ $eq: ["$failSemiProduct", true] }, 1, 0] } },
 
@@ -965,6 +969,527 @@ const listDetailMonthProductbyYear =async(req,res)=>
   }
 }
 
+const listDetailProductOrderbyYear = async (req, res) => {
+  try {
+    const token = req.headers.token;   
+    getlistDetailProductOrderbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await ProductOrder.aggregate([
+      {
+        $addFields: {
+          production_order_create: { $toDate: "$production_order_create" },         
+        }
+      },      
+      {
+        $project: {
+          year: { $year: "$production_order_create" }, 
+          acceptProductOrder: { $eq: ["$production_order_status", "1"] }, 
+          cancelProductOrder: { $eq: ["$production_order_status", "2"] },  
+                
+      }
+      },
+      {
+        $group: {
+          _id: "$year",
+          count: { $sum: 1 },  
+          acceptProductOrder: { $sum: { $cond: [{ $eq: ["$acceptProductOrder", true] }, 1, 0] } },
+          cancelProductOrder: { $sum: { $cond: [{ $eq: ["$cancelProductOrder", true] }, 1, 0] } }        
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]));
+        
+    if ((getlistDetailProductOrderbyYear)) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        getlistDetailProductOrderbyYear,
+      });
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return res.json({
+      status: 500,
+      success: false,
+      error: err.message,
+    });
+  }
+}
+const listDetailJobsheetbyYear = async (req, res) => {
+  try {
+    const token = req.headers.token;
+    getlistDetailJobsheetbyYear = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([   
+      {
+        $project: {
+          year: { $year: "$jobsheet_create_date" },  
+          completedJobSheet: { $eq: ["$jobsheet_status", "5"] },  
+          cancelJobSheet  : { $eq: ["$jobsheet_status", "6"] }  
+        }
+      },
+      {
+        $group: {
+          _id: "$year",
+          count: { $sum: 1 },         
+          completedJobSheet: { $sum: { $cond: [{ $eq: ["$completedJobSheet", true] }, 1, 0] } },
+          cancelJobSheet: { $sum: { $cond: [{ $eq: ["$cancelJobSheet", true] }, 1, 0] } },
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]));
+    if ((getlistDetailJobsheetbyYear)) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        getlistDetailJobsheetbyYear,
+      });
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return res.json({
+      status: 500,
+      success: false,
+      error: err.message,
+    });
+  }
+}
+const listDetailSemiProductbyYear =async(req,res)=>
+{
+  try {
+    const token = req.headers.token;
+    getlistDetailSemiProductbyYear = await SemiProduct.aggregate([  
+      {
+        $lookup: {
+          from: "jobsheets",
+          localField: "jobsheet_code",
+          foreignField: "jobsheet_code",
+          as: "jobSheetData"
+        }
+      },
+      {
+        $unwind: "$jobSheetData"
+      },     
+      {
+        $project: {
+          year: { $year: "$jobSheetData.jobsheet_create_date" },         
+          passSemiProduct:{ $eq: ["$semi_product_status","1"] }, 
+          failSemiProduct:{ $eq: ["$semi_product_status","1"] }, 
+        }
+      },
+      {
+        $group: {
+          _id: "$year",   
+          count: { $sum: 1 },         
+          passSemiProduct:{ $sum: { $cond: [{ $eq: ["$passSemiProduct", true] }, 1, 0] } },
+          failSemiProduct:{ $sum: { $cond: [{ $eq: ["$failSemiProduct", true] }, 1, 0] } },
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      },    
+    ]);
+    if (getlistDetailSemiProductbyYear) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        getlistDetailSemiProductbyYear,
+      });
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return res.json({
+      status: 500,
+      success: false,
+      error: err.message,
+    });
+  }
+}
+const listDetailProductbyYear =async(req,res)=>
+{
+  try {
+    const token = req.headers.token;     
+    getYear=req.params.id;
+    getlistDetailProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Product.aggregate([  
+      {
+        $lookup: {
+          from: "jobsheets",
+          localField: "jobsheet_code",
+          foreignField: "jobsheet_code",
+          as: "jobSheetData"
+        }
+      },
+      {
+        $match: {
+          "jobSheetData.jobsheet_create_date": {
+            $gte: new Date(getYear, 0, 1),
+            $lt: new Date(getYear, 12, 1)
+          }
+        }
+      },
+      {
+        $unwind: "$jobSheetData"
+      },     
+      {
+        $project: {
+          year: { $year: "$jobSheetData.jobsheet_create_date" }, 
+          passProduct:{ $eq: ["$product_status","1"] }, 
+          failProduct:{ $eq: ["$product_status","1"] }, 
+        }
+      },
+      {
+        $group: {
+          _id: "$year",   
+          count: { $sum: 1 },         
+          passProduct:{ $sum: { $cond: [{ $eq: ["$passProduct", true] }, 1, 0] } },
+          failProduct:{ $sum: { $cond: [{ $eq: ["$failProduct", true] }, 1, 0] } },
+   
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      },    
+    ]));
+    if (getlistDetailProductbyYear) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        getlistDetailProductbyYear,
+      });
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return res.json({
+      status: 500,
+      success: false,
+      error: err.message,
+    });
+  }
+}
+const listDetailMonthProductOrderTypeByYear =async(req,res)=>
+{
+  try {
+    const token = req.headers.token;
+    getYear = req.params.id;
+    getlistDetailMonthProductOrderbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await ProductOrder.aggregate([
+      {
+        $addFields: {
+          production_order_create: { $toDate: "$production_order_create" },         
+        }
+      },
+      {
+        $match: {
+          production_order_create: {
+            $gte: new Date(getYear, 0, 1),
+            $lt: new Date(getYear, 12, 1)
+          }
+        }
+      },
+      {
+        $project: {
+          month: { $month: "$production_order_create" }, 
+          totalSemiProduct: { $eq: ["$product_order_type",0] }, 
+          totalProduct: { $eq: ["$product_order_type",1] }, 
+                
+      }
+      },
+      {
+        $group: {
+          _id: "$month",
+          count: { $sum: 1 },  
+          totalSemiProduct: { $sum: { $cond: [{ $eq: ["$totalSemiProduct", true] }, 1, 0] } },
+          totalProduct: { $sum: { $cond: [{ $eq: ["$totalProduct", true] }, 1, 0] } }        
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]));
+        
+    if ((getlistDetailMonthProductOrderbyYear)) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        getlistDetailMonthProductOrderbyYear,
+      });
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return res.json({
+      status: 500,
+      success: false,
+      error: err.message,
+    });
+  }
+}
+const listDetailMonthJobsheetTypeByYear =async(req,res)=>
+{
+  try {
+    const token = req.headers.token;
+    getYear = req.params.id;
+    getlistDetailMonthbyYear = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([
+      {
+        $match: {
+          jobsheet_create_date: {
+            $gte: new Date(getYear, 0, 1),
+            $lt: new Date(getYear, 12, 1)
+          }
+        }
+      },
+      {
+        $project: {
+          month: { $month: "$jobsheet_create_date" },       
+          SemiProduct: { 
+            $or:[
+              { $eq: ["$product_type_code", "N"] },
+              {  $eq: ["$product_type_code", "Q"]}
+            ] 
+          },
+          Product: { 
+            $or:[
+              { $eq: ["$product_type_code", "P"] },
+              {  $eq: ["$product_type_code", "R"]}
+            ] 
+          },
+         // Product: { $eq: ["$product_type_code", "R"] },  
+         
+        }
+      },
+      {
+        $group: {
+          _id: "$month",
+          count: { $sum: 1 },
+          SemiProduct: { $sum: { $cond: [{ $eq: ["$SemiProduct", true] }, 1, 0] } },
+          Product: { $sum: { $cond: [{ $eq: ["$Product", true] }, 1, 0] } },
+          
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]));
+    if ((getlistDetailMonthbyYear)) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        getlistDetailMonthbyYear,
+      });
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return res.json({
+      status: 500,
+      success: false,
+      error: err.message,
+    });
+  }
+}
+const listDetailMonthSemiProductTypeByYear =async(req,res)=>
+
+  {
+    try {
+      const token = req.headers.token;     
+      getYear=req.params.id;
+      getlistDetailMonthSemiProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([ 
+        {
+           $match:{
+            $or:[
+              { product_type_code:"N"}, 
+              { product_type_code:"S"},  
+            ] 
+           }
+        },      
+        {
+          $match: {
+            jobsheet_create_date: {
+              $gte: new Date(getYear, 0, 1),
+              $lt: new Date(getYear, 12, 1)
+            }
+          }
+        },        
+        {
+          $project: {
+            month: { $month: "$jobsheet_create_date" },
+            RDProduct: {
+              $cond: [{ $eq: ["$product_type_code", "N"] }, "$product_quantity", 0]
+            },
+            SXProduct: {
+              $cond: [{ $eq: ["$product_type_code", "S"] }, "$product_quantity", 0]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: "$month",
+           // count: { $sum: 1 },
+            RDProduct: { $sum: "$RDProduct" },
+            SXProduct: { $sum: "$SXProduct" },           
+          }
+        }, 
+        {
+          $project: {
+            _id: 1,
+         //   count: 1,
+            RDProduct: 1,
+            SXProduct: 1,
+            count: { $add: ["$RDProduct", "$SXProduct"] },
+          },
+        },       
+        {
+          $sort: { _id: 1 }
+        },    
+      ]));
+      if (getlistDetailMonthSemiProductbyYear) {
+        res.json({
+          status: 200,
+          message: 'Get Data Completed!!',
+          getlistDetailMonthSemiProductbyYear,
+        });
+      }
+      else {
+        return res.json({
+          status: 500,
+          success: false,
+          message: 'Error connecting Database on Server'
+        });
+      }
+    }
+    catch (err) {
+      console.log(err);
+      return res.json({
+        status: 500,
+        success: false,
+        error: err.message,
+      });
+    }
+}
+const listDetailMonthProductTypeByYear =async(req,res)=>
+
+  {
+    try {
+      const token = req.headers.token;     
+      getYear=req.params.id;
+      getlistDetailMonthProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([ 
+        {
+           $match:{
+            $or:[
+              { product_type_code:"P"},  //select Product
+              { product_type_code:"R"},  //select Product
+            ] 
+           }
+        },      
+        {
+          $match: {
+            jobsheet_create_date: {
+              $gte: new Date(getYear, 0, 1),
+              $lt: new Date(getYear, 12, 1)
+            }
+          }
+        },        
+        {
+          $project: {
+            month: { $month: "$jobsheet_create_date" },          
+            RDProduct: {
+              $cond: [{ $eq: ["$product_type_code", "R"] }, "$product_quantity", 0]
+            },
+            SXProduct: {
+              $cond: [{ $eq: ["$product_type_code", "P"] }, "$product_quantity", 0]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: "$month",          
+           // count: { $sum: 1 },
+            RDProduct: { $sum: "$RDProduct" },
+            SXProduct: { $sum: "$SXProduct" }
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+         //   count: 1,
+            RDProduct: 1,
+            SXProduct: 1,
+            count: { $add: ["$RDProduct", "$SXProduct"] },
+          },
+        },
+        {
+          $sort: { _id: 1 }
+        },    
+      ]));
+      if (getlistDetailMonthProductbyYear) {
+        res.json({
+          status: 200,
+          message: 'Get Data Completed!!',
+          getlistDetailMonthProductbyYear,
+        });
+      }
+      else {
+        return res.json({
+          status: 500,
+          success: false,
+          message: 'Error connecting Database on Server'
+        });
+      }
+    }
+    catch (err) {
+      console.log(err);
+      return res.json({
+        status: 500,
+        success: false,
+        error: err.message,
+      });
+    }
+}
 module.exports = {
   HeaderReport: HeaderReport,
   BarChartReport: BarChartReport,
@@ -981,5 +1506,15 @@ module.exports = {
   listDetailMonthSemiProductbyYear:listDetailMonthSemiProductbyYear,
   listProductByYear: listProductByYear,
   listDetailMonthProductbyYear:listDetailMonthProductbyYear,
-
+  listDetailProductOrderbyYear:listDetailProductOrderbyYear,
+  listDetailJobsheetbyYear:listDetailJobsheetbyYear,
+  listDetailSemiProductbyYear:listDetailSemiProductbyYear,
+  listDetailProductbyYear:listDetailProductbyYear,
+  //get Semi/Product
+  listDetailMonthProductOrderTypeByYear:listDetailMonthProductOrderTypeByYear,
+  listDetailMonthJobsheetTypeByYear:listDetailMonthJobsheetTypeByYear,
+  listDetailMonthSemiProductTypeByYear:listDetailMonthSemiProductTypeByYear,
+  listDetailMonthProductTypeByYear:listDetailMonthProductTypeByYear,
+  
+     
 }

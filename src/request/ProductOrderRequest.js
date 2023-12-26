@@ -9,12 +9,14 @@ const middlewareValidate = {
       production_order_create: Joi.string().required().messages({  
         'string.empty': `Ngày tạo Yêu Cầu Sản Xuất không được bỏ trống`,         
       }),  
-      production_order_invoice: Joi.string().allow(null).allow('').messages({ 
-              
+      production_order_invoice: Joi.string().allow(null).allow('').messages({               
       }),  
       user_create_by: Joi.string().required().messages({  
         'string.empty': `Người tạo yêu cầu không được bỏ trống`,         
-      }),      
+      }),    
+      product_order_type: Joi.number().required().messages({  
+        'string.empty': `loại yêu yêu cầu không được bỏ trống`,         
+      }),   
       production_order_note: Joi.string().allow(null).allow('').messages({  
                 
       }),  
@@ -24,6 +26,9 @@ const middlewareValidate = {
       production_order_receiver: Joi.string().allow(null).allow('').messages({  
                 
       }),    
+      purpose: Joi.string().allow(null).allow('').messages({  
+                
+      }), 
     });
     const { error } = checkProductOrder.validate(req.body, { abortEarly: false });
     if (error) {

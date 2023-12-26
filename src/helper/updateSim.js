@@ -96,16 +96,16 @@ let updateStatusSim=async(res,req)=>
                 }
             }           
 
-        ]);
-       // console.log(updateStatusSim);
-        const updateCategoriesSim = await updateStatusSim.map(function(data) {
+        ]);      
+        
+        const updateCategoriesSim = await updateStatusSim.map(function(data) {         
             const infoUpdate={
                 sim_status:data.sim_status,
                 deadline_warning: data.deadline_warning,
             }
             return CategoriesSim.findOneAndUpdate(
-             data._id,{$set:infoUpdate}
-            );
+             data._id,{$set:infoUpdate}, { new: true, useFindAndModify: false },
+            );            
           });
          return Promise.all(updateCategoriesSim).then(data=>{
             data.forEach(res=>{
@@ -118,7 +118,7 @@ let updateStatusSim=async(res,req)=>
                 success: false,
                 error: err.message
             });
-         });     
+          });     
     
    }
 module.exports = {
