@@ -14,6 +14,8 @@ router.get('/infomationUser',Auth.checkAuth,Permision.checkPermision,user.Infoma
 router.put('/updateUser',Auth.checkAuth,Permision.checkPermision,upload.single('avatar'),user.updateUser);
 router.delete('/deleteUser',Auth.checkAuth,Permision.checkPermision,user.destroyUser);
 router.put('/changePasswordUser/:id',Auth.checkAuth,Permision.checkPermision,user.changePassword);
+router.put('/changeAvatar/:id',Auth.checkAuth,upload.single('avatar'),user.changeAvatar);
+router.get('/changeLanguage',user.changeLanguage);
 router.post('/testImage',Auth.checkAuth,Permision.checkPermision,upload.single('image'),user.uploadImage);
 router.post('/sendMailUser',user.sendMail);
 router.post('/resetPasswordUser/:id',user.resetPassword);

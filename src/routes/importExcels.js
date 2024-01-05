@@ -7,4 +7,5 @@ router.post('/importDetailProductOrder',upload.single('excel'),importexcel.impor
 router.post('/importProvinceIMS',upload.single('excel'),importexcel.importProvinceIMS);
 router.post('/importDistrictIMS',upload.single('excel'),importexcel.importDistrictIMS);
 router.post('/importWardsIMS',upload.single('excel'),importexcel.importWardsIMS);
+router.post('/importSim',upload.single('excel'),importexcel.importCategoriesSim);
 module.exports = router;

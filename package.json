@@ -27,6 +27,7 @@
     "fs": "^0.0.1-security",
     "http-errors": "~1.6.3",
     "https": "^1.0.0",
+    "i18n": "^0.15.1",
     "jade": "^1.9.2",
     "joi": "^17.11.0",
     "joi-password-complexity": "^5.2.0",

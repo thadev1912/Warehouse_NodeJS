@@ -18,6 +18,7 @@ const dashboard=require('./dashboard');
 const quality_control=require('./qualtity_control');
 const permission=require('./role_permission');
 const all_router_name=require('./all_router_name');
+const insertdata=require('./insertdata');
 //IMS
 const manager_ims=require('../routes/ims/manager_ims');
 const detail_manager_ims=require('../routes/ims/detail_manager_ims');
@@ -50,5 +51,6 @@ app.use('/manager-ims',manager_ims);
 app.use('/detail_manager-ims',detail_manager_ims);
 app.use('/dashboard-ims',dashboard_ims);
 app.use('/all_router_name',all_router_name);
+app.use('/insertdata',insertdata);
 }
 module.exports = route;

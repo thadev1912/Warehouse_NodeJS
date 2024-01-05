@@ -11,7 +11,7 @@ let HeaderReport = async (req, res) => {
     //Jobsheet
     let quantityJobSheet = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.find().count());
     let ProcessingJobSheet = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.find({ jobsheet_status: '4' }).count());
-    let CompletedJobSheet = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.find({ jobsheet_status: '5' }).count());
+    let CompletedJobSheet = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.find({ jobsheet_status: '2' }).count());
     let CancelJobSheet = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.find({ jobsheet_status: '6' }).count());
     //ProductOrder
     let quantityProductOrder = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await ProductOrder.find().count());
@@ -31,26 +31,123 @@ let HeaderReport = async (req, res) => {
     let CompletedSemiProduct = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await SemiProduct.find({ semi_product_status: '9' }).count());
     let PassSemiProduct = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await SemiProduct.find({ semi_product_result: '1' }).count());
     let FailSemiProduct = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await SemiProduct.find({ semi_product_result: '0' }).count());
-    //console.log(FailSemiProduct);
-    // console.log(quantityJobSheet,QuantityProduct,QuantitySemiProduct)
-    // if ((quantityJobSheet!==0)&&(QuantityProduct1==0)&&(QuantitySemiProduct!==0)) {
+    // get Total Jobsheet by Year
+    getTotalJobsheetByYear = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([
+      {
+        $project: {
+          year: { $year: "$jobsheet_create_date" },
+          jobsheet_code: 1,
+          completedJobSheet: { $eq: ["$jobsheet_status", "2"] },  
+        }
+      },
+      {
+        $group: {
+          _id: "$year",
+          totalJobsheetByYear: { $sum: 1 },
+          completedJobSheet: { $sum: { $cond: [{ $eq: ["$completedJobSheet", true] }, 1, 0] } },
+
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]));  
+     // get Total ProducerOrder by Year 
+     getTotalProductOrderByYear = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await ProductOrder.aggregate([
+      {
+        $addFields: {
+          production_order_create: { $toDate: "$production_order_create" }
+        }
+      },
+      {
+        $project: {
+          year: { $year: "$production_order_create" },
+          product_order_No: 1,
+          acceptProductOrder: { $eq: ["$production_order_status", "1"] }, 
+        }
+      },
+      {
+        $group: {
+          _id: "$year",
+          totalProductOrder: { $sum: 1 },
+          acceptProductOrder: { $sum: { $cond: [{ $eq: ["$acceptProductOrder", true] }, 1, 0] } },
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]));
+ // get Total SemiProduct by Year 
+ getTotalSemiProductByYear = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await SemiProduct.aggregate([
+  {
+    $lookup: {
+      from: "jobsheets",
+      localField: "jobsheet_code",
+      foreignField: "jobsheet_code",
+      as: "jobSheetData"
+    }
+  },
+  {
+    $unwind: "$jobSheetData"
+  },
+  {
+    $project: {
+      year: { $year: "$jobSheetData.jobsheet_create_date" },
+      product_code: 1,
+      completedSemiProduct:{ $eq: ["$semi_product_status","9"] }, 
+    }
+  },
+  {
+    $group: {
+      _id: "$year",
+      totalSemiProduct: { $sum: 1 },
+      completedSemiProduct:{ $sum: { $cond: [{ $eq: ["$completedSemiProduct", true] }, 1, 0] } },
+    }
+  },
+  {
+    $sort: { _id: 1 }
+  }
+]));
+getTotalProductByYear = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await Product.aggregate([
+  {
+    $lookup: {
+      from: "jobsheets",
+      localField: "jobsheet_code",
+      foreignField: "jobsheet_code",
+      as: "jobSheetData"
+    }
+  },
+  {
+    $unwind: "$jobSheetData"
+  },
+  {
+    $project: {
+      year: { $year: "$jobSheetData.jobsheet_create_date" },
+      product_code: 1,
+      completedProduct:{ $eq: ["$product_status","9"] }, 
+    }
+  },
+  {
+    $group: {
+      _id: "$year",
+      totalProduct: { $sum: 1 },
+      completedProduct:{ $sum: { $cond: [{ $eq: ["$completedProduct", true] }, 1, 0] } },
+    }
+  },
+  {
+    $sort: { _id: 1 }
+  }
+]));
     res.json({
       status: 200,
       message: 'Get Data Completed!!',
       // infoJobSheet,selectDayJobSheet,
-      JobSheet: { quantityJobSheet, ProcessingJobSheet, CompletedJobSheet, CancelJobSheet },
-      ProductOrder: { quantityProductOrder, acceptProductOrder, cancelProductOrder, FailProduct },
-      Product: { QuantityProduct, CancelProduct, ProcessingProduct, CompletedProduct, PassProduct, FailProduct },
-      SemiProduct: { QuantitySemiProduct, CancelSemiProduct, ProcessingSemiProduct, CompletedSemiProduct, PassSemiProduct, FailSemiProduct },
+      JobSheet: { quantityJobSheet, ProcessingJobSheet, CompletedJobSheet, CancelJobSheet,getTotalJobsheetByYear },
+      ProductOrder: { quantityProductOrder, acceptProductOrder, cancelProductOrder, FailProduct,getTotalProductOrderByYear },
+      Product: { QuantityProduct, CancelProduct, ProcessingProduct, CompletedProduct, PassProduct, FailProduct,getTotalProductByYear },
+      SemiProduct: { QuantitySemiProduct, CancelSemiProduct, ProcessingSemiProduct, CompletedSemiProduct, PassSemiProduct, FailSemiProduct,getTotalSemiProductByYear},
     });
-
-    // else {
-    //   return res.json({
-    //     status:500,
-    //     success: false,                
-    //     message: 'Error connecting Database on Server'
-    // });
-    // }
+    
   }
   catch (err) {
     console.log(err);
@@ -565,8 +662,8 @@ const listDetailMonthJobsheetbyYear = async (req, res) => {
         $project: {
           month: { $month: "$jobsheet_create_date" }, 
           createNewJobSheet: { $eq: ["$jobsheet_status", "0"] },        
-          processingJobSheet: { $eq: ["$jobsheet_status", "4"] },  
-          completedJobSheet: { $eq: ["$jobsheet_status", "5"] },  
+          processingJobSheet: { $eq: ["$jobsheet_status", "1"] },  
+          completedJobSheet: { $eq: ["$jobsheet_status", "2"] },  
           cancelJobSheet  : { $eq: ["$jobsheet_status", "3"] }  
         }
       },
@@ -804,8 +901,8 @@ const listDetailMonthSemiProductbyYear =async(req,res)=>
       {
         $project: {
           month: { $month: "$jobSheetData.jobsheet_create_date" },                  
-          passSemiProduct:{ $eq: ["$semi_product_status","1"] }, 
-          failSemiProduct:{ $eq: ["$semi_product_status","1"] }, 
+          passSemiProduct:{ $eq: ["$semi_product_result","1"] }, 
+          failSemiProduct:{ $eq: ["$semi_product_result","0"] }, 
         }
       },
       {
@@ -927,8 +1024,8 @@ const listDetailMonthProductbyYear =async(req,res)=>
       {
         $project: {
           month: { $month: "$jobSheetData.jobsheet_create_date" }, 
-          passProduct:{ $eq: ["$product_status","1"] }, 
-          failProduct:{ $eq: ["$product_status","1"] }, 
+          passProduct:{ $eq: ["$product_result","1"] }, 
+          failProduct:{ $eq: ["$product_result","0"] }, 
         }
       },
       {

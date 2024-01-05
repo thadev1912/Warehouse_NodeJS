@@ -18,7 +18,13 @@ let AssembleList = async (req, res) => {
                     foreignField: "jobsheet_code",
                     as: "getDetail"
                 }
-            }]));     
+            },
+            {
+                $sort: {
+                    created: -1 
+                }
+            },
+        ]));     
         if (getData) {
              res.json({
                 status:200,
@@ -81,15 +87,23 @@ let showDetailAssemble = async (req, res) => {
         getJobSheetCode = req.params.id;        
         getProductLot =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SemiProduct.aggregate([
             {
-                $addFields: {
+                $addFields: {                                      
                     categories_sim_id: {
-                        $toObjectId: "$categories_sim_id"
+                        $cond: {
+                            if: { $eq: ["$categories_sim_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$categories_sim_id" }
+                        }
                     },
                     sim_package_id: {
-                        $toObjectId: "$sim_package_id"
-                    },
+                        $cond: {
+                            if: { $eq: ["$sim_package_id", ''] },
+                            then: '',
+                            else: { $toObjectId: "$sim_package_id" }
+                        }
+                    },        
                    
-                }
+                },
             },
            
             {
@@ -189,7 +203,7 @@ let showDetailAssemble = async (req, res) => {
                                 }
                                // $expr: { $eq: ["$$job_code", "$jobsheet_code"] }
                             }
-                        },                      
+                        },                   
                        
                       
                         {
@@ -204,12 +218,31 @@ let showDetailAssemble = async (req, res) => {
                                         }
                                     },
                                     {
-                                        $addFields: {
-                                            categories_sim_id: { $toObjectId: "$categories_sim_id" },
-                                            sim_package_id: { $toObjectId: "$sim_package_id" },
-                                           // product_assembler: {$toObjectId: "$product_assembler"},                        
-                                        }
-                                    },                                   
+                                        $addFields: {                                      
+                                            categories_sim_id: {
+                                                $cond: {
+                                                    if: { $eq: ["$categories_sim_id", ''] },
+                                                    then: '',
+                                                    else: { $toObjectId: "$categories_sim_id" }
+                                                }
+                                            },
+                                            sim_package_id: {
+                                                $cond: {
+                                                    if: { $eq: ["$sim_package_id", ''] },
+                                                    then: '',
+                                                    else: { $toObjectId: "$sim_package_id" }
+                                                }
+                                            },        
+                                           
+                                        },
+                                    },
+                                    // {
+                                    //     $addFields: {
+                                    //         categories_sim_id: { $toObjectId: "$categories_sim_id" },
+                                    //         sim_package_id: { $toObjectId: "$sim_package_id" },
+                                    //        // product_assembler: {$toObjectId: "$product_assembler"},                        
+                                    //     }
+                                    // },                                   
                                     {
                                         $lookup: {
                                             from: "categories_sims",
@@ -369,7 +402,7 @@ let updateAssembleOrder = async (req, res) => {
         getProductCode = req.params.id;
         getOldSemiProductLot = req.body.old_semi_product_lot;
         getSemiProductLot = req.body.semi_product_lot;
-        getStatus=req.body.product_status;       
+        getStatus=req.body.product_status;      
          
         if(getStatus==='5')
         {    

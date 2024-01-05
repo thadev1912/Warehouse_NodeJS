@@ -15,23 +15,24 @@ const configCrypt = require('../../../config/cryptJson');
 const fs = require('fs');
 const path = require('path');
 const setLogger = require('../../helper/setLogger');
+const i18n = require('../../helper/languague');
 //Lấy danh sách user
 let listUser = async (req, res) => {
     try {
-        const token = req.headers.token; 
-        let dataPosition =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Position.find({}));
-        let dataRegion =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Region.find({}));
-        let dataDepartment =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Department.find({}));
-        let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await User.aggregate([
+        const token = req.headers.token;
+        let dataPosition = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Position.find({}));
+        let dataRegion = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Region.find({}));
+        let dataDepartment = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Department.find({}));
+        let getData = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await User.aggregate([
             {
                 $addFields: {
                     region_id: {
                         $toObjectId: "$region_id"
                     },
-                     position_id: {
+                    position_id: {
                         $toObjectId: "$position_id"
                     },
-                      department_id: {
+                    department_id: {
                         $toObjectId: "$department_id"
                     },
                 }
@@ -61,18 +62,18 @@ let listUser = async (req, res) => {
                 }
             },
         ]));
-       
+
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Lấy dữ liệu thành công!!!',
-                data: getData,dataPosition,dataDepartment,dataRegion
+                data: getData, dataPosition, dataDepartment, dataRegion
             });
         }
         else {
             return res.json({
-                status:500,
-                success: false,                
+                status: 500,
+                success: false,
                 message: 'Error connecting Database on Server'
             });
         }
@@ -80,20 +81,20 @@ let listUser = async (req, res) => {
     catch (err) {
         console.log(err);
         return res.json({
-            status:500,
-            success: false,           
+            status: 500,
+            success: false,
             error: err.message,
-        });      
+        });
     }
 
 }
 let Infomation = async (req, res) => {
     const token = req.headers.token;
-    let dataPosition =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Position.find({}));
-    let dataRegion =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Region.find({}));
-    let dataDepartment =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Department.find({}));
-    let dataRole = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Role.find({}));
-    getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await User.aggregate([
+    let dataPosition = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Position.find({}));
+    let dataRegion = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Region.find({}));
+    let dataDepartment = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Department.find({}));
+    let dataRole = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Role.find({}));
+    getData = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await User.aggregate([
         {
             $project: {
                 _id: 1,
@@ -176,24 +177,57 @@ let listRoleUser = async (req, res) => {
     catch (err) {
         console.log(err);
         return res.json({
-            status:500,
-            success: false,           
+            status: 500,
+            success: false,
             error: err.message,
-        });      
+        });
     }
 
 }
 //Thêm mới user
 let register = async (req, res) => {
-    try {  
-              
+    try {
+
         myObject = req.body;
-        if (req.file) { 
-            if (req.file.originalname !== undefined)
-            {       
-            getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;           
-            reqName=new Date().toISOString().split('T')[0]+req.file.originalname;      
-           getNameImage='uploads/'+reqName;          
+        if (req.file) {
+            if (req.file.originalname !== undefined) {
+                getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
+                reqName = new Date().toISOString().split('T')[0] + req.file.originalname;
+                getNameImage = 'uploads/' + reqName;
+                const getUser = new User({
+                    fullname: req.body.fullname,
+                    username: req.body.username,
+                    role_id: req.body.role_id,
+                    email: req.body.email,
+                    address: req.body.address,
+                    phone: req.body.phone,
+                    password: getPw,
+                    position_id: req.body.position_id,
+                    region_id: req.body.region_id,
+                    department_id: req.body.department_id,
+                    gender: req.body.gender,
+                    birthday: req.body.birthday,
+                    avatar: getNameImage,
+                });
+                let getData = await getUser.save();
+                if (getData) {
+                    res.json({
+                        status: 200,
+                        message: 'Get Data Completed!!',
+                        data: getData,
+                    });
+                }
+                else {
+                    return res.json({
+                        status: 500,
+                        success: false,
+                        message: 'Error connecting Database on Server'
+                    });
+                }
+            }
+        }
+        else {
+            getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;
             const getUser = new User({
                 fullname: req.body.fullname,
                 username: req.body.username,
@@ -206,8 +240,9 @@ let register = async (req, res) => {
                 region_id: req.body.region_id,
                 department_id: req.body.department_id,
                 gender: req.body.gender,
-                birthday: req.body.birthday,               
-                avatar: getNameImage,
+                birthday: req.body.birthday,
+                avatar: 'uploads/avatar.png',
+
             });
             let getData = await getUser.save();
             if (getData) {
@@ -219,274 +254,238 @@ let register = async (req, res) => {
             }
             else {
                 return res.json({
-                    status:500,
-                    success: false,                
+                    status: 500,
+                    success: false,
                     message: 'Error connecting Database on Server'
                 });
             }
-        }    
-    }
-    else
-    {
-        getPw = req.body.password ? await hashpw(req.body.password) : req.body.password;      
-            const getUser = new User({
-            fullname: req.body.fullname,
-            username: req.body.username,
-            role_id: req.body.role_id,
-            email: req.body.email,
-            address: req.body.address,
-            phone: req.body.phone,
-            password: getPw,
-            position_id: req.body.position_id,
-            region_id: req.body.region_id,
-            department_id: req.body.department_id,
-            gender: req.body.gender,
-            birthday: req.body.birthday,          
-            avatar:'uploads/avatar.png',     
-            
-        });
-        let getData = await getUser.save();
-        if (getData) {
-            setLogger.logStore(getInfoUser,req);
-            res.json({
-                status: 200,
-                message: 'Get Data Completed!!',
-                data: getData,
-            });
         }
-        else {
-            return res.json({
-                status:500,
-                success: false,                
-                message: 'Error connecting Database on Server'
-            });
-        }
-    }   
-          
+
     }
     catch (err) {
         console.log(err);
         return res.json({
-            status:500,
-            success: false,           
+            status: 500,
+            success: false,
             error: err.message,
-        });      
+        });
     }
 }
 let checkLogin = async (req, res) => {
-    try
-    {    
-        
-    let user = req.body.username;
-    let pws = req.body.password;
-    let checkExits = await User.findOne({ username: user }).count();
-    if (checkExits <= 0) {
-        return res.json({ status: 500, message: 'Username or passsword incorect!!!' });
+    try {
+
+        let user = req.body.username;
+        let pws = req.body.password;
+        lang=req.query.lang||'vi';
+       // console.log(lang);
+        let checkExits = await User.findOne({ username: user }).count();
+        if (checkExits <= 0) {
+            return res.json({ status: 500, message: 'Username or passsword incorect!!!' });
+        }
+        let checkUser = await User.findOne({ username: user });
+        getRoleUser = await User.aggregate([
+            {
+
+                $match: {
+                    _id: checkUser._id,
+                },
+            },
+            {
+                $lookup: {
+                    from: 'user_roles',
+                    localField: '_id',
+                    foreignField: 'user_id',
+                    as: 'userRole',
+                },
+            },
+            {
+                $unwind: '$userRole',
+            },
+            {
+                $lookup: {
+                    from: 'role_permissions',
+                    localField: 'userRole.role_permission_id',
+                    foreignField: '_id',
+                    as: 'rolePermission',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$rolePermission',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    role_permission_name: { $addToSet: '$rolePermission.role_permission_name' },
+                    role_permission_group: { $addToSet: '$rolePermission.role_permission_group' },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    role_permission_name: 1,
+                    role_permission_group: 1,
+                },
+            },
+        ]);
+        const encryptionEnabled = configCrypt.encryptionEnabled;
+        const isAdmin = getRoleUser.length > 0 && getRoleUser[0].role_permission_name.includes('admin') ? 'admin' : '';
+        // getRoleUser[0].role_permission_group.map(JSON.parse).flat();  
+        const _getPermissionGroup = getRoleUser[0].role_permission_group.flatMap(group => JSON.parse(group));
+        const getPermissionGroup = [...new Set(_getPermissionGroup)];
+        getInfo = await User.aggregate([
+            {
+                $project: {
+                    _id: 1,
+                    username: 1,
+                    fullname: 1,
+                    region_id: 1,
+                    department_id: 1,
+                    position_id: 1,
+                    gender: 1,
+                    birthday: 1,
+                    email: 1,
+                    avatar: 1,
+                    role_id: 1,
+
+                }
+            },
+            {
+                $addFields: {
+                    region_id: {
+                        $toObjectId: "$region_id"
+                    },
+                    position_id: {
+                        $toObjectId: "$position_id"
+                    },
+                    department_id: {
+                        $toObjectId: "$department_id"
+                    },
+                }
+            },
+            {
+                $lookup: {
+                    from: "regions",
+                    localField: "region_id",
+                    foreignField: "_id",
+                    as: "getRegion"
+                }
+            },
+            {
+                $lookup: {
+                    from: "positions",
+                    localField: "position_id",
+                    foreignField: "_id",
+                    as: "getPostion"
+                }
+            },
+            {
+                $lookup: {
+                    from: "departments",
+                    localField: "department_id",
+                    foreignField: "_id",
+                    as: "getDepartment"
+                }
+            },
+            {
+                $match: {
+                    username: checkUser.username,
+                }
+            }
+
+
+        ]);
+        if (!checkUser) {
+            res.json({ status: 500, message: 'Username or passsword incorect!!!' });
+            return;
+        }
+        let checkPw = await bcrypt.compare(pws, checkUser.password);
+        const language = i18n.getCatalog(lang);
+        const _SecurityKey = crypto.randomBytes(32).toString('hex');
+        const _initVector = crypto.randomBytes(16).toString('hex');
+        let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username, encryptionEnabled, _SecurityKey, _initVector},
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+        checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken, getInfo, getPermissionGroup,language }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
     }
-    let checkUser = await User.findOne({ username: user });
-    getRoleUser = await User.aggregate([
-        {
-
-            $match: {
-                _id: checkUser._id,
-            },
-        },
-        {
-            $lookup: {
-                from: 'user_roles',
-                localField: '_id',
-                foreignField: 'user_id',
-                as: 'userRole',
-            },
-        },
-        {
-            $unwind: '$userRole',
-        },
-        {
-            $lookup: {
-                from: 'role_permissions',
-                localField: 'userRole.role_permission_id',
-                foreignField: '_id',
-                as: 'rolePermission',
-            },
-        },
-        {
-            $unwind: {
-                path: '$rolePermission',
-                preserveNullAndEmptyArrays: true,
-            },
-        },
-        {
-            $group: {
-                _id: null,
-                role_permission_name: { $addToSet: '$rolePermission.role_permission_name' },
-                role_permission_group: { $addToSet: '$rolePermission.role_permission_group' },
-            },
-        },
-        {
-            $project: {
-                _id: 0, 
-                role_permission_name: 1,
-                role_permission_group: 1,
-            },
-        },       
-    ]); 
-    const encryptionEnabled = configCrypt.encryptionEnabled;   
-    const isAdmin = getRoleUser.length > 0 && getRoleUser[0].role_permission_name.includes('admin')?'admin':'';    
-   // getRoleUser[0].role_permission_group.map(JSON.parse).flat();  
-    const _getPermissionGroup = getRoleUser[0].role_permission_group.flatMap(group => JSON.parse(group));
-    const getPermissionGroup = [...new Set(_getPermissionGroup)];   
-    getInfo = await User.aggregate([
-        {
-            $project: {
-                _id: 1,
-                username: 1,
-                fullname: 1,
-                region_id: 1,
-                department_id: 1,
-                position_id: 1,
-                gender: 1,
-                birthday: 1,
-                email: 1,
-                avatar: 1,
-                role_id: 1,
-
-            }
-        },
-        {
-            $addFields: {
-                region_id: {
-                    $toObjectId: "$region_id"
-                },
-                position_id: {
-                    $toObjectId: "$position_id"
-                },
-                department_id: {
-                    $toObjectId: "$department_id"
-                },
-            }
-        },
-        {
-            $lookup: {
-                from: "regions",
-                localField: "region_id",
-                foreignField: "_id",
-                as: "getRegion"
-            }
-        },
-        {
-            $lookup: {
-                from: "positions",
-                localField: "position_id",
-                foreignField: "_id",
-                as: "getPostion"
-            }
-        },
-        {
-            $lookup: {
-                from: "departments",
-                localField: "department_id",
-                foreignField: "_id",
-                as: "getDepartment"
-            }
-        },
-        {
-            $match: {
-                username: checkUser.username,
-            }
-        }
-
-
-    ]);    
-    if (!checkUser) {
-        res.json({ status: 500, message: 'Username or passsword incorect!!!' });
-        return;
-    }   
-    let checkPw = await bcrypt.compare(pws, checkUser.password);
-    
-    const _SecurityKey = crypto.randomBytes(32).toString('hex');    
-    const _initVector = crypto.randomBytes(16).toString('hex');      
-    let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username,encryptionEnabled,_SecurityKey,_initVector,},
-        process.env.JWT_SECRET,       
-        { expiresIn: "1h" }
-    );    
-    checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken, getInfo,getPermissionGroup}) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status: 500,
+            success: false,
+            error: err.message,
+        });
+    }
 }
-catch (err) {
-    console.log(err);
-    return res.json({
-        status:500,
-        success: false,           
-        error: err.message,
-    });      
-}
-}
-let checkLogout = async (req, res) => {   
-    try{
-    const token = req.headers.token;
-    jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
-        if (user) {
-            res.clearCookie("jwt", { maxAge: 1 })
-            return res.json('You has been sign out!!!');
-        }
-        if (err) {
-            return res.json('Error!!!');
-        }
-    })
-}
-catch (err) {
-    console.log(err);
-    return res.json({
-        status:500,
-        success: false,           
-        error: err.message,
-    });      
-}
+let checkLogout = async (req, res) => {
+    try {
+        const token = req.headers.token;
+        jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
+            if (user) {
+                res.clearCookie("jwt", { maxAge: 1 })
+                return res.json('You has been sign out!!!');
+            }
+            if (err) {
+                return res.json('Error!!!');
+            }
+        })
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status: 500,
+            success: false,
+            error: err.message,
+        });
+    }
 }
 let hashpw = async (pw) => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(pw, salt);
 }
-let uploadImage = async (req, res) => {  
+let uploadImage = async (req, res) => {
 
-   reqName=new Date().toISOString().split('T')[0]+req.file.originalname
-     getNameImage='uploads/'+reqName;
-   StoreTestImage =new TestImage({
-    username:req.body.username,
-    email:req.body.email,
-    image_path:reqName,
-   })
-   isComplete=await StoreTestImage.save();
-   if (isComplete) {
-    res.json({
-        status: 200,
-        messege: 'Update data Image successfully',     
-    });
-}
-else {
-    return res.json({
-        status:500,
-        success: false,                
-        message: 'Error connecting Database on Server'
-    });
-}   
-    
+    reqName = new Date().toISOString().split('T')[0] + req.file.originalname
+    getNameImage = 'uploads/' + reqName;
+    StoreTestImage = new TestImage({
+        username: req.body.username,
+        email: req.body.email,
+        image_path: reqName,
+    })
+    isComplete = await StoreTestImage.save();
+    if (isComplete) {
+        res.json({
+            status: 200,
+            messege: 'Update data Image successfully',
+        });
+    }
+    else {
+        return res.json({
+            status: 500,
+            success: false,
+            message: 'Error connecting Database on Server'
+        });
+    }
+
 }
 let destroyUser = async (req, res) => {
     try {
         let id = req.query.id;
         getId = await User.findByIdAndRemove({ _id: id });
         if (getId) {
-            setLogger.logDelete(getInfoUser,req); 
+            setLogger.logDelete(getInfoUser, req);
             return res.json({
-                status:200,
+                status: 200,
                 success: true, message: 'This field has been removed!!!',
             });
         }
         else {
             return res.json({
-                status:500,
-                success: false,                
+                status: 500,
+                success: false,
                 message: 'Error connecting Database on Server'
             });
         }
@@ -494,73 +493,104 @@ let destroyUser = async (req, res) => {
     catch (err) {
         console.log(err);
         return res.json({
-            status:500,
-            success: false,           
+            status: 500,
+            success: false,
             error: err.message,
-        });      
+        });
     }
 }
 let updateUser = async (req, res) => {
     try {
-        let id = req.query.id;     
-        console.log(req.body);       
-        if(req.file)
-          {
-            if (req.file.originalname !== undefined)
-            {
-                getName='uploads/'+new Date().toISOString().split('T')[0]+req.file.originalname;
-                req.body.avatar=getName;
+        let id = req.query.id;
+        console.log(req.body);
+        if (req.file) {
+            if (req.file.originalname !== undefined) {
+                getName = 'uploads/' + new Date().toISOString().split('T')[0] + req.file.originalname;
+                req.body.avatar = getName;
                 getData = await User.findByIdAndUpdate(id, { $set: req.body });
                 if (getData) {
                     getNewData = await User.findOne({ _id: id });
-                    setLogger.logUpdate(getInfoUser,req);
+                    setLogger.logUpdate(getInfoUser, req);
                     return res.json({
-                        status:200,
+                        status: 200,
                         success: true, message: 'Infomation field has been updated !!!'
                     });
                 }
                 else {
                     return res.json({
-                        status:500,
-                        success: false,                
+                        status: 500,
+                        success: false,
                         message: 'Error connecting Database on Server'
                     });
                 }
             }
-          }
-          else
-          {
-            if(req.body.old_avatar)
-            {
-                getOldAvatar=req.body.old_avatar;
-                req.body.avatar= getOldAvatar;    
-                getData = await User.findByIdAndUpdate(id, { $set:req.body });
-                avatar=req.body.old_avatar;
+        }
+        else {
+            if (req.body.old_avatar) {
+                getOldAvatar = req.body.old_avatar;
+                req.body.avatar = getOldAvatar;
+                getData = await User.findByIdAndUpdate(id, { $set: req.body });
+                avatar = req.body.old_avatar;
                 if (getData) {
                     getNewData = await User.findOne({ _id: id });
                     return res.json({
-                        status:200,
+                        status: 200,
                         success: true, message: 'Infomation field has been updated !!!'
                     });
                 }
                 else {
                     return res.json({
-                        status:500,
-                        success: false,                
+                        status: 500,
+                        success: false,
                         message: 'Error connecting Database on Server'
                     });
                 }
-                        }                   
-          }         
-       
+            }
+        }
+
     }
     catch (err) {
         console.log(err);
         return res.json({
-            status:500,
-            success: false,           
+            status: 500,
+            success: false,
             error: err.message,
-        });      
+        });
+    }
+}
+let changeAvatar = async (req, res) => {
+    try {
+        if (req.file) {
+            if (req.file.originalname !== undefined) {
+                let id = new ObjectId(req.params.id);
+                console.log(id);
+                getName = 'uploads/' + new Date().toISOString().split('T')[0] + req.file.originalname;
+                console.log(getName);
+                getData = await User.findByIdAndUpdate(id, { avatar: getName });
+                if (getData) {
+                    setLogger.logUpdate(getInfoUser, req);
+                    return res.json({
+                        status: 200,
+                        success: true, message: 'Infomation field has been updated !!!',
+                    });
+                }
+                else {
+                    return res.json({
+                        status: 500,
+                        success: false,
+                        message: 'Error connecting Database on Server'
+                    });
+                }
+            }
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status: 500,
+            success: false,
+            error: err.message,
+        });
     }
 }
 let changePassword = async (req, res) => {
@@ -582,7 +612,7 @@ let changePassword = async (req, res) => {
                     if (isComplete) {
                         // getNewData = await User.findOne({ _id: getIdUser});
                         res.json({
-                            status:200,
+                            status: 200,
                             success: true, message: 'Password has been updated !!!'
                         });
                     }
@@ -613,29 +643,41 @@ let changePassword = async (req, res) => {
     catch (err) {
         console.log(err);
         return res.json({
-            status:500,
-            success: false,           
+            status: 500,
+            success: false,
             error: err.message,
-        });      
+        });
     }
 }
+const changeLanguage =async(req,res)=>
+{ 
+    lang=req.query.lang||'vi';   
+    const language = await i18n.getCatalog(lang);
+    if(language)
+    {
+        res.json({
+            status: 200,
+            message: 'Get Data Completed!!',
+            data:language,lang
+        });
+    }   
+} 
 ///***********Mail****************
 let sendMail = async (req, res) => {
     try {
-        const randomToken = await generateRandomToken(32); 
+        const randomToken = await generateRandomToken(32);
         getMail = req.body.to;
-        ischeckMail=await User.findOne({email:getMail}).count();
-        if(ischeckMail===0)
-        {
+        ischeckMail = await User.findOne({ email: getMail }).count();
+        if (ischeckMail === 0) {
             res.json({
                 status: 404,
                 messege: 'This mail not exits',
-                
-            });        }
-        else 
-              {        
-        TokenResetPw = await generateResetToken(randomToken, getMail);        
-        const htmlString = `
+
+            });
+        }
+        else {
+            TokenResetPw = await generateResetToken(randomToken, getMail);
+            const htmlString = `
                 <div>
                   <h1>XÁC MINH TÀI KHOẢN</h1>
                   <p>
@@ -648,39 +690,39 @@ let sendMail = async (req, res) => {
                   </p>
                 </div>
               `;
-        const { to, subject } = req.body;
-        body = htmlString;
-        const getToken = new StoreToken({
-            token_code: randomToken,
-            email_code: getMail,
+            const { to, subject } = req.body;
+            body = htmlString;
+            const getToken = new StoreToken({
+                token_code: randomToken,
+                email_code: getMail,
+            });
+            isSendMail = await mailer.sendMail(to, subject, body);
+            isComplete = await getToken.save();
+            if (isSendMail) {
+                res.json({
+                    status: 200,
+                    messege: 'Your email has been sent successfully',
+                    //token: TokenResetPw,
+                });
+            }
+            else {
+                return res.json({
+                    status: 500,
+                    success: false,
+                    message: 'Error connecting Database on Server'
+                });
+
+            }
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return res.json({
+            status: 500,
+            success: false,
+            error: err.message,
         });
-        isSendMail = await mailer.sendMail(to, subject, body);
-        isComplete = await getToken.save();
-        if (isSendMail) {
-            res.json({
-                status: 200,
-                messege: 'Your email has been sent successfully',
-                //token: TokenResetPw,
-            });
-        }
-        else {
-            return res.json({
-                status:500,
-                success: false,                
-                message: 'Error connecting Database on Server'
-            });
-			
-        }
-    } 
-}
-catch (err) {
-    console.log(err);
-    return res.json({
-        status:500,
-        success: false,           
-        error: err.message,
-    });      
-}
+    }
 }
 let resetPassword = async (req, res) => {
     console.log(req.params.id);
@@ -688,7 +730,7 @@ let resetPassword = async (req, res) => {
     if (AccessToken !== null) {
         jwt.verify(AccessToken, process.env.JWT_SECRET, async (err, info) => {
             if (info) {
-                console.log("giá trị thông tin nhận được là:",info);
+                console.log("giá trị thông tin nhận được là:", info);
                 getToken = info;
                 isCheck = await StoreToken.findOne({ token_code: getToken.randomToken }).count();
                 if (isCheck > 0) {
@@ -703,7 +745,7 @@ let resetPassword = async (req, res) => {
                                 status: 200,
                                 success: true,
                                 message: 'Password has been updated !!!',
-                            });                          
+                            });
                         }
                     }
                     else {
@@ -739,14 +781,13 @@ let generateResetToken = async (randomToken, getMail) => {
         { expiresIn: '3m' }
     );
 }
-const setConfigCryptJson=async(req,res)=>
-{
+const setConfigCryptJson = async (req, res) => {
     const configFilePath = path.resolve(__dirname, '../../../config/cryptJson.js');
-    console.log('giá trị đường đẫn',configFilePath);
+    console.log('giá trị đường đẫn', configFilePath);
     const configContent = require(configFilePath);
-    configContent.encryptionEnabled = !configContent.encryptionEnabled;     
+    configContent.encryptionEnabled = !configContent.encryptionEnabled;
     fs.writeFileSync(configFilePath, `module.exports = ${JSON.stringify(configContent, null, 2)};\n`);
-  res.json({ message: 'encryptionEnabled updated config to '+configContent.encryptionEnabled+' successfully.' });
+    res.json({ message: 'encryptionEnabled updated config to ' + configContent.encryptionEnabled + ' successfully.' });
 }
 module.exports =
 {
@@ -761,10 +802,12 @@ module.exports =
     destroyUser: destroyUser,
     updateUser: updateUser,
     changePassword: changePassword,
+    changeAvatar: changeAvatar,
+    changeLanguage:changeLanguage,
     sendMail: sendMail,
     generateRandomToken: generateRandomToken,
     resetPassword: resetPassword,
     generateResetToken, generateResetToken,
-    setConfigCryptJson:setConfigCryptJson,
+    setConfigCryptJson: setConfigCryptJson,
 
 }

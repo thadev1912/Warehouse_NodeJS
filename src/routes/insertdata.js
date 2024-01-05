@@ -1,0 +1,13 @@
+var express = require('express');
+var router = express.Router();
+const insertdata = require('../app/Controllers/InsertDataController');
+const validate=require('../request/PostionRequest');
+const Auth =require('../app/middlewares/authenticatetion');
+const Permision =require('../app/middlewares/authorization');
+router.get('/hanldeOrderProduct',insertdata.hanldeOrderProduct);
+router.get('/hanldeUpdateWelding',insertdata.hanldeUpdateWelding);
+router.get('/handleApproveAssemble',insertdata.handleApproveAssemble);
+router.get('/handleOrderQC',insertdata.handleOrderQC);
+router.get('/handleUpdateQC',insertdata.handleUpdateQC);
+router.get('/hanldeStoreWarehouse',insertdata.hanldeStoreWarehouse);
+module.exports = router;

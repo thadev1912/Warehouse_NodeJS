@@ -6,7 +6,11 @@ const configCrypt = require('../../../../config/cryptJson');
 let LocationReportIMS = async (req, res) => {
     try {
         const token = req.headers.token; 
-        gettotalCount =await ManagerISM.aggregate([          
+        getLocationArea=req.params.id;
+        gettotalCount =await ManagerISM.aggregate([  
+            {
+                $match:{location_area:getLocationArea}
+              },        
             {
                 $group: {
                     _id: null,
@@ -20,7 +24,10 @@ let LocationReportIMS = async (req, res) => {
         // _totalNextPhase=gettotalCount?.[0]?.totalNextPhase ?? 0; 
          _totalInstalled=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,gettotalCount?.[0]?.totalInstalled ?? 0); 
         _totalNextPhase=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,gettotalCount?.[0]?.totalNextPhase ?? 0); 
-        getData =await ManagerISM.aggregate([
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ManagerISM.aggregate([
+            {
+                $match:{location_area:getLocationArea}
+              }, 
             {
                 $project:{ _id:1,area_id:1,installed:1,next_phase:1}
             },
@@ -32,7 +39,7 @@ let LocationReportIMS = async (req, res) => {
                     as: "getProvinceData"
                 }
             }           
-        ]);
+        ]));
         if ((getData)&&(gettotalCount)) {
             res.json({
                 status: 200,
@@ -61,6 +68,7 @@ let LocationReportIMS = async (req, res) => {
         });      
     }
 }
+
 let YearReportIMS =async(req,res)=>
 {
     try {
@@ -246,7 +254,7 @@ let showAllDetailIMS =async(req,res)=>
 }
 }
 module.exports = {
-    LocationReportIMS: LocationReportIMS,
+    LocationReportIMS: LocationReportIMS,   
     YearReportIMS:YearReportIMS,
     HeadersReportIMS:HeadersReportIMS,
     showAllDetailIMS:showAllDetailIMS,

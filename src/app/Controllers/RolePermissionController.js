@@ -381,7 +381,7 @@ let DeleteUserRole = async (res,req) => {
 }
 }
  let DeletePermissionGroup = async (req,res) => {
-    try{
+    try{    
     getIdPermissionGroup = new ObjectId(req.params.id);
     console.log(getIdPermissionGroup);
     isComplete = await RolePermission.deleteOne({ _id: getIdPermissionGroup });

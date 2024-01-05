@@ -6,7 +6,8 @@ const ManagerIMSSchema = new Schema({
     installed: {type: String,default:'0'},
     next_phase: {type: String},
     note:{type: String},
-    location_area:{type: String},
+    location_id:{type: String}, 
+    location_area:{type: String},    
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now}
 });

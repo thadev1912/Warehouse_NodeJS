@@ -81,7 +81,13 @@ let index = async (req, res) => {
                     ],
                     as: "getDetail"
                 }
-            }
+            },
+            {
+                $sort: {
+                    created: -1 
+                }
+            },
+
         ]));
         
         if (getData) {

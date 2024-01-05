@@ -65,7 +65,12 @@ let WeldingList = async (req, res) => {
                     foreignField: "jobsheet_code",
                     as: "getDetail"
                 }
-            }
+            },
+            {
+                $sort: {
+                    created: -1 
+                }
+            },
         ]));
         if (getData) {
             return res.json({
@@ -406,7 +411,7 @@ let updateWeldingOrder = async (req, res) => {
             {
                 await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, {$set:{categories_sim_id:'',semi_product_assembly_date:''}});
             }
-               }     
+               }    
         
         if(getOldSim)
         {
@@ -437,8 +442,7 @@ let updateWeldingOrder = async (req, res) => {
 
             });
             await CategoriesSim.findByIdAndUpdate(getId, { use_sim: '1', $set: getUpdateCategoriesSim }); 
-            await updateSim.updateStatusSim();
-               
+            await updateSim.updateStatusSim();               
         }
         await QualityControl.findOneAndUpdate({ jobsheet_code: InfoSemiProduct.jobsheet_code }, { quality_control_status: 'Đang hàn mạch' });
         if (getData) {

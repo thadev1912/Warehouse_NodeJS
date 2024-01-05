@@ -297,7 +297,7 @@ catch (err) {
 }
 let store = async (req, res) => {
     try {
-        const token = req.headers.token; 
+        const token = req.headers.token;        
         console.log(req.body);
        // const getDateTime = new Date();      
         const getDateTime = new Date(req.body.jobsheet_create_date);
@@ -324,8 +324,7 @@ let store = async (req, res) => {
             for (let i = 1; i <= req.body.product_quantity; i++) {
                 let incrementQuantity = String(i).padStart(3, '0');
                 mergeProductCode = createYear + createMonth + createDay + createProductionType + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
-                mergeProductSerial = createMonth + createDay + createYear + createProductionType + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;
-             
+                mergeProductSerial = createMonth + createDay + createYear + createProductionType + createQuantityProductSeries + createProductionSeries + incrementQuantity + createProductionStyle + createQuantity;             
                const getProduct = new Product({
                     jobsheet_code: mergeCodeJobsheet,
                     product_code: mergeProductCode,
@@ -338,10 +337,12 @@ let store = async (req, res) => {
                     product_qc_status: '0',
                 });
                 await getProduct.save();
+               
             }
 
         }
         else if ((createProductionType == 'N') || (createProductionType == 'S')) {
+           
             for (let i = 1; i <= req.body.product_quantity; i++) {
                 let incrementQuantity = String(i).padStart(3, '0');
                 let IdSemiProduct = req.body.product_id
@@ -358,7 +359,8 @@ let store = async (req, res) => {
                     semi_product_used: '0',
                     semi_product_qc_status: '0',
                 });
-                await getSemiProduct.save();
+                 await getSemiProduct.save();               
+               
             }
         }
         else {
@@ -370,8 +372,9 @@ let store = async (req, res) => {
         //------------------End Run Loop--------------------- ---------           
         const getJobSheet = new JobSheet(req.body);
         getJobSheet.jobsheet_code = mergeCodeJobsheet;
-        getJobSheet.jobsheet_status = '0';
-        let getData = await getJobSheet.save();
+        getJobSheet.jobsheet_status = '0';      
+        getData= await getJobSheet.save();   
+       
         if (getData) {
             global.io.emit('eventChange','Jobsheet mới vừa được tạo bởi '+ getInfoUser.user);    
             setLogger.logStore(getInfoUser,req);
@@ -456,7 +459,8 @@ let edit = async (req, res) => {
     }
 }
 let update = async (req, res) => {
-    try {             
+    try {    
+        console.log(req.body);         
         let id = req.params.id;
         let OldJobsheetCode = req.body.jobsheet_code;
         checkId = await JobSheet.findOne({ _id: id });
@@ -1392,12 +1396,9 @@ const countSeriesinDay = async (data, specificDate) => {
     const end = new Date(specificDate);
     end.setHours(23, 59, 59, 999);
     const count = await JobSheet.find({ created: { $gte: start, $lt: end }, product_series_code: data }).count();
-    //console.log("Số lượng bản ghi có product_series_code là", data, "trong ngày", specificDate, "là", count);
+  //  console.log("Số lượng bản ghi có product_series_code là", data, "trong ngày", specificDate, "là", count);
     return count;      
 }
-
-// Gọi hàm và truyền giá trị product_series_code cần tìm cùng với ngày cụ thể
-countSeriesinDay("ABC", "2017-02-15T00:00:00.000Z"); // Thay "ABC" bằng giá trị cần tìm kiếm
 
 module.exports = {
     index: index,

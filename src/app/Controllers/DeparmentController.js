@@ -3,6 +3,7 @@ const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger'); 
 const { paginate } = require('../../helper/pagination');
+const i18n = require('../../helper/languague');
 let index = async (req, res) => {
     try {        
         const token = req.headers.token;    
@@ -194,7 +195,9 @@ const NotificationToClient = async (req, res) => {
    
     global.io.emit('eventChange','Jobsheet mới vừa được tạo bởi A');    
     res.json({ message: 'Event sent successfully' });
-  }  
+  } 
+
+
 module.exports = {
     index: index,
     create: create,
@@ -203,5 +206,6 @@ module.exports = {
     destroy: destroy,   
     PaginatewithFind:PaginatewithFind, 
     NotificationToClient:NotificationToClient,
-    NotificationToClient:NotificationToClient,   
+    NotificationToClient:NotificationToClient,  
+   
 }

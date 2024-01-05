@@ -5,6 +5,7 @@ const ProvinceIMS = require('../models/ims/province_ims');
 const DistrictIMS = require('../models/ims/district_ims');
 const WardsIMS = require('../models/ims/wards_ims');
 const IncrementCode = require('../models/increment_code_product_order');
+const CategoriesSim = require('../models/categories_sim');
 var excelToJson = require('convert-excel-to-json');
 const importStudent = async (req, res) => {
    console.log(req.file);
@@ -93,6 +94,27 @@ const importDistrictIMS = async (req, res) => {
 const importWardsIMS = async (req, res) => {   
     console.log(req.body);
     isCompleted = await WardsIMSForm('./public/excels/' + req.file.filename);
+    fs.unlinkSync(req.file.path);  
+    if (isCompleted) {
+        return res.json({
+            status:200,
+            success: true,
+            data: isCompleted,
+            message: 'Insert has been DataCompletd !!!'
+        });
+    }
+    else {
+        return res.json({
+            status:500,
+            success: false,            
+            message: 'Error file, please check again !!!'
+        });
+    }    
+}
+const importCategoriesSim=async(req,res)=>
+{
+    console.log(req.body);
+    isCompleted = await CategoriesSimForm('./public/excels/' + req.file.filename);
     fs.unlinkSync(req.file.path);  
     if (isCompleted) {
         return res.json({
@@ -221,6 +243,26 @@ const WardsIMSForm = async (filePath) => {
     console.log('insert data', excelData);   
     return await WardsIMS.insertMany(excelData.wards);    
 }
+const CategoriesSimForm = async (filePath) => {
+    const excelData = excelToJson({
+        sourceFile: filePath,
+        sheets: [{
+            name: 'sims',
+            header: {
+                rows: 1
+            },
+            columnToKey: {
+               
+                A:'serial_sim',
+                B:'sim_type',
+                C:'manage_sim_note',
+               
+            }
+        }]
+    });   
+    console.log('insert data', excelData);   
+    return await CategoriesSim.insertMany(excelData.sims);    
+}
 module.exports = {
     importStudent: importStudent,    
     StudentForm:StudentForm,   
@@ -232,6 +274,8 @@ module.exports = {
     DistrictIMSForm:DistrictIMSForm,
     importWardsIMS:importWardsIMS,
     WardsIMSForm:WardsIMSForm,
+    importCategoriesSim:importCategoriesSim,
+    CategoriesSimForm:CategoriesSimForm,
 }
 
 

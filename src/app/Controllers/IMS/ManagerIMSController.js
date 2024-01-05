@@ -24,11 +24,21 @@ let index = async (req, res) => {
                 }
             },
         ]));
+        //fix select
+        getLocationArea=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProvinceISM.aggregate([
+            {
+                $group:{
+                  _id:"$location_area"
+                }
+            }
+        ]));
+       
+      //  coverData=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getData)
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed!!',
-                data: { getData, provinces: getProvinces },
+                data: { getData, provinces: getProvinces, getLocationArea},
             });
         }
         else {
@@ -49,6 +59,16 @@ let index = async (req, res) => {
         });
     }
 }
+// let getProvinceByArea=async(data)=>
+// {
+//   return await ProvinceISM.aggregate([
+//         {
+//             $match:{
+//                 location_area:data
+//             }
+//         }
+//     ]);
+// }
 let testlist = async (req, res) => {
     try {
         const token = req.headers.token;
@@ -217,7 +237,7 @@ let testPaginatewithAggragate = async (req, res) => {
 let store = async (req, res) => {
     try {
         getAreaId = req.body.area_id;
-        location_area = getAreaId > 64 ? 'JP' : 'VN';
+        location_area = getAreaId > 100 ? 'JP' : 'VN';
         req.body.location_area = location_area;
         const getManagerISM = new ManagerISM(req.body);
         let getData = await getManagerISM.save();
@@ -362,7 +382,7 @@ module.exports =
     destroy: destroy,
     testPaginatewithFind: testPaginatewithFind,
     testPaginatewithAggragate: testPaginatewithAggragate,   
-    countInstalled: countInstalled,
+    countInstalled: countInstalled,    
     testlist:testlist,
     testlist1:testlist1,
 }

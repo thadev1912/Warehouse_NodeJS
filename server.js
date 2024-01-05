@@ -17,11 +17,13 @@ const cors = require("cors");
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const expressListEndpoints = require('express-list-endpoints');
+const i18n = require('./src/helper/languague');
 const AllRoutersName = require('./src/app/models/all_routes_name');
 const setIvoince = require('./src/helper/setIvoince');
 const runcronJob= require('./src/helper/cronJob');
 runcronJob();  //Cron auto
 app.use(cors());
+app.use(i18n.init);
 app.disable('x-powered-by');
 //Allow Method
 app.use((req, res, next) => {

@@ -5,6 +5,7 @@ const ProvinceSchema = new Schema({
     province_id:{type: String},   
     province_name: {type: String},   
     province_note:{type: String},
+    location_area:{type: String},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now}
 });
