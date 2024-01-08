@@ -41,7 +41,7 @@ const hanldeOrderProduct = async (req, res) => {
                     assemble_status: '0'
                 });
                 getData = await getAssemble.save();  
-                isCompleted=getData.lenght>0?true:false;                 
+                isCompleted=getData?true:false;                 
             }
         }
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
@@ -65,7 +65,7 @@ const hanldeOrderProduct = async (req, res) => {
                     welding_status: '0'
                 });
                 getData = await getWelding.save();  
-                isCompleted=getData.lenght>0?true:false;             
+                isCompleted=getData?true:false;             
             }
         }
         if (isCompleted) {

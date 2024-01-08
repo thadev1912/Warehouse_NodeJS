@@ -103,6 +103,17 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.get('/', (req, res) => {
   res.send('Wellcome to NodeJS');
 });
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    // Xử lý lỗi của Multer ở đây, ví dụ: gửi thông báo lỗi cho người dùng
+    res.status(413).send('File too large');
+    console.log('File too large');
+  } else {
+    // Nếu không phải lỗi của Multer, chuyển sang middleware xử lý lỗi khác
+    next(err);
+  }
+});
+
 //Midleware Static View
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
