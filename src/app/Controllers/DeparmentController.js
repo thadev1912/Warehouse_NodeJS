@@ -12,7 +12,7 @@ let index = async (req, res) => {
             if (getData) {
            res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData,
             });          
            
@@ -49,9 +49,10 @@ let create = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',                
+                messege: 'Add new field comleted',                
             });                
-            global.io.emit('eventChange',`Phòng ban vừa được tạo bởi ${getInfoUser.user}`);
+           // global.io.emit('event-global',`Phòng ban vừa được tạo bởi ${getInfoUser.user}`);
+             global.io.emit('event-global',{message:'Server tạo'});
             setLogger.logStore(getInfoUser,req);           
         }
         else
@@ -82,7 +83,7 @@ let edit = async (req, res) => {
         if (getId) {
             return res.json({
                 status:200,
-                success: true, message: 'Infomation Field need to edit!!', data: getId,
+                success: true, message: 'Infomation Field need to edit', data: getId,
             });
         }
         else {
@@ -114,7 +115,7 @@ let update = async (req, res) => {
             getNewData = await Department.findOne({ _id: id });
             res.json({
                 status:200,
-                success: true, message: 'Infomation field has been updated !!!'
+                success: true, message: 'Infomation field has been updated'
             });
             global.io.emit('eventUpdate',`Phòng ban vừa được cập nhật bởi ${getInfoUser.user}`);
             setLogger.logUpdate(getInfoUser,req)
@@ -143,8 +144,9 @@ let destroy = async (req, res) => {
         if (getId) {
              res.json({
                 status:200,
-                success: true, message: 'This field has been removed!!!',
+                success: true, message: 'This field has been removed',
             });
+            global.io.emit('eventChange',`Phòng ban vừa được xóa bởi ${getInfoUser.user}`);
             setLogger.logDelete(getInfoUser,req)
         }
         else {
@@ -164,38 +166,8 @@ let destroy = async (req, res) => {
         });      
     }
 }
-const PaginatewithFind =async(req,res)=>
-{
-    try {
-        const limit=parseInt(req.query.limit)||3;
-        const page = parseInt(req.query.page) || 1;
-        const result = await paginate(Department, {}, page, limit, false);
-        const { getData, totalPages, currentPage, pageSize, totalCount } = result;
-        if (getData) {
-            res.json({
-                status: 200,
-                message: 'Get Data Completed!!',
-                data: getData,
-                totalPages,
-                currentPage,
-                pageSize,
-                totalCount
-            });
-        }
-        else {
-            throw new Error('Error connecting Database on Server');
-        }
-    }
-    catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-}
-const NotificationToClient = async (req, res) => {
-   
-    global.io.emit('eventChange','Jobsheet mới vừa được tạo bởi A');    
-    res.json({ message: 'Event sent successfully' });
-  } 
+
+
 
 
 module.exports = {
@@ -203,9 +175,7 @@ module.exports = {
     create: create,
     edit: edit,
     update: update,
-    destroy: destroy,   
-    PaginatewithFind:PaginatewithFind, 
-    NotificationToClient:NotificationToClient,
-    NotificationToClient:NotificationToClient,  
+    destroy: destroy,  
+   
    
 }

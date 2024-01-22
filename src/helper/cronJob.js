@@ -151,14 +151,22 @@ function startCronJob() {
         mm = String(today.getMonth() + 1).padStart(2, '0');
         yyyy = today.getFullYear();
         createDay = mm + '/' + dd + '/' + yyyy;
-        getNotification=new Notification({
-            content_notification:'Có '+getCount+' Sắp hết hạn',
-            date_notification:createDay,
-        })
-         isCompleted =await getNotification.save();
+        isCompleted=true;
+        if(getCount>0)
+        {
+            getNotification=new Notification({
+                content_notification:getCount,
+                date_notification:createDay,
+                type_notification:'1',
+            })
+             getData =await getNotification.save();
+             isCompleted=getData>0?true:false;
+             global.io.emit('eventChange',`Có ${getCount} sim sắp hết hạn`);   
+        }       
         if(isCompleted)
         {
             console.log('cập nhật tổng số lượng sim sắp hết hạn mới thành công!!!');
+          
         }
       });
     

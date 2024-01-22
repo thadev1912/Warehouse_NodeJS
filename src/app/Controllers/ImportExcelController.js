@@ -16,14 +16,14 @@ const importStudent = async (req, res) => {
             status:200,
             success: true,
             data: isCompleted,
-            message: 'Insert has been DataCompletd !!!'
+            message: 'Insert has been DataCompletd'
         });
     }
     else {
         return res.json({
             status:500,
             success: false,            
-            message: 'Error file, please check again !!!'
+            message: 'Error file, please check again'
         });
     }
     
@@ -37,14 +37,14 @@ const importDetailProductOrder = async (req, res) => {
             status:200,
             success: true,
             data: isCompleted,
-            message: 'Insert has been DataCompletd !!!'
+            message: 'Insert has been DataCompletd'
         });
     }
     else {
         return res.json({
             status:500,
             success: false,            
-            message: 'Error file, please check again !!!'
+            message: 'Error file, please check again'
         });
     }
     
@@ -58,14 +58,14 @@ const importProvinceIMS = async (req, res) => {
             status:200,
             success: true,
             data: isCompleted,
-            message: 'Insert has been DataCompletd !!!'
+            message: 'Insert has been DataCompletd'
         });
     }
     else {
         return res.json({
             status:500,
             success: false,            
-            message: 'Error file, please check again !!!'
+            message: 'Error file, please check again'
         });
     }
     
@@ -79,14 +79,14 @@ const importDistrictIMS = async (req, res) => {
             status:200,
             success: true,
             data: isCompleted,
-            message: 'Insert has been DataCompletd !!!'
+            message: 'Insert has been DataCompletd'
         });
     }
     else {
         return res.json({
             status:500,
             success: false,            
-            message: 'Error file, please check again !!!'
+            message: 'Error file, please check again'
         });
     }
     
@@ -100,14 +100,14 @@ const importWardsIMS = async (req, res) => {
             status:200,
             success: true,
             data: isCompleted,
-            message: 'Insert has been DataCompletd !!!'
+            message: 'Insert has been DataCompletd'
         });
     }
     else {
         return res.json({
             status:500,
             success: false,            
-            message: 'Error file, please check again !!!'
+            message: 'Error file, please check again'
         });
     }    
 }
@@ -121,14 +121,14 @@ const importCategoriesSim=async(req,res)=>
             status:200,
             success: true,
             data: isCompleted,
-            message: 'Insert has been DataCompletd !!!'
+            message: 'Insert has been DataCompletd'
         });
     }
     else {
         return res.json({
             status:500,
             success: false,            
-            message: 'Error file, please check again !!!'
+            message: 'Error file, please check again'
         });
     }    
 }

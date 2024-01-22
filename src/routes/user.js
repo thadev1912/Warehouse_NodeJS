@@ -16,8 +16,7 @@ router.delete('/deleteUser',Auth.checkAuth,Permision.checkPermision,user.destroy
 router.put('/changePasswordUser/:id',Auth.checkAuth,Permision.checkPermision,user.changePassword);
 router.put('/changeAvatar/:id',Auth.checkAuth,upload.single('avatar'),user.changeAvatar);
 router.get('/changeLanguage',user.changeLanguage);
-router.post('/testImage',Auth.checkAuth,Permision.checkPermision,upload.single('image'),user.uploadImage);
-router.post('/sendMailUser',user.sendMail);
-router.post('/resetPasswordUser/:id',user.resetPassword);
-router.get('/setConfigCryptJson',user.setConfigCryptJson);
+router.post('/sendMailUser',user.sendMail); //no permission
+router.post('/resetPasswordUser/:id',user.resetPassword); //no permission
+router.get('/setConfigCryptJson',user.setConfigCryptJson); 
 module.exports = router;

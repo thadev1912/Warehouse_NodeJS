@@ -17,7 +17,7 @@ let listPermissionGroup=async(req,res)=>{   //can show detail Roles
   if(getPermissionGroupById) {
     res.json({
         status: 200,
-        message: 'Get Detail Completed Completed!!',
+        message: 'Get Detail Completed Completed',
         data:CovertArrPermissionbyId
     });
 } else {
@@ -47,7 +47,7 @@ let InfotoStore = async (req, res) => {
         res.json({
             success: true,
             status: 200,
-            message: 'Get Data Completed!!',
+            message: 'Get Data Completed',
             data: getAllPermission,
         });
     }
@@ -86,7 +86,7 @@ let storePermisionsGroup = async (req, res) => {
            setLogger.logStore(getInfoUser,req);
            res.json({
             status: 200,
-            messege: 'lưu giá trị thành công!!!',
+            messege: 'lưu giá trị thành công',
         });
         }
     }
@@ -149,7 +149,7 @@ let updatePermisionsGroup = async (req, res) => {
     setLogger.logUpdate(getInfoUser,req);
     res.json({
         status: 200,
-        message: 'Update Completed!!',
+        message: 'Update Completed',
     });
 } else {
     return res.json({
@@ -177,7 +177,7 @@ let listUserRole=async(req,res)=>{
   if (covertArrListUserRole) {
     res.json({
         status: 200,
-        message: 'Update Completed!!',
+        message: 'Update Completed',
         data:covertArrListUserRole,
     });
 } else {
@@ -199,40 +199,7 @@ catch (err) {
 }
 }
 let storeUserRole = async (req, res) => {
-//     try{
-//     getUserId = req.body.userId;
-//     getArrayRolesId = req.body.arrayRolesId;
-//     ischeckStatus = true;
-//     for (let i = 0; i < getArrayRolesId.length; i++) {
-//         getUserRole = new UserRole({
-//             user_id: getUserId,
-//             role_permission_id: getArrayRolesId[i],
-//         });
-//         isComplete = await getUserRole.save();
-//         ischeckStatus = isComplete ? true : false;
-//     }
-//     if (ischeckStatus) {
-//         res.json({
-//             status: 200,
-//             message: 'Update Data Completed!!',
-//         });
-//     }
-//     else {
-//         return res.json({
-//             status:500,
-//             success: false,
-//             message: 'Error connecting Database on Server'
-//         });
-//     }
-// }
-// catch (err) {
-//     console.log(err);
-//     return res.json({
-//         status:500,
-//         success: false,
-//         error: err.message,
-//     });
-// }
+    //
 }
 //list Role by User
 let ShowDetailRoleByUser =async(req,res)=>
@@ -244,7 +211,7 @@ let ShowDetailRoleByUser =async(req,res)=>
     if (getRoles) {
         res.json({
             status: 200,
-            message: 'Get Data Completed!!',
+            message: 'Get Data Completed',
             data:getRoles,
         });
     } else {
@@ -266,7 +233,8 @@ catch (err) {
 }
 let infotoUpdateUserRole =async(req,res)=>
 {
-    try{
+    try
+    {
     const token = req.headers.token; 
     getUserId = new ObjectId(req.params.id);
     getRolesbyUser = await getRolesbyIdUser(getUserId);
@@ -283,7 +251,7 @@ let infotoUpdateUserRole =async(req,res)=>
     console.log(checkboxStatus);
         res.json({
             status: 200,
-            message: 'Get Data Completed!!',
+            message: 'Get Data Completed',
             data:checkboxStatus,
         });  
 }
@@ -334,7 +302,7 @@ let UpdateUserRole = async (req,res) => {
         setLogger.logUpdate(getInfoUser,req);
         res.json({            
             status: 200,
-            message: 'Update Data Completed!!',
+            message: 'Update Data Completed',
         });
     } else {
         return res.json({
@@ -361,7 +329,7 @@ let DeleteUserRole = async (res,req) => {
     if (isComplete) {
         res.json({
             status: 200,
-            message: 'Delete Data Completed!!',
+            message: 'Delete Data Completed',
         });
     } else {
         return res.json({
@@ -393,7 +361,7 @@ let DeleteUserRole = async (res,req) => {
         setLogger.logDelete(getInfoUser,req); 
         res.json({
             status: 200,
-            message: 'Delete Data Completed!!',
+            message: 'Delete Data Completed',
         });
     } else {
         res.json({

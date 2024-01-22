@@ -9,41 +9,7 @@ let index = async (req, res) => {
     try {
         const token = req.headers.token; 
         let getSimPackage = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SimPackage.find({}));
-        let getCategoriesSim = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.find({ use_sim: '0' }));    
-        // let getData = await SemiProduct.aggregate([
-        //     {
-        //         $addFields: {
-        //             categories_sim_id: {
-        //                 $toObjectId: "$categories_sim_id"
-        //             }
-        //         }
-        //     },
-        //     {
-        //         $lookup: {
-        //             from: "categories_sims",                    
-        //             localField: "categories_sim_id",
-        //             foreignField: "_id",
-        //             pipeline:[
-        //                 {
-        //                     $addFields: {                                
-        //                         sim_package_id: { $toObjectId: "$sim_package_id" }
-        //                     },                                       
-        //                 },
-        //                 {
-        //                     $lookup: {
-        //                         from: "sim-packages",
-        //                         localField: "sim_package_id",
-        //                         foreignField: "_id",
-        //                         as: "SimpackageInfo",
-        //                     },
-        //                 }, 
-        //             ],
-        //             as: "category"
-        //         }
-        //     },
-        //                 {$match:{semi_product_status:'9'}}
-    
-        // ]);    
+        let getCategoriesSim = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await CategoriesSim.find({ use_sim: '0' }));           
         let getData = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await SemiProduct.aggregate([
             {
                 $addFields: {
@@ -85,13 +51,19 @@ let index = async (req, res) => {
                     as: "category"
                 }
             },
-                        {$match:{semi_product_status:'9'}}
+                        {$match:{semi_product_status:'9'}},
+                        {
+                            $sort: {
+                                created: -1 
+                            }
+                        },
+        
     
         ]));
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData, getSimPackage, getCategoriesSim
             });
         }
@@ -140,7 +112,7 @@ let create = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
+                messege: 'Add new field comleted',
                 //data: getData,
             });
             setLogger.logStore(getInfoUser,req);
@@ -174,7 +146,7 @@ let edit = async (req, res) => {
             return res.json({
                 status:200,
                 success: true,
-                message: 'Infomation Field need to edit!!',
+                message: 'Infomation Field need to edit',
                 data: getId,
             });
         }
@@ -215,8 +187,7 @@ const update = async (req, res) => {
         
         }      
         if (oldSemiProductId) {            
-            const categoriesSimToUpdate = await CategoriesSim.findOne({ semi_product_id: oldSemiProductId });
-            console.log('giá trị thông tin sim cũ',categoriesSimToUpdate);
+            const categoriesSimToUpdate = await CategoriesSim.findOne({ semi_product_id: oldSemiProductId });           
             if (categoriesSimToUpdate) {
                 const clearOldData = {                    
                     activation_date: '',
@@ -254,7 +225,7 @@ const update = async (req, res) => {
             status:200,
             success: true,
             data: updatedSemiProductData,
-            message: 'Thông tin đã được cập nhật!!!'
+            message: 'Infomation updated'
         });
     }
     catch (err) {

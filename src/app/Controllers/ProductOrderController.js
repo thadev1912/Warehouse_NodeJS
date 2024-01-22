@@ -1,4 +1,5 @@
 const ProductOrder = require('../models/product_order');
+const ProductType = require('../models/product_type');
 const DetailProductOrder = require('../models//detail_product_order');
 const IncrementCode = require('../models/increment_code_product_order');
 const User = require('../models/user');
@@ -54,7 +55,7 @@ let index = async (req, res) => {
             if (getData) {
                 res.json({
                     status: 200,
-                    message: 'Get Data Completed!!',
+                    message: 'Get Data Completed',
                     data: getData
                 });
             } 
@@ -145,7 +146,7 @@ let indexSemiProduct = async (req, res) => {
             if (getData) {
                 res.json({
                     status: 200,
-                    message: 'Get Data Completed!!',
+                    message: 'Get Data Completed',
                     data: await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getData),
                     totalPages,
                     currentPage,
@@ -240,7 +241,7 @@ let indexProduct = async (req, res) => {
             if (getData) {
                 res.json({
                     status: 200,
-                    message: 'Get Data Completed!!',
+                    message: 'Get Data Completed',
                     data: await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getData),
                     totalPages,
                     currentPage,
@@ -274,20 +275,35 @@ let store = async (req, res) => {
         const getProductOrder = new ProductOrder(req.body);
         getProductOrder.production_order_status = '0';
         getProductOrder.production_order_receiver = null;
+        ArrDetailProduct=req.body.ArrDetailProduct;
         //check Id exits
         checkId = await ProductOrder.find({ product_order_No: req.body.product_order_No }).count();
         if (checkId > 0) {
             return res.json({
                 status: 422,
-                success: true, message: 'This ID exits!!',
+                success: true, message: 'This ID exits',
             });
         }
-        let getData = await getProductOrder.save();       
-        runIncrementInvoice();
-        if (getData) {
+          let getData = await getProductOrder.save(); 
+          runIncrementInvoice();      
+        await Promise.all(ArrDetailProduct.map(async (data)=>
+        {
+           // console.log('giá trị duyệt được là',data);
+            const getDetailProduct = new DetailProductOrder({
+                product_order_code:getData.product_order_No,
+                detail_product_order_name: data.detail_product_order_name,
+                detail_product_order_quantity:data.detail_product_order_quantity,
+                detail_product_order_unit:data.detail_product_order_unit,
+                detail_product_order_type:data.detail_product_order_type,
+                detail_product_order_detail: data.detail_product_order_detail,
+                detail_product_order_purpose: data.detail_product_order_purpose,
+            });
+            await getDetailProduct.save();
+        }));   
+            if (getData) {
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
+                messege: 'Add new field completed',
                 //data: getData,
             });
             setLogger.logStore(getInfoUser,req);
@@ -311,14 +327,15 @@ let store = async (req, res) => {
 }
 let infotoCreate = async (req, res) => {
     try {
+        const token = req.headers.token;
         lastInvoice = await IncrementCode.findOne().sort({ created: -1}).select('invoice_number');
-        console.log('dòng cuối cùng:',lastInvoice);
-        getDetailProductOrder = await DetailProductOrder.find({ product_order_code: lastInvoice.invoice_number }); 		
+        getProductType=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await ProductType.find());        
+        getDetailProductOrder = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailProductOrder.find({ product_order_code: lastInvoice.invoice_number })); 		
         if (lastInvoice) {
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
-                data: lastInvoice, getDetailProductOrder
+                messege: 'Add new field completed',
+                data: lastInvoice, getDetailProductOrder,getProductType
             });
         }
         else {
@@ -341,40 +358,7 @@ let infotoCreate = async (req, res) => {
 let edit = async (req, res) => {
     try{
     const token = req.headers.token; 
-    getId = req.params.id;
-    // getData = await ProductOrder.aggregate([
-    //     {
-    //         $addFields: {
-    //             user_create_by: {
-    //                 $toObjectId: "$user_create_by"
-    //             },              
-    //         }
-    //     },
-    //     {
-    //         $lookup: {
-    //             from: "users",
-    //             pipeline:[
-    //                 {
-    //                     $project: {_id:1,fullname:1}
-    //                    }
-    //             ],
-    //             localField: "user_create_by",
-    //             foreignField: "_id",
-    //             as: "detail_user"
-    //         }
-    //     },
-    //     {
-    //         $lookup: {
-    //             from: "detail_product_orders",
-    //             localField: "product_order_No",
-    //             foreignField: "product_order_code",
-    //             as: "dataDetail"
-    //         }
-    //     },
-    //     {
-    //         $match: { product_order_No: getId }
-    //     }
-    // ]);
+    getId = req.params.id;   
      //fix vesion mongoDB
      _getData = await ProductOrder.aggregate([
         {
@@ -423,7 +407,7 @@ let edit = async (req, res) => {
     if (getData) {
         return res.json({
             status:200,
-            success: true, message: 'Infomation Field need to edit!!', data: getData,
+            success: true, message: 'Infomation Field need to edit', data: getData,
         });
     }
     else {
@@ -447,13 +431,38 @@ let update = async (req, res) => {
     try {
         console.log(req.body);
         req.body.updated=new Date();
-        let id = new ObjectId(req.params.id);      
-        getData = await ProductOrder.findByIdAndUpdate(id, { $set: req.body })
+        let id = new ObjectId(req.params.id);  
+        ArrDetailProduct=req.body.ArrDetailProduct;    
+        getData = await ProductOrder.findByIdAndUpdate(id, { $set: req.body });
+        getInfoProduct=await ProductOrder.find({_id:id});
+        console.log('giá trị cần info là:',getInfoProduct);
+        checkExits=await DetailProductOrder.find({product_order_code:getInfoProduct[0].product_order_No}).countDocuments();
+        console.log(checkExits);
+        if(checkExits>0)
+        {
+            await DetailProductOrder.deleteMany({product_order_code:getInfoProduct[0].product_order_No});
+        }
+        if(ArrDetailProduct)
+        {
+            await Promise.all(ArrDetailProduct.map(async (data)=>            {
+               
+                    const getDetailProduct = new DetailProductOrder({
+                    product_order_code:getData.product_order_No,
+                    detail_product_order_name: data.detail_product_order_name,
+                    detail_product_order_quantity:data.detail_product_order_quantity,
+                    detail_product_order_unit:data.detail_product_order_unit,
+                    detail_product_order_type:data.detail_product_order_type,
+                    detail_product_order_detail: data.detail_product_order_detail,
+                    detail_product_order_purpose: data.detail_product_order_purpose,
+                });
+                await getDetailProduct.save();
+            }));   
+        }
         if (getData) {
             getNewData = await ProductOrder.findOne({ _id: id });
              res.json({
                 status:200,
-                success: true, message: 'Infomation field has been updated !!!'
+                success: true, message: 'Infomation field has been updated'
             });
             setLogger.logUpdate(getInfoUser,req);
         }
@@ -484,7 +493,7 @@ let showdetail = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData
             });
         }
@@ -519,7 +528,7 @@ let approve = async (req, res) => {
         setLogger.logAprrove(getInfoUser,req);
         return res.json({
             status:200,
-            success: true, message: 'This field has been updated!!!',
+            success: true, message: 'This field has been updated',
         });
         
     }
@@ -554,7 +563,7 @@ let reapprove = async (req, res) => {
         setLogger.logAprrove(getInfoUser,req);
         return res.json({
             status:200,
-            success: true, message: 'This field has been updated!!!',
+            success: true, message: 'This field has been updated',
         });
     }
     else {
@@ -588,7 +597,7 @@ let cancel = async (req, res) => {
         setLogger.logCancel(getInfoUser,req);
         return res.json({
             status:200,
-            success: true, message: 'This field has been updated!!!',
+            success: true, message: 'This field has been updated',
         });
     }
     else {
@@ -621,7 +630,7 @@ let destroy = async (req, res) => {
             setLogger.logDelete(getInfoUser,req); 
             return res.json({
                 status:200,
-                success: true, message: 'This field has been removed!!!',
+                success: true, message: 'This field has been removed',
             });
         }
         else {
@@ -642,8 +651,8 @@ let destroy = async (req, res) => {
     }
 }
 let runIncrementInvoice = async (req, res) => {
-     currentYear ='23'
-    //let currentYear = new Date().getFullYear().toString().slice(-2);  
+     //currentYear ='23'
+    let currentYear = new Date().getFullYear().toString().slice(-2);  
         //get year in the last record
         getlastInvoice=await IncrementCode.findOne().sort({ created: -1 }).select('invoice_number');        
         let invoiceNumber =getlastInvoice.invoice_number;
@@ -661,7 +670,7 @@ let runIncrementInvoice = async (req, res) => {
         });
         await getInvoice.save();
     }
-    let runIncrementInvoicefix = async (getDay) => {
+let runIncrementInvoicefix = async (getDay) => {
         console.log(getDay);
         let currentYear = new Date(getDay).getFullYear().toString().slice(-2);
      //   let currentYear = new Date().getFullYear().toString().slice(-2);  

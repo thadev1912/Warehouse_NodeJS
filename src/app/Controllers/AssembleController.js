@@ -30,7 +30,7 @@ let AssembleList = async (req, res) => {
                 status:200,
                 success: true,
                 data: getData,
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
            
         }
@@ -67,7 +67,7 @@ let AssembleListById= async(req,res)=>
             status:200,
             success: true,
             data: getData,
-            message: 'Get Data Completed!!!'
+            message: 'Get Data Completed'
         });
     }
 }
@@ -145,8 +145,8 @@ let showDetailAssemble = async (req, res) => {
                     let: { job_code: "$jobsheet_code" },
                     pipeline: [
                         {
-                            $addFields: {                  
-                               // product_assembler: {$toObjectId: "$product_assembler"},   
+                            $addFields: {                
+                              
                                product_assembler: {
                                 $cond: {
                                     if: { $eq: ["$product_assembler", ''] },
@@ -200,8 +200,7 @@ let showDetailAssemble = async (req, res) => {
                                         { $eq: ["$$job_code", "$jobsheet_code"] },
                                         { $eq: ["$product_assemble_status", "1"] }
                                     ]
-                                }
-                               // $expr: { $eq: ["$$job_code", "$jobsheet_code"] }
+                                }                             
                             }
                         },                   
                        
@@ -235,14 +234,7 @@ let showDetailAssemble = async (req, res) => {
                                             },        
                                            
                                         },
-                                    },
-                                    // {
-                                    //     $addFields: {
-                                    //         categories_sim_id: { $toObjectId: "$categories_sim_id" },
-                                    //         sim_package_id: { $toObjectId: "$sim_package_id" },
-                                    //        // product_assembler: {$toObjectId: "$product_assembler"},                        
-                                    //     }
-                                    // },                                   
+                                    },                                                              
                                     {
                                         $lookup: {
                                             from: "categories_sims",
@@ -279,7 +271,7 @@ let showDetailAssemble = async (req, res) => {
                 status:200,
                 success: true,
                 data: getData, getProductLot,
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
         }
         else {
@@ -298,7 +290,6 @@ let showDetailAssemble = async (req, res) => {
             error: err.message,
         });      
     }
-
 }
 let approveAssembleOrder = async (req, res) => {
     try {
@@ -317,7 +308,7 @@ let approveAssembleOrder = async (req, res) => {
             return res.json({
                 status:200,
                 success: true,               
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
         }
         else {
@@ -374,7 +365,7 @@ let infotoUpdate = async (req, res) => {
                 status:200,
                 success: true,
                 data: getData, getIdLotSemiProduct, joinSemiProductWithSim,
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
         }
         else {
@@ -419,7 +410,7 @@ let updateAssembleOrder = async (req, res) => {
             return res.json({
                 status:200,
                 success: true,
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
         }
         else {
@@ -441,7 +432,7 @@ let updateAssembleOrder = async (req, res) => {
                 return res.json({
                     status:200,
                     success: true,
-                    message: 'Get Data Completed!!!'
+                    message: 'Get Data Completed'
                 });
             }
             else {

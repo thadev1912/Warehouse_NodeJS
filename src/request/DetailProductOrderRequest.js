@@ -12,8 +12,8 @@ const middlewareValidate = {
       detail_product_order_quantity: Joi.number().required().messages({  
         'string.empty': `Số lượng yêu cầu không được bỏ trống`,         
       }),  
-      detail_product_order_unit: Joi.string().required().messages({  
-        'string.empty': `Đơn vị tính không được bỏ trống`,         
+      detail_product_order_unit: Joi.string().allow(null).allow('').messages({  
+               
       }),  
       detail_product_order_finish: Joi.string().allow(null).allow('').messages({  
            

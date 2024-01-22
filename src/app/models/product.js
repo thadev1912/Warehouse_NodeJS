@@ -21,6 +21,7 @@ const ProductSchema = new Schema({
     product_qc_status:{type:String},
     quality_control_id:{type:String},
     semi_product_lot:{type:String},
+    product_used:{type:String,default:0},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},
 });

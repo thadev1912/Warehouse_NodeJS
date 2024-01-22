@@ -135,6 +135,4 @@ router.put('/updateDepartment/:id',Auth.checkAuth,Permision.checkPermision,valid
  *        description: Not Found
  */
 router.delete('/deleteDepartment/:id',Auth.checkAuth,Permision.checkPermision,department.destroy);
-router.get('/PaginatewithFind',department.PaginatewithFind);
-router.get('/NotificationToClient',Auth.checkAuth,department.NotificationToClient);
 module.exports = router;

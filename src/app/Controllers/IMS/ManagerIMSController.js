@@ -1,6 +1,7 @@
 
 const ManagerISM = require('../../models/ims/manager_ims');
 const ProvinceISM = require('../../models/ims/province_ims');
+const LocationISM = require('../../models/ims/location');
 const DetailManagerIMS = require('../../models/ims/detail_mangager_ims');
 const { paginate } = require('../../../helper/pagination');
 const { paginate1 } = require('../../../helper/pagination');
@@ -9,8 +10,7 @@ const configCrypt = require('../../../../config/cryptJson');
 const setLogger = require('../../../helper/setLogger');
 let index = async (req, res) => {
     try {
-        console.log(req.body);
-        console.log(req.query.limit);       
+        console.log(req.body);            
         const token = req.headers.token;
         let getProvinces =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProvinceISM.find({}));        
         _countInstalled = await countInstalled();
@@ -23,22 +23,19 @@ let index = async (req, res) => {
                     as: "getProvinceData"
                 }
             },
-        ]));
-        //fix select
-        getLocationArea=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProvinceISM.aggregate([
             {
-                $group:{
-                  _id:"$location_area"
+                $sort: {
+                    created: -1 
                 }
-            }
+            },   
         ]));
-       
-      //  coverData=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getData)
-        if (getData) {
+        // group by location_area 
+        getLocation=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await LocationISM.find());           
+            if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
-                data: { getData, provinces: getProvinces, getLocationArea},
+                message: 'Get Data Completed',
+                data: {getData, provinces: getProvinces, getLocation},
             });
         }
         else {
@@ -59,185 +56,11 @@ let index = async (req, res) => {
         });
     }
 }
-// let getProvinceByArea=async(data)=>
-// {
-//   return await ProvinceISM.aggregate([
-//         {
-//             $match:{
-//                 location_area:data
-//             }
-//         }
-//     ]);
-// }
-let testlist = async (req, res) => {
-    try {
-        const token = req.headers.token;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;       
-             
-        let getProvinces =await ProvinceISM.find({});        
-        _countInstalled = await countInstalled();
-      
-               const pipeline =     
-            {
-                $lookup: {
-                    from: "province_imsses",
-                    localField: "area_id",
-                    foreignField: "province_id",
-                    as: "getProvinceData"
-                }
-           } ;        
-         
-                 
-          
-             result = await paginate(ManagerISM, {}, page, limit,true, pipeline); 
-            const { getData, totalPages, currentPage, pageSize, totalCount } = result;      
-        if (getData) {
-            res.json({
-                status: 200,
-                message: 'Get Data Completed!!',
-                data: { getData, provinces: getProvinces },
-                totalPages,
-                currentPage,
-                pageSize,
-                totalCount
-            });
-        }
-    }
-    catch (err) {
-        console.log(err);
-        return res.json({
-            status: 500,
-            success: false,
-            error: err.message,
-        });
-    }
-}
-let testlist1 = async (req, res) => {
-    try {
-        console.log(req.body);
-        console.log(req.query);       
-        const token = req.headers.token;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const getSearch = req.query.getSearch || null;
-        console.log(getSearch);       
-        let getProvinces =await ProvinceISM.find({});        
-        _countInstalled = await countInstalled(); 
-               const pipeline =[              
-                {
-                    $lookup: {
-                        from: "province_imsses",
-                        localField: "area_id",
-                        foreignField: "province_id",
-                        as: "getProvinceData"
-                    }
-                },
-           { $unwind: "$getProvinceData" }, 
-
-         
-        ];          
-           if (getSearch) {
-            pipeline.push(
-                { $match:
-                    {                    
-                        $or: [
-                          { "getProvinceData.province_name": { $regex: getSearch, $options: "i" } },   
-                                          
-                           ]
-                      },                                        
-                }             
-                 );
-          }
-             result = await paginate1(ManagerISM, {}, page, limit,true, pipeline,token); 
-            const { getData, totalPages, currentPage, pageSize, totalCount } = result;      
-        if (getData) {
-            res.json({
-                status: 200,
-                message: 'Get Data Completed!!',
-                data: { getData, provinces: getProvinces },
-                totalPages,
-                currentPage,
-                pageSize,
-                totalCount
-            });
-        }
-    }
-    catch (err) {
-        console.log(err);
-        return res.json({
-            status: 500,
-            success: false,
-            error: err.message,
-        });
-    }
-}
-
-let testPaginatewithFind = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const result = await paginate(ManagerISM, {}, page, 10, false);
-        const { getData, totalPages, currentPage, pageSize, totalCount } = result;
-        if (getData) {
-            res.json({
-                status: 200,
-                message: 'Get Data Completed!!',
-                data: getData,
-                totalPages,
-                currentPage,
-                pageSize,
-                totalCount
-            });
-        }
-        else {
-            throw new Error('Error connecting Database on Server');
-        }
-    }
-    catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-}
-let testPaginatewithAggragate = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        //const result = await paginate(ManagerISM, {}, page, 10);
-        const pipeline =
-        {
-            $lookup: {
-                from: "province_imsses",
-                localField: "area_id",
-                foreignField: "province_id",
-                as: "getProvinceData"
-            }
-        };
-        const result = await paginate(ManagerISM, {}, page, 6, true, pipeline);
-        const { getData, totalPages, currentPage, pageSize, totalCount } = result;
-        if (getData) {
-            res.json({
-                status: 200,
-                message: 'Get Data Completed!!',
-                data: getData,
-                totalPages,
-                currentPage,
-                pageSize,
-                totalCount
-            });
-        }
-        else {
-            throw new Error('Error connecting Database on Server');
-        }
-    }
-    catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-}
-
 let store = async (req, res) => {
     try {
         getAreaId = req.body.area_id;
-        location_area = getAreaId > 100 ? 'JP' : 'VN';
+       // location_area = getAreaId > 100 ? 'JP' : 'VN';
+        location_area =  req.body.area_id > 200 && req.body.area_id <= 299 ? 'TL' :  req.body.area_id > 100 ? 'JP' : 'VN';
         req.body.location_area = location_area;
         const getManagerISM = new ManagerISM(req.body);
         let getData = await getManagerISM.save();
@@ -245,7 +68,7 @@ let store = async (req, res) => {
             setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
+                messege: 'Add new field comleted',
                 //data: getData,
             });
         }
@@ -268,7 +91,7 @@ let update = async (req, res) => {
             setLogger.logUpdate(getInfoUser,req);
             res.json({
                 status: 200,
-                messege: 'Infomation field has been updated !!!',
+                messege: 'Infomation field has been updated',
                 //  data: getNewData,
             });
         }
@@ -295,18 +118,18 @@ let destroy = async (req, res) => {
         getInfo = await ManagerISM.findOne({ _id: id });
         console.log('thông tin giá trị', getInfo);
         checkIdProvince = await DetailManagerIMS.findOne({ area_id: getInfo.area_id }).count();
-        console.log('giá trị đếm được', checkIdProvince);
-         await countInstalled();
+        console.log('giá trị đếm được', checkIdProvince);         
         if (checkIdProvince > 0) {
             await DetailManagerIMS.deleteMany({ area_id: getInfo.area_id });
         }
+        await countInstalled();
         getId = await ManagerISM.findByIdAndRemove({ _id: id });
         if (getId) {
             setLogger.logDelete(getInfoUser,req);
             res.json({
                 success: true,
                 status: 200,
-                messege: 'This field has been removed!!!',
+                messege: 'This field has been removed',
             });
         }
         else {
@@ -338,7 +161,7 @@ let countInstalled = async (req, res) => {
             }
         },
         {
-            $unwind: "$details" // Unwind để có thể tính tổng active_status trong từng document của ManagerIMSSchema
+            $unwind: "$details" 
         },
         {
             $group: {
@@ -379,10 +202,7 @@ module.exports =
     index: index,
     store: store,
     update: update,
-    destroy: destroy,
-    testPaginatewithFind: testPaginatewithFind,
-    testPaginatewithAggragate: testPaginatewithAggragate,   
-    countInstalled: countInstalled,    
-    testlist:testlist,
-    testlist1:testlist1,
+    destroy: destroy,   
+    countInstalled: countInstalled,   
+  
 }

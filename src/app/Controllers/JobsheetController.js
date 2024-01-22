@@ -14,6 +14,7 @@ const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const { ObjectId } = require('mongodb');
 const setLogger = require('../../helper/setLogger');
+const notifyRealtime=require('../../helper/notifyRealtime');
 const { paginate1 } = require('../../helper/pagination');
 let index = async (req, res) => {
     try {        
@@ -47,12 +48,18 @@ let index = async (req, res) => {
                 ],
                 as: "detail_user"
             }
-        },       
+        },
+        {
+            $sort: {
+                created: -1 
+            }
+        },
+
        ]));
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData, getproductOrderNo, getproductType, getproductSeries
             });
         }      
@@ -145,7 +152,7 @@ let indexSemiProduct = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData, getproductOrderNo, getproductType, getproductSeries,
                 totalPages,
                 currentPage,
@@ -236,7 +243,7 @@ let indexProduct = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData, getproductOrderNo, getproductType, getproductSeries,
                 totalPages,
                 currentPage,
@@ -273,7 +280,7 @@ let infotoCreate = async (req, res) => {
     if (getproductOrderNo && getproductType && getproductSeries) {
         return res.json({
             status:200,
-            success: true, message: 'Infomation Field need to edit!!', getproductOrderNo, getproductType, getproductSeries
+            success: true, message: 'Infomation Field need to edit', getproductOrderNo, getproductType, getproductSeries
         });
     }
     else {
@@ -336,7 +343,7 @@ let store = async (req, res) => {
                     product_assemble_status: '0',
                     product_qc_status: '0',
                 });
-                await getProduct.save();
+                await getProduct.save();                
                
             }
 
@@ -359,14 +366,15 @@ let store = async (req, res) => {
                     semi_product_used: '0',
                     semi_product_qc_status: '0',
                 });
-                 await getSemiProduct.save();               
+                 await getSemiProduct.save();   
+                         
                
             }
         }
         else {
             res.json({
                 status: 400,
-                messege: 'Production Type not exits!!!',
+                messege: 'Production Type not exits',
             });
         }
         //------------------End Run Loop--------------------- ---------           
@@ -376,11 +384,12 @@ let store = async (req, res) => {
         getData= await getJobSheet.save();   
        
         if (getData) {
-            global.io.emit('eventChange','Jobsheet mới vừa được tạo bởi '+ getInfoUser.user);    
+            //global.io.emit('eventChange','Jobsheet mới vừa được tạo bởi '+ getInfoUser.user);    
+            notifyRealtime.RealtimeCreateJobsheet(mergeCodeJobsheet,getInfoUser);  
             setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
+                messege: 'Add new field comleted',
                 //data: getData,
             });
         }
@@ -436,7 +445,7 @@ let edit = async (req, res) => {
             ]));
         if (getId) {
             return res.status(200).json({
-                success: true, message: 'Infomation Field need to edit!!', data: getId, getproductOrderNo, getproductType, getproductSeries
+                success: true, message: 'Infomation Field need to edit', data: getId, getproductOrderNo, getproductType, getproductSeries
             });
         }
         else {
@@ -467,7 +476,7 @@ let update = async (req, res) => {
         if (checkId == null) {
             res.json({
                 status: 400,
-                messege: 'This Id no exits!!!',
+                messege: 'This Id no exits',
             });
         }        
         let getQuantity = req.body.product_quantity;
@@ -551,7 +560,7 @@ let update = async (req, res) => {
             else {
                 res.json({
                     status: 400,
-                    messege: 'Production Type not exits!!!',
+                    messege: 'Production Type not exits',
                 });
             }
         }
@@ -562,7 +571,7 @@ let update = async (req, res) => {
             setLogger.logUpdate(getInfoUser,req);
             return res.json({
                 status:200,
-                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                success: true, data: getNewData, message: 'Infomation field has been updated'
             });
         }
         else {
@@ -704,7 +713,7 @@ let showDetail = async (req, res) => {
         
            return res.json({
                 status:200,
-                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl,_isCheckWarehoue, message: 'Infomation field has been updated !!!'
+                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl,_isCheckWarehoue, message: 'Infomation field has been updated'
             });
 
         }
@@ -860,7 +869,7 @@ let showDetail = async (req, res) => {
              //covertShowDetail= await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getshowDetail);
             return res.json({
                 status:200,
-                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl,_isCheckWarehoue, message: 'Infomation field has been updated !!!'
+                success: true, data: getshowDetail, getProductGroup, getDepartment, _isCheckQuantityControl,_isCheckWarehoue, message: 'Infomation field has been updated'
             });
         }
     }
@@ -870,7 +879,7 @@ let cancel = async (req, res) => {
         id = req.params.id;
         checkId = await JobSheet.findOne({ _id: id });
         if (checkId == null) {
-            res.json({ status: 400, messege: 'This Id no exits!!!' });
+            res.json({ status: 400, messege: 'This Id no exits' });
         }
         getProductionType = req.body.product_type_code;
         getJobSheetCode = req.body.oldjobsheetcode;
@@ -891,7 +900,7 @@ let cancel = async (req, res) => {
             setLogger.logCancel(getInfoUser,req);
             return res.json({
                 status:200,
-                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                success: true, data: getNewData, message: 'Infomation field has been updated'
             });
         }
         else {
@@ -935,7 +944,7 @@ let OrderExportMaterials = async (req, res) => {
             setLogger.logOrder(getInfoUser,req);
             res.json({
                 status: 200,
-                messege: 'Update field comleted!!!',
+                messege: 'Update field comleted',
             });
         }
         else {
@@ -977,7 +986,7 @@ let ExportMaterials = async (req, res) => {
             setLogger.logOrder(getInfoUser,req);
             res.json({
                 status: 200,
-                messege: 'Update field comleted!!!',
+                messege: 'Update field comleted',
             });
         }
         else {
@@ -1054,7 +1063,7 @@ let OrderProduct = async (req, res) => {
           
             res.json({
                 status: 200,
-                messege: 'Update field comleted!!!',
+                messege: 'Update field comleted',
             });
         }
         else {
@@ -1083,7 +1092,7 @@ let infoCreatOrderQC = async (req, res) => {
     if (getProductGroup) {
         return res.json({
             status:200,
-            success: true, message: 'Get Data Completed !!!', getProductGroup
+            success: true, message: 'Get Data Completed', getProductGroup
         });
     }
 }
@@ -1181,7 +1190,7 @@ let OrderQC = async (req, res) => {
                 setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
-                    message: 'Update Completed!!',
+                    message: 'Update Completed',
                 });
             }
             else {
@@ -1237,7 +1246,7 @@ let OrderStore = async (req, res) => {
                 setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
-                    message: 'Update Completed!!',
+                    message: 'Update Completed',
                 });
             } else {
                 return res.json({
@@ -1311,7 +1320,7 @@ let Store = async (req, res) => {
                 setLogger.logStore(getInfoUser,req);
                 res.json({
                     status: 200,
-                    message: 'Update Completed!!',
+                    message: 'Update Completed',
                 });
             } else {
                 return res.json({
@@ -1352,8 +1361,7 @@ let Store = async (req, res) => {
                        
                     ]
                 }]
-            }).count();
-            console.log('giá trị tồn tại cuối cùng là', isCheckExits);
+            }).count();          
             if (isCheckExits === 0) {
                 await JobSheet.updateOne({  jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }

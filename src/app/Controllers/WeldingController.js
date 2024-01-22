@@ -9,6 +9,7 @@ const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const updateSim = require('../../helper/updateSim');
 const setLogger = require('../../helper/setLogger');
+const notifyRealtime=require('../../helper/notifyRealtime');
 let WeldingList = async (req, res) => {
     try {
         const token = req.headers.token;
@@ -77,7 +78,7 @@ let WeldingList = async (req, res) => {
                 status:200,
                 success: true,
                 data: getData, getCategoriesSim, getSimPackage, getSim,
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
         }
         else
@@ -123,7 +124,7 @@ let WeldingListById=async(req,res)=>
             status:200,
             success: true,
             data: getData,
-            message: 'Get Data Completed!!!'
+            message: 'Get Data Completed'
         });
     }
     else
@@ -327,7 +328,7 @@ let showDetailWelding = async (req, res) => {
                 status:200,
                 success: true,
                 data: getData, getCategoriesSim, getSimPackage, getSemiProduct_Sim,
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
         }
         else {
@@ -364,7 +365,7 @@ let approveWeldingOrder = async (req, res) => {
             return res.json({
                 status:200,
                 success: true,              
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
         }
         else {
@@ -404,7 +405,9 @@ let updateWeldingOrder = async (req, res) => {
                 manage_sim_note: '',
             });          
             await CategoriesSim.findByIdAndUpdate(getOldSim, { use_sim: '0', $set: getCancelCategoriesSim }); 
-            await updateSim.updateStatusSim();  
+            await updateSim.updateStatusSim();           
+            console.log("giá trị sim được cập nhật1"); 
+            await notifyRealtime.RealtimeWarningSim();                                   
             await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { $set:{semi_product_status:'10',semi_product_assembler:'',categories_sim_id:'',semi_product_assembly_date:''} });      
             isExits=await SemiProduct.findOne({ semi_product_lot: getSemiProductLot}).count();
             if(isExits>0)
@@ -428,6 +431,8 @@ let updateWeldingOrder = async (req, res) => {
             })
             await CategoriesSim.findByIdAndUpdate(OldId, { use_sim: '0', $set: getClearCategoriesSim });      
             await updateSim.updateStatusSim();     
+           console.log("giá trị sim được cập nhật2");
+         // await countWarningSim.countWarningSim();          
         }            
         if (getNewSim) {
             const getId = new ObjectId(InfoSemiProduct.categories_sim_id);  
@@ -439,10 +444,11 @@ let updateWeldingOrder = async (req, res) => {
                 expiration_date: req.body.expiration_date,
                 semi_product_id: InfoSemiProduct._id,
                 manage_sim_note: req.body.semi_product_note,
-
             });
             await CategoriesSim.findByIdAndUpdate(getId, { use_sim: '1', $set: getUpdateCategoriesSim }); 
-            await updateSim.updateStatusSim();               
+            await updateSim.updateStatusSim();    
+           console.log("giá trị sim được cập nhật3");
+           await notifyRealtime.RealtimeWarningSim();          
         }
         await QualityControl.findOneAndUpdate({ jobsheet_code: InfoSemiProduct.jobsheet_code }, { quality_control_status: 'Đang hàn mạch' });
         if (getData) {
@@ -450,7 +456,7 @@ let updateWeldingOrder = async (req, res) => {
             return res.json({
                 status:200,
                 success: true,
-                message: 'Get Data Completed!!!'
+                message: 'Get Data Completed'
             });
         }
         else {

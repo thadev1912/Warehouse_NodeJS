@@ -46,11 +46,17 @@ let index = async (req, res) => {
                     as: "sim_package"
                 }
             },
+            {
+                $sort: {
+                    created: -1 
+                }
+            },
+
         ]));
         if (getSemiProduct) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getSemiProduct,getStatus
             });
         } else {
@@ -121,7 +127,7 @@ let indexEsim = async (req, res) => {
         if (getSemiProduct) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getSemiProduct,getStatus
             });
         } else {
@@ -192,7 +198,7 @@ let indexSim = async (req, res) => {
         if (getSemiProduct) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getSemiProduct,getStatus
             });
         } else {
@@ -219,7 +225,7 @@ let updateStatusSim=async(res,req)=>
             {
                 $addFields: {  
                     warningDate: {                       
-                       $subtract: ["$expiration_date", 30 * 24 * 60 * 60 * 1000] // Trừ 30 ngày
+                       $subtract: ["$expiration_date", 30 * 24 * 60 * 60 * 1000] 
                     },  
                     semi_product_id: {
                         $cond: {
@@ -238,11 +244,9 @@ let updateStatusSim=async(res,req)=>
                     sim_status: {
                         $cond: {
                             if: {
-                                $eq:["$deadline_warning","Đã hết hạn"]
-                               // $gte: ["$activation_date",new Date()] 
+                                $eq:["$deadline_warning","Đã hết hạn"]                               
                             },
-                            then: 'Đã hết hạn',
-                          //  else: "Đã kích hoạt"
+                            then: 'Đã hết hạn',                          
                             else:{
                                 $cond: {
                                     if:{                                   
@@ -262,12 +266,8 @@ let updateStatusSim=async(res,req)=>
                     deadline_warning: {                       
                         $cond: {
                             if: {
-                                $or: [
-                                    // { $eq: ['$expiration_date', null] }, 
-                                    // { $eq: ['$expiration_date', ''] },
-                                    // { $eq: ['$activation_date', null] }, 
-                                    // { $eq: ['$activation_date', ''] } ,  
-                                    { $eq: [{ $ifNull: ['$activation_date', null] }, null] },
+                                $or: [                                   
+                                   { $eq: [{ $ifNull: ['$activation_date', null] }, null] },
                                    { $eq: [{ $ifNull: ['$activation_date', null] }, ''] },
                                    { $eq: [{ $ifNull: ['$expiration_date', null] }, null] },
                                    { $eq: [{ $ifNull: ['$expiration_date', null] }, ''] }                                 
@@ -278,11 +278,11 @@ let updateStatusSim=async(res,req)=>
                                 $cond: {
                                     if: {
                                         $and: [
-                                          //  { $lt: ['$expiration_date', new Date()] },                                                                 
+                                                                                                       
                                           {  $lt: [{ $add: ['$expiration_date', 24 * 60 * 60 * 1000] }, new Date()]} ,   
                                         ]
                                                                    },
-                                  then: 'Đã hết hạn',    //still return null                       
+                                  then: 'Đã hết hạn',                      
                                   else: {
                                     $cond: {
                                         if: {
@@ -308,12 +308,11 @@ let updateStatusSim=async(res,req)=>
                     _id: 1,
                     sim_status: 1,
                     deadline_warning:1,
-
                 }
             }           
 
-        ]);        
-        //console.log(updateStatusSim);
+        ]);       
+       
         const updateCategoriesSim = await updateStatusSim.map(function(data) {
             const infoUpdate={
                 sim_status:data.sim_status,
@@ -334,7 +333,7 @@ let updateStatusSim=async(res,req)=>
                 success: false,
                 error: err.message
             });
-         });    
+         }); 
     
   
 }
@@ -346,7 +345,7 @@ let create = async (req, res) => {
         if (checkId > 0) {
             return res.json({
                 status:200,
-                success: true, message: 'This ID exits!!',
+                success: true, message: 'This ID exits',
             });
         }
 
@@ -354,7 +353,7 @@ let create = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
+                messege: 'Add new field comleted',
                // data: getData,
             });
             setLogger.logStore(getInfoUser,req);
@@ -386,7 +385,7 @@ let edit = async (req, res) => {
         if (getId) {
             return res.json({
                 status:200,
-                success: true, message: 'Infomation Field need to edit!!', data: getId,
+                success: true, message: 'Infomation Field need to edit', data: getId,
             });
         }
         else {
@@ -418,7 +417,7 @@ let update = async (req, res) => {
             getNewData = await CategoriesSim.findOne({ _id: id });
              res.json({
                 status:200,
-                success: true, data: getNewData, message: 'Infomation field has been updated !!'
+                success: true, data: getNewData, message: 'Infomation field has been updated'
             });
             setLogger.logUpdate(getInfoUser,req);
         }
@@ -470,17 +469,46 @@ const destroy = async (req, res) => {
 };
 let showNotification =async(req,res)=>
 {
-  getData=await Notification.find({}).sort({ createdAt: -1 });
+  const token = req.headers.token;  
+  //countData=await Notification.find({is_read:'0'}).sort({ created: -1 }).countDocuments();
+  getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Notification.find().sort({ created: -1 }));
+  coverData=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getData); 
+  countNotRead=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Notification.find({is_read:'0'}).countDocuments());
+  coverCount=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,countNotRead);
   if(getData)
   { 
     return res.json({
     status:200,
     success: true,
-    data:getData,
-    message: 'Categories Sim has been deleted'
+    data:getData,countNotRead,coverData,coverCount,
+    message: 'get Infomation Completed'
 });
 
   }
+}
+const updateNotification =async(req,res)=>
+{
+    
+    req.body.updated=new Date();
+    let id = req.params.id;  
+    console.log(req.params.id);
+    console.log(req.body);
+    getData = await Notification.findByIdAndUpdate(id, { $set: req.body })
+    if (getData) {
+        getNewData = await Notification.findOne({ _id: id });
+        res.json({
+            status:200,
+            success: true, message: 'Infomation field has been updated'
+        });       
+    }
+    else {
+         res.json({
+            status:500,
+            success: false,                
+            message: 'Error connecting Database on Server'
+        });
+    }
+    
 }
 module.exports = {
     index: index,
@@ -492,4 +520,5 @@ module.exports = {
     destroy: destroy,
     updateStatusSim:updateStatusSim,   
     showNotification:showNotification,
+    updateNotification:updateNotification,
 }

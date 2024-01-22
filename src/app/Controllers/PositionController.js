@@ -6,12 +6,12 @@ const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {       
         const token = req.headers.token; 
-        let _getData = await Position.find({});
+        let _getData = await Position.find({}).sort({created:-1});
         getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);  
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData,
             });
         }
@@ -39,14 +39,14 @@ let create = async (req, res) => {
         if (checkId>0) {
              res.json({
                 status:200,
-                success: true, message: 'This ID exits!!',
+                success: true, message: 'This ID exits',
             });
         }        
         let getData = await getPosition.save();
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Add new field comleted!!!',
+                message: 'Add new field comleted',
                // data: getData,
             });
             setLogger.logStore(getInfoUser,req);  
@@ -79,7 +79,7 @@ let edit = async (req, res) => {
         if (getId) {
             res.json({
                 status:200,
-                success: true, message: 'Infomation Field need to edit!!', data: getId,
+                success: true, message: 'Infomation Field need to edit', data: getId,
             });
         }
         else {
@@ -111,7 +111,7 @@ let update = async (req, res) => {
             getNewData = await Position.findOne({ _id: id });
             res.json({
                 status:200,
-                success: true, message: 'Infomation field has been updated !!!'
+                success: true, message: 'Infomation field has been updated'
             });
             setLogger.logUpdate(getInfoUser,req);
         }

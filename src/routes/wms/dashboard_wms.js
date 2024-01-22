@@ -1,0 +1,11 @@
+var express = require('express');
+var router = express.Router();
+const dashboard_wms = require('../../app/Controllers/WMS/DashboardWMSController');
+const Auth =require('../../app/middlewares/authenticatetion');
+const Permision =require('../../app/middlewares/authorization');
+//const validate=require('../request/PostionRequest');
+router.get('/LocationReportWMS/:id',Auth.checkAuth,dashboard_wms.LocationReportWMS);
+router.get('/YearReportWMS',Auth.checkAuth,dashboard_wms.YearReportWMS);
+router.get('/HeadersReportWMS',Auth.checkAuth,dashboard_wms.HeadersReportWMS);
+router.get('/showAllDetailWMS/:id',Auth.checkAuth,dashboard_wms.showAllDetailWMS);
+module.exports = router;

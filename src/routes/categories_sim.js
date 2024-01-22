@@ -12,5 +12,6 @@ router.get('/editCategoriesSim',Auth.checkAuth,Permision.checkPermision,Categori
 router.put('/updateCategoriesSim/:id',Auth.checkAuth,Permision.checkPermision,validate.checkValidate,CategoriesSim.update);
 router.delete('/deleteCategoriesSim',Auth.checkAuth,Permision.checkPermision,CategoriesSim.destroy);
 router.get('/updateStatusSim',Auth.checkAuth,Permision.checkPermision,CategoriesSim.updateStatusSim);
-router.get('/showNotificationSim',Auth.checkAuth,Permision.checkPermision,CategoriesSim.showNotification);
+router.get('/showNotificationSim',Auth.checkAuth,CategoriesSim.showNotification);
+router.put('/updateNotificationSim/:id',Auth.checkAuth,CategoriesSim.updateNotification);
 module.exports = router;

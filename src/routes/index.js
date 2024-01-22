@@ -2,6 +2,7 @@ const user=require('./user');
 const region=require('./region');
 const department=require('./department');
 const position=require('./position');
+const product=require('./product');
 const product_type=require('./product_type');
 const product_series=require('./product_series');
 const product_group=require('./product_group');
@@ -23,6 +24,13 @@ const insertdata=require('./insertdata');
 const manager_ims=require('../routes/ims/manager_ims');
 const detail_manager_ims=require('../routes/ims/detail_manager_ims');
 const dashboard_ims=require('../routes/ims/dashboard_ims');
+const location_ims=require('../routes/ims/location');
+//WMS
+const manager_wms=require('../routes/wms/manager_wms');
+const detail_manager_wms=require('../routes/wms/detail_manager_ims');
+const standard_wms=require('../routes/wms/standard_wms');
+const dashboard_wms=require('../routes/wms/dashboard_wms');
+
 //Midleware
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
@@ -32,6 +40,7 @@ app.use('/account',user);
 app.use('/region',region);
 app.use('/deparment',department);
 app.use('/position',position);
+app.use('/product',product);
 app.use('/product-type',product_type);
 app.use('/product-series',product_series);
 app.use('/product-group',product_group);
@@ -50,6 +59,11 @@ app.use('/permission',permission);
 app.use('/manager-ims',manager_ims);
 app.use('/detail_manager-ims',detail_manager_ims);
 app.use('/dashboard-ims',dashboard_ims);
+app.use('/location-ims',location_ims);
+app.use('/manager-wms',manager_wms);
+app.use('/detail_manager-wms',detail_manager_wms);
+app.use('/standard-wms',standard_wms);
+app.use('/dashboard-wms',dashboard_wms);
 app.use('/all_router_name',all_router_name);
 app.use('/insertdata',insertdata);
 }

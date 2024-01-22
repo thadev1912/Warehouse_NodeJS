@@ -1,0 +1,11 @@
+var express = require('express');
+var router = express.Router();
+const manager_wms = require('../../app/Controllers/WMS/ManagerWMSController');
+const Auth =require('../../app/middlewares/authenticatetion');
+const Permision =require('../../app/middlewares/authorization');
+//const validate=require('../../request/IMS/ManagerIMSRequest');
+router.get('/listManagerWMS',Auth.checkAuth,manager_wms.index);
+router.post('/storeManagerWMS',manager_wms.store);
+router.put('/updateManagerWMS/:id',manager_wms.update);
+router.delete('/deleteManagerWMS/:id',manager_wms.destroy);
+module.exports = router;

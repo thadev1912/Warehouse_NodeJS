@@ -1,8 +1,8 @@
 
 const IncrementCode = require('../app/models/increment_code_product_order');
 const setInvoice=async(req,res) =>{    
-    let currentYear='23'
-   //let currentYear = new Date().getFullYear().toString().slice(-2);
+    //let currentYear='23'
+   let currentYear = new Date().getFullYear().toString().slice(-2);
     let count = await IncrementCode.find().count();
     if (count == 0) {
         const getInvoice = new IncrementCode({

@@ -7,7 +7,7 @@ let index = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data:getData,
             });
         }
@@ -37,7 +37,7 @@ let create = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
+                messege: 'Add new field comleted',
                 data: getData,
             });
         }
@@ -69,7 +69,7 @@ let edit = async (req, res) => {
         if (getId) {
             return res.json({
                 status:200,
-                success: true, message: 'Infomation Field need to edit!!', data: getId,
+                success: true, message: 'Infomation Field need to edit', data: getId,
             });
         }
         else {
@@ -100,7 +100,7 @@ let update = async (req, res) => {
             getNewData = await AllRouterName.findOne({ _id: id });
             return res.json({
                 status:200,
-                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                success: true, data: getNewData, message: 'Infomation field has been updated'
             });
         }
         else {
@@ -128,7 +128,7 @@ let destroy = async (req, res) => {
         if (getId) {
             return res.json({
                 status:200,
-                success: true, message: 'This field has been removed!!!',
+                success: true, message: 'This field has been removed',
             });
         }
         else {

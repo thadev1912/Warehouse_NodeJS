@@ -15,11 +15,11 @@ let index = async (req, res) => {
         getinfoManagerIMS = await ManagerIMS.findOne({ _id: getId });       
         _getProvinceId = await ProvincesIMS.findOne({ province_id: getinfoManagerIMS.area_id });
         getProvinceId =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProvincesIMS.findOne({ province_id: getinfoManagerIMS.area_id }).select(['province_id','province_name']));
-        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await DetailManagerIMS.find({area_id: _getProvinceId.province_id}));     
+        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await DetailManagerIMS.find({area_id: _getProvinceId.province_id}).sort({ created: -1 }));     
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData, getProvinceId,
             });
         }
@@ -78,7 +78,7 @@ let index1 = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData, getProvinceId,
                 totalPages,
                 currentPage,
@@ -106,6 +106,9 @@ let index1 = async (req, res) => {
 let store = async (req, res) => {
     try {
         console.log(req.body);
+        console.log(req.area_id);
+       // req.body.location_area= req.body.area_id > 100 ? 'JP' : 'VN';
+        req.body.location_area =  req.body.area_id > 200 && req.body.area_id <= 299 ? 'TL' :  req.body.area_id > 100 ? 'JP' : 'VN';
         console.log(req.files);
         const getArrImage = req.files;
         // reqName = new Date().toISOString().split('T')[0];
@@ -119,7 +122,7 @@ let store = async (req, res) => {
             setLogger.logStore(getInfoUser,req);
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
+                messege: 'Add new field comleted',
                 //data: getData,
             });
         }
@@ -168,7 +171,7 @@ let update = async (req, res) => {
                                 });          
             console.log('giá trị hình ảnh cũ',getArrImage_Old);   
             if (getArrDelete === 'undefined') {              
-               console.log('chạy vào hàm bình thường');         
+               console.log('chạy vào hàm bình thường');        
                      
                 getArrUpdate = getArrImage_Old.concat(getArrImage_New);
                 console.log('giá trị nhập lại', getArrUpdate);
@@ -180,7 +183,7 @@ let update = async (req, res) => {
                     setLogger.logUpdate(getInfoUser,req);
                     res.json({
                         status: 200,
-                        messege: 'Infomation field has been updated !!!',
+                        messege: 'Infomation field has been updated',
                         //data: getNewData,
                     });
                 }
@@ -229,7 +232,7 @@ let update = async (req, res) => {
                     setLogger.logUpdate(getInfoUser,req);
                     res.json({
                         status: 200,
-                        messege: 'Infomation field has been updated !!!',
+                        messege: 'Infomation field has been updated',
                         //data: getNewData,
                     });
                 }
@@ -251,7 +254,7 @@ let update = async (req, res) => {
                 setLogger.logUpdate(getInfoUser,req);
                 res.json({
                     status: 200,
-                    messege: 'Infomation field has been updated !!!',
+                    messege: 'Infomation field has been updated',
                     data: getNewData,
                 });
             }
@@ -284,7 +287,7 @@ let destroy = async (req, res) => {
             res.json({
                 success: true,
                 status: 200,
-                messege: 'This field has been removed!!!',
+                messege: 'This field has been removed',
             });
         }
         else {

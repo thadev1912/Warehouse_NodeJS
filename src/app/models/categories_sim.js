@@ -14,7 +14,7 @@ const CategoriesSimSchema = new Schema({
     semi_product_id : {type: String},
     sim_type: {type: String},    
     use_sim:{type: String}, 
-    sim_package_id:{type: String},    
+    sim_package_id:{type: String},     
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now},
 });

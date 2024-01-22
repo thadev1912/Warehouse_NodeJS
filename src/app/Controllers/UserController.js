@@ -66,7 +66,7 @@ let listUser = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Lấy dữ liệu thành công!!!',
+                message: 'Lấy dữ liệu thành công',
                 data: getData, dataPosition, dataDepartment, dataRegion
             });
         }
@@ -145,7 +145,7 @@ let Infomation = async (req, res) => {
     if (getData) {
         res.json({
             status: 200,
-            message: 'Get Data Completed!!',
+            message: 'Get Data Completed',
             data: getData, dataPosition, dataRegion, dataDepartment, dataRole
         });
     }
@@ -169,7 +169,7 @@ let listRoleUser = async (req, res) => {
             res.json({
                 status: 200,
                 getData,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
 
             });
         }
@@ -213,7 +213,7 @@ let register = async (req, res) => {
                 if (getData) {
                     res.json({
                         status: 200,
-                        message: 'Get Data Completed!!',
+                        message: 'Get Data Completed',
                         data: getData,
                     });
                 }
@@ -248,7 +248,7 @@ let register = async (req, res) => {
             if (getData) {
                 res.json({
                     status: 200,
-                    message: 'Get Data Completed!!',
+                    message: 'Get Data Completed',
                     data: getData,
                 });
             }
@@ -280,7 +280,7 @@ let checkLogin = async (req, res) => {
        // console.log(lang);
         let checkExits = await User.findOne({ username: user }).count();
         if (checkExits <= 0) {
-            return res.json({ status: 500, message: 'Username or passsword incorect!!!' });
+            return res.json({ status: 500, message: 'Username or passsword incorect' });
         }
         let checkUser = await User.findOne({ username: user });
         getRoleUser = await User.aggregate([
@@ -398,7 +398,7 @@ let checkLogin = async (req, res) => {
 
         ]);
         if (!checkUser) {
-            res.json({ status: 500, message: 'Username or passsword incorect!!!' });
+            res.json({ status: 500, message: 'Username or passsword incorect' });
             return;
         }
         let checkPw = await bcrypt.compare(pws, checkUser.password);
@@ -407,9 +407,9 @@ let checkLogin = async (req, res) => {
         const _initVector = crypto.randomBytes(16).toString('hex');
         let AccessToken = jwt.sign({ _id: checkUser._id, user: checkUser.username, encryptionEnabled, _SecurityKey, _initVector},
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "4h" }
         );
-        checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed!!!', AccessToken, getInfo, getPermissionGroup,language }) : res.json({ status: 500, message: 'Username or passsword incorect!!!' })
+        checkUser && checkPw ? res.json({ status: 200, message: 'You has been login completed', AccessToken, getInfo, getPermissionGroup }) : res.json({ status: 500, message: 'Username or passsword incorect' })
     }
     catch (err) {
         console.log(err);
@@ -426,10 +426,10 @@ let checkLogout = async (req, res) => {
         jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
             if (user) {
                 res.clearCookie("jwt", { maxAge: 1 })
-                return res.json('You has been sign out!!!');
+                return res.json('You has been sign out');
             }
             if (err) {
-                return res.json('Error!!!');
+                return res.json('Error');
             }
         })
     }
@@ -479,7 +479,7 @@ let destroyUser = async (req, res) => {
             setLogger.logDelete(getInfoUser, req);
             return res.json({
                 status: 200,
-                success: true, message: 'This field has been removed!!!',
+                success: true, message: 'This field has been removed',
             });
         }
         else {
@@ -513,7 +513,7 @@ let updateUser = async (req, res) => {
                     setLogger.logUpdate(getInfoUser, req);
                     return res.json({
                         status: 200,
-                        success: true, message: 'Infomation field has been updated !!!'
+                        success: true, message: 'Infomation field has been updated'
                     });
                 }
                 else {
@@ -535,7 +535,7 @@ let updateUser = async (req, res) => {
                     getNewData = await User.findOne({ _id: id });
                     return res.json({
                         status: 200,
-                        success: true, message: 'Infomation field has been updated !!!'
+                        success: true, message: 'Infomation field has been updated'
                     });
                 }
                 else {
@@ -560,6 +560,8 @@ let updateUser = async (req, res) => {
 }
 let changeAvatar = async (req, res) => {
     try {
+        console.log('running');
+        console.log(req.file);
         if (req.file) {
             if (req.file.originalname !== undefined) {
                 let id = new ObjectId(req.params.id);
@@ -571,7 +573,7 @@ let changeAvatar = async (req, res) => {
                     setLogger.logUpdate(getInfoUser, req);
                     return res.json({
                         status: 200,
-                        success: true, message: 'Infomation field has been updated !!!',
+                        success: true, message: 'Infomation field has been updated',
                     });
                 }
                 else {
@@ -581,7 +583,11 @@ let changeAvatar = async (req, res) => {
                         message: 'Error connecting Database on Server'
                     });
                 }
-            }
+            }          
+        }
+        else
+        {
+           res.json("undefinde avatar");
         }
     }
     catch (err) {
@@ -594,8 +600,7 @@ let changeAvatar = async (req, res) => {
     }
 }
 let changePassword = async (req, res) => {
-    try {
-        console.log(req.body);
+    try {       
         getIdUser = req.params.id;
         Oldpw = req.body.old_password;
         Newpw = req.body.new_password;
@@ -603,8 +608,7 @@ let changePassword = async (req, res) => {
         checkUser = await User.find({ _id: getIdUser }).count();
         if (checkUser > 0) {
             getInfoUser = await User.findOne({ _id: getIdUser });
-            let checkOldPw = await bcrypt.compare(Oldpw, getInfoUser.password);
-            console.log(checkOldPw);
+            let checkOldPw = await bcrypt.compare(Oldpw, getInfoUser.password);           
             if (checkOldPw) {
                 if (Newpw === Repeatpw) {
                     hashNewpw = await hashpw(Newpw);
@@ -613,7 +617,7 @@ let changePassword = async (req, res) => {
                         // getNewData = await User.findOne({ _id: getIdUser});
                         res.json({
                             status: 200,
-                            success: true, message: 'Password has been updated !!!'
+                            success: true, message: 'Password has been updated'
                         });
                     }
                 }
@@ -640,8 +644,7 @@ let changePassword = async (req, res) => {
         }
 
     }
-    catch (err) {
-        console.log(err);
+    catch (err) {       
         return res.json({
             status: 500,
             success: false,
@@ -657,7 +660,7 @@ const changeLanguage =async(req,res)=>
     {
         res.json({
             status: 200,
-            message: 'Get Data Completed!!',
+            message: 'Get Data Completed',
             data:language,lang
         });
     }   
@@ -744,7 +747,7 @@ let resetPassword = async (req, res) => {
                             res.json({
                                 status: 200,
                                 success: true,
-                                message: 'Password has been updated !!!',
+                                message: 'Password has been updated',
                             });
                         }
                     }
@@ -782,8 +785,7 @@ let generateResetToken = async (randomToken, getMail) => {
     );
 }
 const setConfigCryptJson = async (req, res) => {
-    const configFilePath = path.resolve(__dirname, '../../../config/cryptJson.js');
-    console.log('giá trị đường đẫn', configFilePath);
+    const configFilePath = path.resolve(__dirname, '../../../config/cryptJson.js');   
     const configContent = require(configFilePath);
     configContent.encryptionEnabled = !configContent.encryptionEnabled;
     fs.writeFileSync(configFilePath, `module.exports = ${JSON.stringify(configContent, null, 2)};\n`);
@@ -809,5 +811,4 @@ module.exports =
     resetPassword: resetPassword,
     generateResetToken, generateResetToken,
     setConfigCryptJson: setConfigCryptJson,
-
 }

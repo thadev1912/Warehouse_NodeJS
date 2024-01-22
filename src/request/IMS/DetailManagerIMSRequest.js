@@ -4,9 +4,8 @@ const middlewareValidate = {
   checkValidate: (req, res, next) => {
     const checkDetailManagerIMS = Joi.object({
       name_station: Joi.string().required().messages({
-        'string.empty': `Mã tỉnh không được để trống!`,
+        'string.empty': `Mã trạm không được để trống!`,
       }),
-
       installtion_date: Joi.string().required().messages({
         'string.empty': `Ngày lắp đặt không được để trống!`,
       }),

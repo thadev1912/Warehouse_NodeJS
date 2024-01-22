@@ -7,12 +7,12 @@ const { paginate1 } = require('../../helper/pagination');
 let index = async (req, res) => {
     try {
         const token = req.headers.token;
-        let _getData = await Region.find({});
+        let _getData = await Region.find({}).sort({created: -1});
         getData = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, _getData);
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData,
             });
         }
@@ -45,7 +45,7 @@ let index1 = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData,
                 totalPages,
                 currentPage,
@@ -77,14 +77,14 @@ let create = async (req, res) => {
         if (checkId > 0) {
             return res.json({
                 status: 200,
-                success: true, message: 'This ID exits!!',
+                success: true, message: 'This ID exits',
             });
         }
         let getData = await getRegion.save();
         if (getData) {
             res.json({
                 status: 200,
-                messege: 'Add new field comleted!!!',
+                messege: 'Add new field comleted',
                 //data: getData,
             });
             setLogger.logStore(getInfoUser, req);
@@ -115,7 +115,7 @@ let edit = async (req, res) => {
         if (getId) {
             return res.json({
                 status: 200,
-                success: true, message: 'Infomation Field need to edit!!', data: getId,
+                success: true, message: 'Infomation Field need to edit', data: getId,
             });
         }
         else {
@@ -147,7 +147,7 @@ let update = async (req, res) => {
             getNewData = await Region.findOne({ _id: id });
             res.json({
                 status: 200,
-                success: true, data: getNewData, message: 'Infomation field has been updated !!!'
+                success: true, data: getNewData, message: 'Infomation field has been updated'
             });
             setLogger.logUpdate(getInfoUser, req);
         }
@@ -176,7 +176,7 @@ let destroy = async (req, res) => {
         if (getId) {
             res.json({
                 status: 200,
-                success: true, message: 'This field has been removed!!!',
+                success: true, message: 'This field has been removed',
             });
             setLogger.logDelete(getInfoUser, req);
         }

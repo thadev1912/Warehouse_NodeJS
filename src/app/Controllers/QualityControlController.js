@@ -7,44 +7,7 @@ const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {
-        const token = req.headers.token; 
-        // let getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await QualityControl.aggregate([
-        //     {
-        //         $lookup: {
-        //             from: "jobsheets",
-        //             pipeline:[                     
-        //                 {
-        //                     $addFields: {
-        //                         user_id: {
-        //                             $toObjectId: "$user_id"
-        //                         },
-        //                     }
-        //                 },       
-        //                 {
-        //                     $lookup: {
-        //                         from: "users",
-        //                         let: { userId: "$user_id" },
-        //                         pipeline: [
-        //                             {
-        //                                 $match: {
-        //                                     $expr: { $eq: ["$_id", "$$userId"] }
-        //                                 }
-        //                             },
-        //                             {
-        //                                 $project: { _id: 1, fullname: 1 }
-        //                             }
-                                  
-        //                         ],
-        //                         as: "detail_user"
-        //                     }
-        //                 },
-        //             ],
-        //             localField: "jobsheet_code",
-        //             foreignField: "jobsheet_code",
-        //             as: "getDetail"
-        //         },
-        //     }
-        // ]));
+        const token = req.headers.token;         
         let getData = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await QualityControl.aggregate([
             {
                 $lookup: {
@@ -93,7 +56,7 @@ let index = async (req, res) => {
         if (getData) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getData,
             });
         }
@@ -165,7 +128,7 @@ let listByIdQC=async(req,res)=>
     if (getData) {
         res.json({
             status: 200,
-            message: 'Get Data Completed!!',
+            message: 'Get Data Completed',
             data: getData,
         });
     }
@@ -247,7 +210,7 @@ let detailQC = async (req, res) => {
         if (getProduct) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getProduct,
             });
         }
@@ -312,7 +275,7 @@ let detailQC = async (req, res) => {
         if (getSemiProduct) {
             res.json({
                 status: 200,
-                message: 'Get Data Completed!!',
+                message: 'Get Data Completed',
                 data: getSemiProduct,
             });
         }
@@ -360,7 +323,7 @@ let orderQC = async (req, res) => {
                 setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
-                    message: 'Get Data Completed!!',
+                    message: 'Get Data Completed',
                 });
             }
             else {
@@ -385,7 +348,7 @@ let orderQC = async (req, res) => {
                 setLogger.logOrder(getInfoUser,req);
                 res.json({
                     status: 200,
-                    message: 'Get Data Completed!!',
+                    message: 'Get Data Completed',
                 });
             }
             else {
