@@ -4,7 +4,7 @@ const productorder = require('../app/Controllers/ProductOrderController');
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
 const validate=require('../request/ProductOrderRequest');
-router.get('/listProductOrder',Auth.checkAuth,Permision.checkPermision,productorder.index);
+router.get('/listProductOrder/:id',Auth.checkAuth,Permision.checkPermision,productorder.index);
 router.get('/listSemiProductProductOrder',Auth.checkAuth,productorder.indexSemiProduct);
 router.get('/listProductProductOrder',Auth.checkAuth,productorder.indexProduct);
 router.post('/createProductOrder',Auth.checkAuth,Permision.checkPermision,productorder.store);

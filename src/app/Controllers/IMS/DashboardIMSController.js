@@ -70,32 +70,76 @@ let LocationReportIMS = async (req, res) => {
 let YearReportIMS = async (req, res) => {
     try {
         const token = req.headers.token;
-        const getLocationArea = req.query.location;       
+        const getLocationArea = req.query.location;
+        const _getYear=req.query.year||'all'
+        console.log(_getYear);
+        if(_getYear === 'all')
+        {
+            getYear='all'
+        }
+        else
+        {
+            getYear=parseInt(_getYear,10);
+        }                  
         //Sum by Year
-        _getTotalInstalledSumbyYear = [
-            {
-                $group: {
-                    _id: { $year: "$installtion_date" },
-                    SumbyYear: {
-                        $sum: { $toInt: "$active_status" }
+        _getTotalInstalledSumbyYear = [];
+        if(_getYear ==='all')  
+        {
+            _getTotalInstalledSumbyYear.unshift(
+                {
+                    $group: {
+                        _id: { $year: "$installtion_date" },
+                        SumData: {
+                            $sum: { $toInt: "$active_status" }
+                        }
+                    }
+                },
+                {
+                    $sort: {
+                        "_id": 1
                     }
                 }
-            },
-
+            );            
+        }    
+        else
             {
-                $sort: {
-                    "_id": 1
+                _getTotalInstalledSumbyYear.unshift(
+                {
+                    $group: {
+                        _id: { $month: "$installtion_date" },
+                        SumData: {
+                            $sum: { $toInt: "$active_status" }
+                        }
+                    }
+                },
+                {
+                    $sort: {
+                        "_id": 1
+                    }
                 }
-            }
-        ];
+            );         
+            }    
+       
         if (getLocationArea !=='all') {
             _getTotalInstalledSumbyYear.unshift({
                 $match: {
                     location_area: getLocationArea
                 }
             });
-        }    
-     getTotalInstalledSumbyYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerISM.aggregate(_getTotalInstalledSumbyYear));      
+        } 
+        if(_getYear !=='all')
+        {
+            _getTotalInstalledSumbyYear.unshift({
+                $match: {
+                    $expr: {
+                        $eq: [{ $year: "$installtion_date" },getYear]
+                    }
+                  }
+            });  
+        }   
+     getTotalInstalledSumbyYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerISM.aggregate(_getTotalInstalledSumbyYear)); 
+    
+     coverData=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getTotalInstalledSumbyYear)       
         //Sum all Installed
         _getTotalInstalled=[
             {
@@ -109,10 +153,20 @@ let YearReportIMS = async (req, res) => {
             if (getLocationArea !== 'all') {
                 _getTotalInstalled.unshift({
                     $match: {
-                        location_area: getLocationArea
+                        location_area: getLocationArea,
                     }
                 });
-            } 
+            }
+            if(_getYear !=='all')
+            {
+                _getTotalInstalled.unshift({
+                    $match: {
+                        $expr: {
+                            $eq: [{ $year: "$installtion_date" },getYear]
+                        }
+                      }
+                });  
+            }   
         getTotalInstalled=  await DetailManagerISM.aggregate(_getTotalInstalled);           
         _SumInstalled = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, getTotalInstalled?.[0]?.qty ?? 0);
         //Sum all Next phase
@@ -133,6 +187,16 @@ let YearReportIMS = async (req, res) => {
                 }
             });
         } 
+        if(_getYear !=='all')
+        {
+            _getTotalNextPhase.unshift({
+                $match: {
+                    $expr: {
+                        $eq: [{ $year: "$installtion_date" },getYear]
+                    }
+                  }
+            });  
+        }   
         getTotalNextPhase=  await ManagerISM.aggregate(_getTotalNextPhase);        
         _totalNextPhase = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, getTotalNextPhase?.[0]?.qty ?? 0);
         if ((getTotalInstalledSumbyYear)&&(getTotalInstalled) && (getTotalNextPhase)) {
@@ -141,7 +205,7 @@ let YearReportIMS = async (req, res) => {
                 message: 'Get Data Completed!!',
                 data: {
                     getTotal: {
-                        totalInstalledByYear: getTotalInstalledSumbyYear,
+                        totalInstalledByYear: getTotalInstalledSumbyYear,coverData,
                         SumInstalled: _SumInstalled,
                         totalNextPhase: _totalNextPhase,
 

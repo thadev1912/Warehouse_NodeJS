@@ -7,17 +7,28 @@ const jwt = require("jsonwebtoken");
 const { ObjectId } = require('mongodb');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
+const notifyRealtime=require('../../helper/notifyRealtime');
 const setLogger = require('../../helper/setLogger');
 const { paginate1 } = require('../../helper/pagination');
 let index = async (req, res) => {
     try { 
             const token = req.headers.token;
-            _getData = await ProductOrder.aggregate([
+            let getYear='';
+            getSelect=req.params.id;
+            if(getSelect === 'all')
+            {
+                getYear='all'
+            }
+            else
+            {
+                getYear=parseInt(getSelect,10);
+            }           
+            _getData = [
                 {
                     $addFields: {
                         user_create_by: {
                             $toObjectId: "$user_create_by"
-                        },
+                        },                      
                     }
                 },
                 {
@@ -46,17 +57,47 @@ let index = async (req, res) => {
                     $sort: {
                         created: -1 
                     }
-                },
-
-              
-                
-            ]);            
-            getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);  
+                },              
+         ];   
+         if (getYear !=='all') {
+            _getData.unshift({
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $year: { $dateFromString: { dateString: "$production_order_create", format: "%Y-%m-%d" } } },
+                            getYear
+                          ]
+                    }
+                  }
+            });
+        }   
+        getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.aggregate( _getData));      
+             
+        getSelectYear=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.aggregate([
+            {
+                $group:{
+                    _id:{$year:{ $dateFromString: { dateString: "$production_order_create", format: "%Y-%m-%d" } } 
+                    }
+                }
+            },
+            {
+                $project: {
+                  _id: 0,
+                  year: "$_id"
+                }
+              },
+            {
+                $sort:{
+                    year:1
+                }
+            }
+        ]));                   
+          //  getData= await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,_getData);  
             if (getData) {
                 res.json({
                     status: 200,
                     message: 'Get Data Completed',
-                    data: getData
+                    data: getData,getSelectYear
                 });
             } 
             else
@@ -285,8 +326,8 @@ let store = async (req, res) => {
             });
         }
           let getData = await getProductOrder.save(); 
-          runIncrementInvoice();      
-        await Promise.all(ArrDetailProduct.map(async (data)=>
+           
+         await Promise.all(ArrDetailProduct.map(async (data)=>
         {
            // console.log('giá trị duyệt được là',data);
             const getDetailProduct = new DetailProductOrder({
@@ -299,6 +340,7 @@ let store = async (req, res) => {
                 detail_product_order_purpose: data.detail_product_order_purpose,
             });
             await getDetailProduct.save();
+            await runIncrementInvoice();   
         }));   
             if (getData) {
             res.json({
@@ -306,6 +348,8 @@ let store = async (req, res) => {
                 messege: 'Add new field completed',
                 //data: getData,
             });
+            console.log('chạy tới đây!!!');
+            notifyRealtime.RealtimeCreateProductOrder(getData.product_order_No,getInfoUser);  
             setLogger.logStore(getInfoUser,req);
         }
         else {
@@ -329,6 +373,7 @@ let infotoCreate = async (req, res) => {
     try {
         const token = req.headers.token;
         lastInvoice = await IncrementCode.findOne().sort({ created: -1}).select('invoice_number');
+        console.log(lastInvoice);
         getProductType=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await ProductType.find());        
         getDetailProductOrder = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailProductOrder.find({ product_order_code: lastInvoice.invoice_number })); 		
         if (lastInvoice) {
@@ -658,7 +703,7 @@ let runIncrementInvoice = async (req, res) => {
         let invoiceNumber =getlastInvoice.invoice_number;
         let getlastYear = invoiceNumber.match(/YCSX(\d+)\.\d+/);
         let _getlastYear = getlastYear ? getlastYear[1] : null;
-       // console.log(_getlastYear); 
+        console.log(_getlastYear); 
       //  latest = await IncrementCode.findOne().sort({ invoice_number: -1 }).limit(1);      
       let latest = await IncrementCode.findOne({ invoice_number: { $regex: 'YCSX' + currentYear } }).sort({ invoice_number: -1 });    
         string = latest.invoice_number.match(/\.(\d+)/);

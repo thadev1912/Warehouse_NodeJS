@@ -20,6 +20,10 @@ const quality_control=require('./qualtity_control');
 const permission=require('./role_permission');
 const all_router_name=require('./all_router_name');
 const insertdata=require('./insertdata');
+const notification=require('./notification')
+
+
+
 //IMS
 const manager_ims=require('../routes/ims/manager_ims');
 const detail_manager_ims=require('../routes/ims/detail_manager_ims');
@@ -66,5 +70,8 @@ app.use('/standard-wms',standard_wms);
 app.use('/dashboard-wms',dashboard_wms);
 app.use('/all_router_name',all_router_name);
 app.use('/insertdata',insertdata);
+app.use('/notification',notification);
+
+
 }
 module.exports = route;

@@ -22,8 +22,7 @@ let index = async (req, res) => {
          ])
          const covertArrayLocation= getDetailbyLocation.map(item => item._id);       
         _getLocation=await LocationISM.find();        
-        const getLocation =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await _getLocation.filter(record => covertArrayLocation.includes(record.location_code)));
-       // console.log('giá trị cuối cùng cần lấy là',getLocation);     
+        const getLocation =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await _getLocation.filter(record => covertArrayLocation.includes(record.location_code)));        
         getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ManagerWMS.aggregate([
             {
                 $lookup: {
@@ -39,12 +38,30 @@ let index = async (req, res) => {
             //     }
             // },              
         ]));      
-
+        getSelectYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerWMS.aggregate([
+            {
+                $group:{
+                    _id:{$year:"$installtion_date"
+                    }
+                }
+            },
+            {
+                $project: {
+                  _id: 0,
+                  year: "$_id"
+                }
+              },
+            {
+                $sort:{
+                    year:1
+                }
+            }
+        ]));           
         if (getProvinces) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed',
-                data:getData,getProvinces,getLocation
+                data:getData,getProvinces,getLocation,getSelectYear
             });
         }
         else {
@@ -170,10 +187,8 @@ const countActiveStatus=async(req,res)=>
                 }
             }
         }
-    ]);
-    console.log(_countInstalled);  
-    const updateManagerWMS = await _countInstalled.map(function (data) {
-        console.log('giá trị data nhận được là',data);  
+    ]);   
+    const updateManagerWMS = await _countInstalled.map(function (data) {        
         return ManagerWMS.findOneAndUpdate(
             { area_id: data._id },
             { $set: {

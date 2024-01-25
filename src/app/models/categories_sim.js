@@ -10,7 +10,7 @@ const CategoriesSimSchema = new Schema({
     deadline_warning: {type: String},
     purpose: {type: String}, 
     manage_sim_note: {type: String},  
-    sim_package_id: {type: Number},
+    sim_package_id: {type:String,ref:'sim-packages'},
     semi_product_id : {type: String},
     sim_type: {type: String},    
     use_sim:{type: String}, 

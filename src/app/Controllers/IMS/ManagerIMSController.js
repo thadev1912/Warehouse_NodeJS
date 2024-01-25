@@ -29,13 +29,32 @@ let index = async (req, res) => {
                 }
             },   
         ]));
+        getSelectYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerIMS.aggregate([
+            {
+                $group:{
+                    _id:{$year:"$installtion_date"
+                    }
+                }
+            },
+            {
+                $project: {
+                  _id: 0,
+                  year: "$_id"
+                }
+              },
+            {
+                $sort:{
+                    year:1
+                }
+            }
+        ]));                
         // group by location_area 
         getLocation=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await LocationISM.find());           
             if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed',
-                data: {getData, provinces: getProvinces, getLocation},
+                data: {getData, provinces: getProvinces, getLocation,getSelectYear},
             });
         }
         else {

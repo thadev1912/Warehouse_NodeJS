@@ -5,7 +5,7 @@ const Auth =require('../../app/middlewares/authenticatetion');
 const Permision =require('../../app/middlewares/authorization');
 //const validate=require('../request/PostionRequest');
 router.get('/LocationReportIMS/:id',Auth.checkAuth,Permision.checkPermision,dashboard_ims.LocationReportIMS);
-router.get('/YearReportIMS',Auth.checkAuth,Permision.checkPermision,dashboard_ims.YearReportIMS);
+router.get('/YearReportIMS',Auth.checkAuth,dashboard_ims.YearReportIMS);
 router.get('/HeadersReportIMS',Auth.checkAuth,dashboard_ims.HeadersReportIMS);
 router.get('/showAllDetailIMS/:id',Auth.checkAuth,dashboard_ims.showAllDetailIMS);
 module.exports = router;

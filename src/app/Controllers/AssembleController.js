@@ -10,7 +10,17 @@ const setLogger = require('../../helper/setLogger');
 let AssembleList = async (req, res) => {
     try {                
         const token = req.headers.token; 
-        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Assemble.aggregate([
+        let getYear='';
+        getSelect=req.params.id;
+        if(getSelect === 'all')
+        {
+            getYear='all'
+        }
+        else
+        {
+            getYear=parseInt(getSelect,10);
+        }           
+    _getData =[
             {
                 $lookup: {
                     from: "jobsheets",
@@ -24,12 +34,40 @@ let AssembleList = async (req, res) => {
                     created: -1 
                 }
             },
-        ]));     
+        ];     
+        if (getYear !=='all') {
+            _getData.unshift({
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $year: { $dateFromString: { dateString: "$assemble_create_date", format: "%m/%d/%Y" } } },
+                            getYear
+                          ]
+                    }
+                  }
+            });
+        }
+        getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Assemble.aggregate( _getData));     
+        getSelectYear=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Assemble.aggregate([
+            {
+                $group:{
+                    _id:{$year:{ $dateFromString: { dateString: "$assemble_create_date", format: "%m/%d/%Y" } } 
+                    }
+                }
+            },
+            {
+                $project: {
+                  _id: 0,
+                  year: "$_id"
+                }
+              },
+        ])); 
+        console.log(getSelectYear);
         if (getData) {
              res.json({
                 status:200,
                 success: true,
-                data: getData,
+                data: getData, getSelectYear,
                 message: 'Get Data Completed'
             });
            

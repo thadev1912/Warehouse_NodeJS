@@ -50,6 +50,8 @@ const importDetailProductOrder = async (req, res) => {
     
 }
 const importProvinceIMS = async (req, res) => {   
+    try
+    {
     console.log(req.body);
     isCompleted = await ProvinceIMSForm('./public/excels/' + req.file.filename);
     fs.unlinkSync(req.file.path);  
@@ -69,6 +71,18 @@ const importProvinceIMS = async (req, res) => {
         });
     }
     
+}
+
+
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });
+  
+}
 }
 const importDistrictIMS = async (req, res) => {   
     console.log(req.body);
@@ -195,7 +209,10 @@ const ProvinceIMSForm = async (filePath) => {
             columnToKey: {
                 A:'province_id',
                 B:'province_name',
-                C:'province_note',
+                C:'location_area',
+                D:'location_name',
+                E:"province_note"
+
                
             }
         }]

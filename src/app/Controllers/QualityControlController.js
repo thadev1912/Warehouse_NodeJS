@@ -7,8 +7,17 @@ const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger');
 let index = async (req, res) => {
     try {
-        const token = req.headers.token;         
-        let getData = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await QualityControl.aggregate([
+        const token = req.headers.token;  
+        getSelect=req.params.id;
+        if(getSelect === 'all')
+        {
+            getYear='all'
+        }
+        else
+        {
+            getYear=parseInt(getSelect,10);
+        }                 
+        let _getData = [
             {
                 $lookup: {
                     from: "jobsheets",
@@ -50,14 +59,40 @@ let index = async (req, res) => {
                     created: -1 
                 }
             },
-
-        ]));
-        
+        ];
+        if (getYear !=='all') {
+            _getData.unshift({
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $year: { $dateFromString: { dateString: "$quality_control_create_date", format: "%m/%d/%Y" } } },
+                            getYear
+                          ]
+                    }
+                  }
+            });
+        }
+        getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await QualityControl.aggregate( _getData));   
+        getSelectYear=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await QualityControl.aggregate([
+            {
+                $group:{
+                    _id:{$year:{ $dateFromString: { dateString: "$quality_control_create_date", format: "%m/%d/%Y" } } 
+                    }
+                }
+            },
+            {
+                $project: {
+                  _id: 0,
+                  year: "$_id"
+                }
+              },
+        ])); 
+        console.log(getSelectYear);  
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed',
-                data: getData,
+                data: getData,getSelectYear
             });
         }
         else {

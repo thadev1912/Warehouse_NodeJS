@@ -67,6 +67,7 @@
 	"Save":"Save",
 	"CancelBtn":"Cancel",
 	"CreateBy":"Create By",
+	"Search":"Search",
 	
 	"AddModal":"Add New",
 	"UpdateModal":"Update",
@@ -243,6 +244,8 @@
 	"Stations":"Stations",
 	"Area":"Area",
 	"All_area":"All area",
+	"All_year":"All year",
+	"All":"All",
 	"Installed":"Installed",
 	"Next_Phase":"Next Phase",
 	"Station_Lists":"Station Lists",
@@ -255,6 +258,8 @@
 	"Custormer":"Custormer",
 	"Image":"Image",
 	"View_Image":"View Images",
+	"Read":"Read ",
+	"Unread":"Unread",
 	"Installation_details":"Installation details",
 	"Location":"Location",
 	"Latitude":"Latitude",
@@ -304,6 +309,12 @@
 	"Permission":"Permission",
 	"Permission_Group_Name": "Permission Group Name",
 	"Current_Avatar":"Current Avartar",
-	"New_Avartar":"New Avartar"	
+	"New_Avartar":"New Avartar",
+
+	"API_Route_Manager":"API Route Manager",
+	"Router_path":"Router path",
+	"Router_group":"Router group",
+	"Router_code":"Router code",	
+	"Router_name":"Router name"
 	
 }

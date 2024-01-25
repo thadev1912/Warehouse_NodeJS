@@ -21,6 +21,8 @@ const i18n = require('./src/helper/languague');
 const AllRoutersName = require('./src/app/models/all_routes_name');
 const setIvoince = require('./src/helper/setIvoince');
 const runcronJob= require('./src/helper/cronJob');
+const initBot=require('./src/helper/telegram');
+initBot.TelegramService();
 runcronJob();  //Cron auto
 app.use(cors());
 app.use(i18n.init);
@@ -35,7 +37,7 @@ app.use((req, res, next) => {
   }
   if (req.method === 'OPTIONS') {
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE");
-    return res.status(200).json({});
+    return res.status(200).json({});  
   }
   next();
  }); 

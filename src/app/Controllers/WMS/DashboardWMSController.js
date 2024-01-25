@@ -21,8 +21,7 @@ let LocationReportWMS = async (req, res) => {
                     totalMaintenance_status: { $sum: { $toInt: "$maintenance_status" } },
                 }
             },
-        ]);  
-        console.log(gettotalCount);
+        ]);         
         _totalInstalled =  await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,gettotalCount?.[0]?.totalInstalled ?? 0);
         _totalNextPhase =  await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,gettotalCount?.[0]?.totalNextPhase ?? 0);
         _totalActive_status =  await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,gettotalCount?.[0]?.totalActive_status ?? 0);
@@ -84,30 +83,67 @@ let YearReportWMS =async(req,res)=>
 {
     try {  
         const token = req.headers.token;     
-        const getLocationArea = req.query.location;          
+        const getLocationArea = req.query.location;   
+        const _getYear=req.query.year||'all'       
+        if(_getYear === 'all')
+        {
+            getYear='all'
+        }
+        else
+        {
+            getYear=parseInt(_getYear,10);
+        }           
         //Sum by Year
-        _getTotalActiveSumbyYear = [
-            {
-                $group: {
-                    _id: { $year: "$installtion_date" },
-                    // SumbyYear: {
-                    //     $sum: { $toInt: "$active_status" }
-                    // },
-                    SumInstalledbyYear: {
-                        $sum: { $toInt: "$installed" }
-                    },
-                    // SumNextPhasebyYear: {
-                    //     $sum: { $toInt: "$next_phase" }
-                    // }
+        _getTotalActiveSumbyYear = [];
+        if(_getYear ==='all') 
+        {
+            _getTotalActiveSumbyYear.unshift(
+                {
+                    $group: {
+                        _id: { $year: "$installtion_date" },
+                        // SumbyYear: {
+                        //     $sum: { $toInt: "$active_status" }
+                        // },
+                        SumData: {
+                            $sum: { $toInt: "$installed" }
+                        },
+                        // SumNextPhasebyYear: {
+                        //     $sum: { $toInt: "$next_phase" }
+                        // }
+                    }
+                },    
+                {
+                    $sort: {
+                        "_id": 1
+                    }
                 }
-            },
-
-            {
-                $sort: {
-                    "_id": 1
+            )
+        }    
+        else
+        {
+            _getTotalActiveSumbyYear.unshift(
+                {
+                    $group: {
+                        _id: { $month: "$installtion_date" },
+                        // SumbyYear: {
+                        //     $sum: { $toInt: "$active_status" }
+                        // },
+                        SumData: {
+                            $sum: { $toInt: "$installed" }
+                        },
+                        // SumNextPhasebyYear: {
+                        //     $sum: { $toInt: "$next_phase" }
+                        // }
+                    }
+                },    
+                {
+                    $sort: {
+                        "_id": 1
+                    }
                 }
-            }
-        ];
+            )
+        }    
+           
         if (getLocationArea !=='all') {
             _getTotalActiveSumbyYear.unshift({
                 $match: {
@@ -115,8 +151,20 @@ let YearReportWMS =async(req,res)=>
                 }
             });
         }    
-        getTotalActiveSumbyYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerWSM.aggregate(_getTotalActiveSumbyYear));          
-        console.log(getTotalActiveSumbyYear);    
+        if(_getYear !=='all')
+        {
+            _getTotalActiveSumbyYear.unshift({
+                $match: {
+                    $expr: {
+                        $eq: [{ $year: "$installtion_date" },getYear]
+                    }
+                  }
+            });  
+        }   
+        getTotalActiveSumbyYear= await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerWSM.aggregate(_getTotalActiveSumbyYear));     
+      //coverData=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getTotalActiveSumbyYear)        
+        
+         
                        _getTotalActiveStatus=[
                         {
                             $project: {
@@ -141,25 +189,30 @@ let YearReportWMS =async(req,res)=>
                         }
                     });
                 } 
-                getTotalActiveStatus=  await DetailManagerWSM.aggregate(_getTotalActiveStatus);   
-                console.log(getTotalActiveStatus);      
+                if(_getYear !=='all')
+                {
+                    _getTotalActiveStatus.unshift({
+                        $match: {
+                            $expr: {
+                                $eq: [{ $year: "$installtion_date" },getYear]
+                            }
+                          }
+                    });  
+                }   
+                getTotalActiveStatus=  await DetailManagerWSM.aggregate(_getTotalActiveStatus);                  
                 _SumActive = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, getTotalActiveStatus?.[0]?.active ?? 0); 
                 _SumInactive = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  getTotalActiveStatus?.[0]?.inactive ?? 0); 
                 _SumMaintenance = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  getTotalActiveStatus?.[0]?.maintenance ?? 0); 
 
-                  //Sum all Next phase
+                  //Sum all Installed
         _getTotal=[
             {
                 $group: {
                     _id: null,
                     qtyInstalled: {
                         $sum: { $toInt: "$installed" }
-                    },
-                    qtyNextPhase: {
-                        $sum: { $toInt: "$next_phase" }
-                    }
-                   
-                }
+                    },                 
+                                   }
             }
         ];
         if (getLocationArea !=='all') {
@@ -169,17 +222,47 @@ let YearReportWMS =async(req,res)=>
                 }
             });
         } 
-       
-        getTotal=  await ManagerWSM.aggregate(_getTotal);  
+        if(_getYear !=='all')
+        {
+            _getTotal.unshift({
+                $match: {
+                    $expr: {
+                        $eq: [{ $year: "$installtion_date" },getYear]
+                    }
+                  }
+            });  
+        }  
+        //Sum all Next phase          
+          _getTotalNextPhase=[
+            {
+                $group: {
+                    _id: null,
+                    qtyNextPhase: {
+                        $sum: { $toInt: "$next_phase" }
+                    }              
+                                   }
+            }
+        ];
+        if (getLocationArea !=='all') {
+            _getTotal.unshift({
+                $match: {
+                    location_area: getLocationArea
+                }
+            });
+        }        
+
+        getTotal=  await DetailManagerWSM.aggregate(_getTotal);  
+        getTotalNextPhase=await ManagerWSM.aggregate(_getTotalNextPhase);
         _qtyInstalled = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, getTotal?.[0]?.qtyInstalled ?? 0);    
-        _totalNextPhase = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, getTotal?.[0]?.qtyNextPhase ?? 0);      
+        //coverTotal=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,_qtyInstalled)  
+        _totalNextPhase = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, getTotalNextPhase?.[0]?.qtyNextPhase ?? 0);      
             if ((_getTotalActiveStatus)) {
                 res.json({
                     status: 200,
                     message: 'Get Data Completed!!',
                     data: {
                         getTotal: {
-                            getTotalActiveSumbyYear:getTotalActiveSumbyYear,
+                            TotalActiveSumbyYear:getTotalActiveSumbyYear,
                             TotalActive: _SumActive, 
                             TotalInactive: _SumInactive,  
                             TotalMaintenance: _SumMaintenance,  

@@ -8,7 +8,7 @@ const middlewarePermision = {
             const _id = new ObjectId(getInfoUser._id);
             getRole = await middlewarePermision.getRoles(_id);           
             const _getPermissionGroup = getRole[0].role_permission_group.map(JSON.parse).flat();           
-            requestRouterName = req.route.path;                   
+            requestRouterName = req.route.path;                          
             const isCan = await middlewarePermision.hasPermission(_getPermissionGroup, requestRouterName);
             //console.log(isCan);
             if (isCan) {

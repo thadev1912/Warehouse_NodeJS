@@ -13,6 +13,16 @@ const notifyRealtime=require('../../helper/notifyRealtime');
 let WeldingList = async (req, res) => {
     try {
         const token = req.headers.token;
+        let getYear='';
+        getSelect=req.params.id;
+        if(getSelect === 'all')
+        {
+            getYear='all'
+        }
+        else
+        {
+            getYear=parseInt(getSelect,10);        }
+       
         getCategoriesSim = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await CategoriesSim.find({ use_sim: '0' }));
         getSimPackage = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SimPackage.find());
         getJobSheetCode = req.params.id;      
@@ -58,7 +68,7 @@ let WeldingList = async (req, res) => {
             $match: { jobsheet_code: getJobSheetCode },
         },
     ]));       
-        getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Welding.aggregate([
+        _getData =[
             {
                 $lookup: {
                     from: "jobsheets",
@@ -72,12 +82,40 @@ let WeldingList = async (req, res) => {
                     created: -1 
                 }
             },
-        ]));
+        ];
+        if (getYear !=='all') {
+            _getData.unshift({
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $year: { $dateFromString: { dateString: "$welding_create_date", format: "%m/%d/%Y" } } },
+                            getYear
+                          ]
+                    }
+                  }
+            });
+        }   
+        getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Welding.aggregate( _getData));         
+        getSelectYear=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Welding.aggregate([
+            {
+                $group:{
+                    _id:{$year:{ $dateFromString: { dateString: "$welding_create_date", format: "%m/%d/%Y" } } 
+                    }
+                }
+            },
+            {
+                $project: {
+                  _id: 0,
+                  year: "$_id"
+                }
+              },
+        ]));   
+
         if (getData) {
             return res.json({
                 status:200,
                 success: true,
-                data: getData, getCategoriesSim, getSimPackage, getSim,
+                data: getData, getCategoriesSim, getSimPackage, getSim,getSelectYear,
                 message: 'Get Data Completed'
             });
         }
@@ -477,13 +515,11 @@ let updateWeldingOrder = async (req, res) => {
     }
 }
 
-let checkWelding = async (req, res) => {
-}
 module.exports = {
     WeldingList: WeldingList,
     WeldingListById:WeldingListById,
     showDetailWelding: showDetailWelding,
     approveWeldingOrder: approveWeldingOrder,
     updateWeldingOrder: updateWeldingOrder,
-    checkWelding: checkWelding,
+  
 }

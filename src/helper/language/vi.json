@@ -67,6 +67,7 @@
 	"Save":"Lưu",	
 	"CancelBtn":"Hủy",
 	"CreateBy":"Vừa được tạo bởi",
+	"Search":"Tìm kiếm",
     
     "AddModal":"Thêm mới",
 	"UpdateModal":"Cập nhật",
@@ -243,6 +244,8 @@
 	"Stations":"Trạm",
 	"Area":"Khu vực",
 	"All_area":"Tất cả khu vực",
+	"All_year":"Tất cả năm",
+	"All":"Tất cả ",
 	"Installed":"Đã lắp đặt",
 	"Next_Phase":"Dự kiến lắp đặt",
 	"Station_Lists":"Danh sách các trạm",
@@ -255,6 +258,8 @@
 	"Custormer":"Khách hàng",
 	"Image":"Hình ảnh",
 	"View_Image":"Xem hình ảnh",
+	"Read":"Đã xem ",
+	"Unread":"Chưa xem",
 	"Installation_details":"Chi tiết lắp đặt",
 	"Location":"Vị trí",
 	"Latitude":"Vĩ độ",
@@ -304,6 +309,14 @@
 	"Permission":"Phân quyền",
 	"Permission_Group_Name": "Tên nhóm quyền",
 	"Current_Avatar":"Ảnh hiện tại",
-	"New_Avartar":"Ảnh đại diện mới"
+	"New_Avartar":"Ảnh đại diện mới",
+
+	"API_Route_Manager":"Router API",
+	"Router_path":"Đường dẫn router",
+	"Router_group":"Nhóm router",
+	"Router_code":"Mã router",	
+	"Router_name":"Tên Router"
+
+
 	
 }

@@ -140,7 +140,7 @@ getTotalProductByYear = await cryptJSon.encryptData(token, configCrypt.encryptio
 ]));
     res.json({
       status: 200,
-      message: 'Get Data Completed',
+      message: 'Get Data Completed!!',
       // infoJobSheet,selectDayJobSheet,
       JobSheet: { quantityJobSheet, ProcessingJobSheet, CompletedJobSheet, CancelJobSheet,getTotalJobsheetByYear },
       ProductOrder: { quantityProductOrder, acceptProductOrder, cancelProductOrder, FailProduct,getTotalProductOrderByYear },
@@ -160,7 +160,240 @@ getTotalProductByYear = await cryptJSon.encryptData(token, configCrypt.encryptio
   }
 
 }
+let BarChartReport = async (req, res) => {
+  try {
+    const token = req.headers.token;
+    let infoJobSheet = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.find());
+    let selectDayJobSheet = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([
+      {
+        $group: {
+          _id: { created: '$created' },
+          totalProductQuantity: { $sum: '$product_quantity' },
+        },
+      },
+    ]));
+    if ((infoJobSheet) && (selectDayJobSheet)) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        infoJobSheet, selectDayJobSheet,
+      });
 
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return res.json({
+      status: 500,
+      success: false,
+      error: err.message,
+    });
+
+  }
+}
+let PieChartReport = async (req, res) => {
+  try {
+    const token = req.headers.token;
+    let infoProduct = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Product.find());
+    let infoSemiProduct = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await SemiProduct.find());
+    //Cancel
+    getCancelTotal = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([
+      {
+        $lookup: {
+          from: "products",
+          localField: "jobsheet_code",
+          foreignField: "jobsheet_code",
+          as: "dataProduct"
+        }
+      },
+      {
+        $lookup: {
+          from: "semi_products",
+          localField: "jobsheet_code",
+          foreignField: "jobsheet_code",
+          as: "dataSemiProduct"
+        }
+      },
+      {
+        $project: {
+          dataProduct: {
+            $filter: {
+              input: "$dataProduct",
+              as: "product",
+              cond: { $eq: ["$product.product_status", "10"] }
+            }
+          },
+          dataSemiProduct: {
+            $filter: {
+              input: "$dataSemiProduct",
+              as: "semiProduct",
+              cond: { $eq: ["$semiProduct.semi_product_status", "10"] }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          totalProducts: { $size: "$dataProduct" },
+          totalSemiProducts: { $size: "$dataSemiProduct" }
+        }
+      },
+      {
+        $project: {
+          total: {
+            $add: [
+              "$totalProducts",
+              "$totalSemiProducts"
+            ]
+          }
+        }
+      }
+    ]));
+    //Pass
+    getPassTotal = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([
+      {
+        $lookup: {
+          from: "products",
+          localField: "jobsheet_code",
+          foreignField: "jobsheet_code",
+          as: "dataProduct"
+        }
+      },
+      {
+        $lookup: {
+          from: "semi_products",
+          localField: "jobsheet_code",
+          foreignField: "jobsheet_code",
+          as: "dataSemiProduct"
+        }
+      },
+      {
+        $project: {
+          dataProduct: {
+            $filter: {
+              input: "$dataProduct",
+              as: "product",
+              cond: { $eq: ["$product.product_result", "1"] }
+            }
+          },
+          dataSemiProduct: {
+            $filter: {
+              input: "$dataSemiProduct",
+              as: "semiProduct",
+              cond: { $eq: ["$semiProduct.semi_product_result", "1"] }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          totalProducts: { $size: "$dataProduct" },
+          totalSemiProducts: { $size: "$dataSemiProduct" }
+        }
+      },
+      {
+        $project: {
+          total: {
+            $add: [
+              "$totalProducts",
+              "$totalSemiProducts"
+            ]
+          }
+        }
+      }
+    ]));
+    // Fail
+    getFailTotal = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([
+      {
+        $lookup: {
+          from: "products",
+          localField: "jobsheet_code",
+          foreignField: "jobsheet_code",
+          as: "dataProduct"
+        }
+      },
+      {
+        $lookup: {
+          from: "semi_products",
+          localField: "jobsheet_code",
+          foreignField: "jobsheet_code",
+          as: "dataSemiProduct"
+        }
+      },
+      {
+        $project: {
+          dataProduct: {
+            $filter: {
+              input: "$dataProduct",
+              as: "product",
+              cond: { $eq: ["$product.product_result", "0"] }
+            }
+          },
+          dataSemiProduct: {
+            $filter: {
+              input: "$dataSemiProduct",
+              as: "semiProduct",
+              cond: { $eq: ["$semiProduct.semi_product_result", "0"] }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          totalProducts: { $size: "$dataProduct" },
+          totalSemiProducts: { $size: "$dataSemiProduct" }
+        }
+      },
+      {
+        $project: {
+          total: {
+            $add: [
+              "$totalProducts",
+              "$totalSemiProducts"
+            ]
+          }
+        }
+      }
+    ]));
+    if ((infoProduct) && (infoSemiProduct)) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        infoProduct, infoSemiProduct,
+        PieChart: {
+          getCancelTotal, getPassTotal, getFailTotal
+
+
+        }
+      });
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return res.json({
+      status: 500,
+      success: false,
+      error: err.message,
+    });
+
+  }
+}
 const totalProductOrderByYear = async (req, res) => {
   try {
     const token = req.headers.token;
@@ -189,7 +422,7 @@ const totalProductOrderByYear = async (req, res) => {
     if ((getTotal)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         totalProductOrder: getTotal,
       });
     }
@@ -235,7 +468,7 @@ const totalJobsheetByYear = async (req, res) => {
     if ((getTotal)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         totalJobsheet: getTotal,
       });
     }
@@ -291,7 +524,7 @@ const totalProductByYear = async (req, res) => {
     if ((getTotal)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         totalProduct: getTotal,
       });
     }
@@ -347,7 +580,7 @@ const totalSemiProductByYear = async (req, res) => {
     if ((getTotal)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         totalSemiProduct: getTotal,
       });
     }
@@ -391,7 +624,7 @@ const listJobsheetByYear = async (req, res) => {
     if ((getListJobsheetsByYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getListJobsheetsByYear,
       });
     }
@@ -451,7 +684,7 @@ const listDetailMonthJobsheetbyYear = async (req, res) => {
     if ((getlistDetailMonthbyYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailMonthbyYear,
       });
     }
@@ -499,7 +732,7 @@ const listProductOrderByYear = async (req, res) => {
     if ((getListProductOrderByYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getListProductOrderByYear,
       });
     }
@@ -564,7 +797,7 @@ const listDetailMonthProductOrderbyYear = async (req, res) => {
     if ((getlistDetailMonthProductOrderbyYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailMonthProductOrderbyYear,
       });
     }
@@ -619,7 +852,7 @@ const listSemiProductByYear = async (req, res) => {
     if ((getListSemiProductByYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getListSemiProductByYear,
       });
     }
@@ -688,7 +921,7 @@ const listDetailMonthSemiProductbyYear =async(req,res)=>
     if (getlistDetailMonthSemiProductbyYear) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailMonthSemiProductbyYear,
       });
     }
@@ -742,7 +975,7 @@ const listProductByYear = async (req, res) => {
     if ((getListProductByYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getListProductByYear,
       });
     }
@@ -811,7 +1044,7 @@ const listDetailMonthProductbyYear =async(req,res)=>
     if (getlistDetailMonthProductbyYear) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailMonthProductbyYear,
       });
     }
@@ -866,7 +1099,7 @@ const listDetailProductOrderbyYear = async (req, res) => {
     if ((getlistDetailProductOrderbyYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailProductOrderbyYear,
       });
     }
@@ -913,7 +1146,7 @@ const listDetailJobsheetbyYear = async (req, res) => {
     if ((getlistDetailJobsheetbyYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailJobsheetbyYear,
       });
     }
@@ -972,7 +1205,7 @@ const listDetailSemiProductbyYear =async(req,res)=>
     if (getlistDetailSemiProductbyYear) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailSemiProductbyYear,
       });
     }
@@ -1041,7 +1274,7 @@ const listDetailProductbyYear =async(req,res)=>
     if (getlistDetailProductbyYear) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailProductbyYear,
       });
     }
@@ -1105,7 +1338,7 @@ const listDetailMonthProductOrderTypeByYear =async(req,res)=>
     if ((getlistDetailMonthProductOrderbyYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailMonthProductOrderbyYear,
       });
     }
@@ -1175,7 +1408,7 @@ const listDetailMonthJobsheetTypeByYear =async(req,res)=>
     if ((getlistDetailMonthbyYear)) {
       res.json({
         status: 200,
-        message: 'Get Data Completed',
+        message: 'Get Data Completed!!',
         getlistDetailMonthbyYear,
       });
     }
@@ -1254,7 +1487,7 @@ const listDetailMonthSemiProductTypeByYear =async(req,res)=>
       if (getlistDetailMonthSemiProductbyYear) {
         res.json({
           status: 200,
-          message: 'Get Data Completed',
+          message: 'Get Data Completed!!',
           getlistDetailMonthSemiProductbyYear,
         });
       }
@@ -1333,7 +1566,7 @@ const listDetailMonthProductTypeByYear =async(req,res)=>
       if (getlistDetailMonthProductbyYear) {
         res.json({
           status: 200,
-          message: 'Get Data Completed',
+          message: 'Get Data Completed!!',
           getlistDetailMonthProductbyYear,
         });
       }
@@ -1356,6 +1589,8 @@ const listDetailMonthProductTypeByYear =async(req,res)=>
 }
 module.exports = {
   HeaderReport: HeaderReport,
+  BarChartReport: BarChartReport,
+  PieChartReport: PieChartReport,
   totalProductOrderByYear: totalProductOrderByYear,
   totalJobsheetByYear: totalJobsheetByYear,
   totalProductByYear: totalProductByYear,

@@ -183,8 +183,7 @@ const showSeriSimbyId = async (req, res) => {
     }
 }
 let store = async (req, res) => {
-    try {
-        console.log(req.body);       
+    try {            
         req.body.location_area = req.body.area_id > 100 ? 'JP' : 'VN';
         getProductCode = req.body.product_code;
         isCompleted = true;
@@ -422,8 +421,7 @@ const countActiveStatus = async (req, res) => {
             }
         }
     ]);   
-    const updateManagerWMS = await _countInstalled.map(function (data) {
-        console.log('giá trị data nhận được là',data);  
+    const updateManagerWMS = await _countInstalled.map(function (data) {      
         return ManagerWMS.findOneAndUpdate(
             { area_id: data._id },
             {

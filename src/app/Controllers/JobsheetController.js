@@ -19,16 +19,41 @@ const { paginate1 } = require('../../helper/pagination');
 let index = async (req, res) => {
     try {        
         const token = req.headers.token; 
+        let getYear='';
+        getSelect=req.params.id;
+        if(getSelect === 'all')
+        {
+            getYear='all'
+        }
+        else
+        {
+            getYear=parseInt(getSelect,10);
+        }
+           
         let getproductOrderNo =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find().select('product_order_No'));
         let getproductType =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductType.find());
         let getproductSeries =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductSeries.find());
+        getSelectYear=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate([
+            {
+                $group:{
+                    _id:{$year:"$jobsheet_create_date"
+                    }
+                }
+            },
+            {
+                $project: {
+                  _id: 0,
+                  year: "$_id"
+                }
+              },
+        ]));             
       //  let getData =await cryptJSon.encryptData(token,await JobSheet.find({}));
-      let getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate([
+      let _getData =[
         {
             $addFields: {
                 user_id: {
                     $toObjectId: "$user_id"
-                },
+                },               
             }
         },       
         {
@@ -54,13 +79,23 @@ let index = async (req, res) => {
                 created: -1 
             }
         },
-
-       ]));
+       ];
+       if (getYear !=='all') {
+        _getData.unshift({
+            $match: {
+                $expr: {
+                  $eq: [{ $year: "$jobsheet_create_date" },getYear]
+                }
+              }
+        });
+    }    
+    getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await JobSheet.aggregate( _getData));  
+    
         if (getData) {
             res.json({
                 status: 200,
                 message: 'Get Data Completed',
-                data: getData, getproductOrderNo, getproductType, getproductSeries
+                data:getData, getproductType, getproductSeries,getSelectYear
             });
         }      
         else {

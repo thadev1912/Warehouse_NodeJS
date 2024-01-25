@@ -4,7 +4,7 @@ const Assemble = require('../app/Controllers/AssembleController');
 const validate=require('../request/AssembleRequest');
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
-router.get('/listAssemble',Auth.checkAuth,Permision.checkPermision,Assemble.AssembleList);
+router.get('/listAssemble/:id',Auth.checkAuth,Permision.checkPermision,Assemble.AssembleList);
 router.get('/listByIdAssemble/:id',Auth.checkAuth,Permision.checkPermision,Assemble.AssembleListById);
 router.get('/showDetailAssemble/:id',Auth.checkAuth,Permision.checkPermision,Assemble.showDetailAssemble);
 router.put('/approveOrderAssemble/:id',Auth.checkAuth,Permision.checkPermision,Assemble.approveAssembleOrder);
