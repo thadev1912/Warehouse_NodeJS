@@ -35,6 +35,11 @@ const detail_manager_wms=require('../routes/wms/detail_manager_ims');
 const standard_wms=require('../routes/wms/standard_wms');
 const dashboard_wms=require('../routes/wms/dashboard_wms');
 
+//CM
+const gateway=require('../routes/cm/gateway')
+const awdtube=require('../routes/cm/awdTube')
+const smartbump=require('../routes/cm/smartBump')
+const npkStation=require('../routes/cm/npkStation')
 //Midleware
 const Auth =require('../app/middlewares/authenticatetion');
 const Permision =require('../app/middlewares/authorization');
@@ -71,7 +76,9 @@ app.use('/dashboard-wms',dashboard_wms);
 app.use('/all_router_name',all_router_name);
 app.use('/insertdata',insertdata);
 app.use('/notification',notification);
-
-
+app.use('/gateway',gateway);
+app.use('/awdtube',awdtube);
+app.use('/smartbump',smartbump);
+app.use('/npk-station',npkStation);
 }
 module.exports = route;

@@ -5,6 +5,7 @@ const JobSheet = require('../models/jobsheet');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger');
+const notifyRealtime=require('../../helper/notifyRealtime');
 let index = async (req, res) => {
     try {
         const token = req.headers.token;  
@@ -18,6 +19,16 @@ let index = async (req, res) => {
             getYear=parseInt(getSelect,10);
         }                 
         let _getData = [
+            {
+                $addFields: {
+                  convertedDate: {
+                    $dateFromString: {
+                      dateString: "$quality_control_create_date",
+                      format: "%m/%d/%Y"
+                    }
+                  }
+                }
+              },
             {
                 $lookup: {
                     from: "jobsheets",
@@ -56,7 +67,7 @@ let index = async (req, res) => {
             },
             {
                 $sort: {
-                    created: -1 
+                    convertedDate: -1
                 }
             },
         ];
@@ -86,6 +97,12 @@ let index = async (req, res) => {
                   year: "$_id"
                 }
               },
+              {
+                $sort:
+                {
+                    year:1
+                }
+             } 
         ])); 
         console.log(getSelectYear);  
         if (getData) {
@@ -334,16 +351,15 @@ catch (err) {
 }
 
 let orderQC = async (req, res) => {
-    try {
-    console.log(req.body);
+    try {    
     getJobSheetCode = req.body.jobsheetCode;
     getId = req.body.productId;
-    getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');    
+    getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode });
+   
     getProductionType = getInfo.product_type_code;
-    console.log(getProductionType);
+   
     if ((getProductionType == 'P') || (getProductionType == 'R')) {
-        isCheck = await Product.find({ jobsheet_code: getJobSheetCode }).count();
-        console.log('kiểm tra tồn tại',isCheck); 
+        isCheck = await Product.find({ jobsheet_code: getJobSheetCode }).count();        
         if (isCheck > 0) {
             getProduct = await Product.updateOne({ product_code: getId }, {
                 $set: {
@@ -355,11 +371,17 @@ let orderQC = async (req, res) => {
                 }
             });
             if (getProduct) {
-                setLogger.logOrder(getInfoUser,req);
+               
                 res.json({
                     status: 200,
                     message: 'Get Data Completed',
                 });
+                setLogger.logOrder(getInfoUser,req);
+                _isPermission = await notifyRealtime.hasPermission(getInfoUser._id,6);                
+                if(_isPermission) 
+                {
+                    notifyRealtime.RealtimeUpdateJobsheet(getInfo.jobsheet_code,getInfoUser,getInfo.user_id,6);   
+                }
             }
             else {
                 throw new Error('Error connecting Database on Server');
@@ -368,7 +390,7 @@ let orderQC = async (req, res) => {
     }
     else if ((getProductionType == 'N') || (getProductionType == 'S')) {
         isCheck = await SemiProduct.find({ jobsheet_code: getJobSheetCode }).count();     
-        console.log('kiểm tra tồn tại',isCheck);  
+        
         if (isCheck > 0) {
             getSemiProduct = await SemiProduct.updateOne({ semi_product_lot: getId }, {
                 $set: {
@@ -379,12 +401,18 @@ let orderQC = async (req, res) => {
                     semi_product_status: '7',
                 }
             });
-            if (getSemiProduct) {
-                setLogger.logOrder(getInfoUser,req);
+            if (getSemiProduct) {                
                 res.json({
                     status: 200,
                     message: 'Get Data Completed',
-                });
+                });                
+                setLogger.logOrder(getInfoUser,req);
+                _isPermission = await notifyRealtime.hasPermission(getInfoUser._id,6);                
+                if(_isPermission) 
+                {
+                    notifyRealtime.RealtimeUpdateJobsheet(getInfo.jobsheet_code,getInfoUser,null,6);   
+                }
+               
             }
             else {
                 return res.json({

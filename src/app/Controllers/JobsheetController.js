@@ -46,6 +46,12 @@ let index = async (req, res) => {
                   year: "$_id"
                 }
               },
+             {
+                $sort:
+                {
+                    year:1
+                }
+             } 
         ]));             
       //  let getData =await cryptJSon.encryptData(token,await JobSheet.find({}));
       let _getData =[
@@ -76,7 +82,7 @@ let index = async (req, res) => {
         },
         {
             $sort: {
-                created: -1 
+                jobsheet_create_date: -1 
             }
         },
        ];
@@ -122,8 +128,7 @@ let indexSemiProduct = async (req, res) => {
         const token = req.headers.token;       
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;  
-        const getSearch = req.body.getSearch || null;  
-        console.log(getSearch);   
+        const getSearch = req.body.getSearch || null;         
         let getproductOrderNo =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductOrder.find().select('product_order_No'));
         let getproductType =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductType.find());
         let getproductSeries =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await ProductSeries.find());
@@ -183,7 +188,7 @@ let indexSemiProduct = async (req, res) => {
       }
        result = await paginate1(JobSheet, {}, page, limit,true, pipeline,token); 
        const { getData, totalPages, currentPage, pageSize, totalCount } = result;    
-       console.log(getData);  
+      
         if (getData) {
             res.json({
                 status: 200,
@@ -274,7 +279,7 @@ let indexProduct = async (req, res) => {
                   }
        result = await paginate1(JobSheet, {}, page, limit,true, pipeline,token); 
        const { getData, totalPages, currentPage, pageSize, totalCount } = result;    
-       console.log(getData);  
+      
         if (getData) {
             res.json({
                 status: 200,
@@ -339,11 +344,10 @@ catch (err) {
 }
 let store = async (req, res) => {
     try {
-        const token = req.headers.token;        
-        console.log(req.body);
+        const token = req.headers.token;       
+       
        // const getDateTime = new Date();      
-        const getDateTime = new Date(req.body.jobsheet_create_date);
-        console.log(getDateTime);
+        const getDateTime = new Date(req.body.jobsheet_create_date);       
         const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
         //Rule: 21A02     N    1     R     N     010
         //------------------------------------------------------------------------
@@ -418,15 +422,18 @@ let store = async (req, res) => {
         getJobSheet.jobsheet_status = '0';      
         getData= await getJobSheet.save();   
        
-        if (getData) {
-            //global.io.emit('eventChange','Jobsheet mới vừa được tạo bởi '+ getInfoUser.user);    
-            notifyRealtime.RealtimeCreateJobsheet(mergeCodeJobsheet,getInfoUser);  
-            setLogger.logStore(getInfoUser,req);
+        if (getData) {            
             res.json({
                 status: 200,
                 messege: 'Add new field comleted',
                 //data: getData,
             });
+            setLogger.logStore(getInfoUser,req);
+            _isPermission = await notifyRealtime.hasPermission(getInfoUser._id,5); 
+            if(_isPermission)
+            {
+                notifyRealtime.RealtimeCreateJobsheet(mergeCodeJobsheet,getInfoUser,5);  
+            }           
         }
         else {
             return res.json({
@@ -504,7 +511,7 @@ let edit = async (req, res) => {
 }
 let update = async (req, res) => {
     try {    
-        console.log(req.body);         
+              
         let id = req.params.id;
         let OldJobsheetCode = req.body.jobsheet_code;
         checkId = await JobSheet.findOne({ _id: id });
@@ -517,8 +524,8 @@ let update = async (req, res) => {
         let getQuantity = req.body.product_quantity;
         if (getQuantity) {
             //const getDateTime = new Date();           
-            const getDateTime = new Date(req.body.jobsheet_create_date);           
-            console.log('giá trị ngày nhận được là',getDateTime);
+            const getDateTime = new Date(req.body.jobsheet_create_date);          
+           
             const month = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
             //   Rule: 21A02     N    1     R     N     010
             //------------------------------------------------------------------------
@@ -959,7 +966,7 @@ let cancel = async (req, res) => {
 }
 let OrderExportMaterials = async (req, res) => {
     try {
-      console.log(req.body);
+     
         getId = req.body.arrayProductID;
         getJobSheetCode = req.body.jobsheetCode;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
@@ -1001,7 +1008,7 @@ let OrderExportMaterials = async (req, res) => {
 }
 let ExportMaterials = async (req, res) => {
     try {
-        console.log(req.body);
+       
         getId = req.body.arrayProductID;
         getJobSheetCode = req.body.jobsheetCode;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
@@ -1051,8 +1058,7 @@ let OrderProduct = async (req, res) => {
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
             //create Assemble Collection(Product)
-            isCheckJobsheetCode = await Assemble.findOne({ jobsheet_code: getJobSheetCode }).count();
-            console.log('đếm được là', isCheckJobsheetCode);
+            isCheckJobsheetCode = await Assemble.findOne({ jobsheet_code: getJobSheetCode }).count();           
             let today = new Date();
             dd = String(today.getDate()).padStart(2, '0');
             mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -1083,7 +1089,7 @@ let OrderProduct = async (req, res) => {
                 await SemiProduct.findOneAndUpdate({ semi_product_lot: getId[i] }, { $set: { semi_product_status: '3', semi_product_welding_status: '1' } });
             }
             isCheckJobsheetCode = await Welding.find({ jobsheet_code: getJobSheetCode }).count();
-            console.log('đếm được là', isCheckJobsheetCode);
+           
             if (isCheckJobsheetCode === 0) {
                 getWelding = new Welding({
                     jobsheet_code: getJobSheetCode,
@@ -1134,7 +1140,7 @@ let infoCreatOrderQC = async (req, res) => {
 let OrderQC = async (req, res) => {
     try {
         // Example Generate ............//
-        console.log(req.body);
+       
         let today = new Date();
         dd = String(today.getDate()).padStart(2, '0');
         mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -1156,9 +1162,9 @@ let OrderQC = async (req, res) => {
         getCount = await QualityControl.find({ created: { $gte: start, $lt: end } }).count();
         getCount += 1;
         createQuantity = String(getCount).padStart(3, '0');  
-        console.log('đếm được là:', createQuantity);
+        
         mergeCodeQualityControl = 'QC' + createYear + createMonth + createDay + createTypeQualityControl + createTypeProducttoCheck + createTypeProductGroup + createDepartment + createQuantity;
-        console.log(mergeCodeQualityControl);
+       
         //Data get form body.../
         isCheckStatus = true;
         getQCArray = req.body.arrayProductID;
@@ -1169,9 +1175,9 @@ let OrderQC = async (req, res) => {
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
             //Loop here..........//
             for (let i = 0; i < getQCArray.length; i++) {
-                console.log(i);
+               
                 isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
-                console.log('kiem tra ton tai thành phẩm', isCheckQuantityControl)
+              
                 if (isCheckQuantityControl === 0) {
                     getQualityControl = new QualityControl({
                         quality_control_code: mergeCodeQualityControl,
@@ -1206,10 +1212,8 @@ let OrderQC = async (req, res) => {
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
             //Loop here..........//
             for (let i = 0; i < getQCArray.length; i++) {
-                isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
-                console.log('kiem tra ton tai bán thành phẩm', isCheckQuantityControl)
-                if (isCheckQuantityControl === 0) {
-                    console.log('code thôi!');
+                isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();              
+                if (isCheckQuantityControl === 0) {                  
                     getQualityControl = new QualityControl({
                         quality_control_code: mergeCodeQualityControl,
                         jobsheet_code: getJobSheetCode,
@@ -1250,8 +1254,7 @@ let OrderQC = async (req, res) => {
 }
 let OrderStore = async (req, res) => {
     try {
-        getJobSheetCode = req.body.jobsheetCode;
-        console.log(req.body);
+        getJobSheetCode = req.body.jobsheetCode;       
         getOrderStoreArray = req.body.arrayProductID;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
         getProductionType = getInfo.product_type_code;
@@ -1303,7 +1306,7 @@ let OrderStore = async (req, res) => {
 }
 let Store = async (req, res) => {
     try {
-        console.log(req.body);
+       
         //create Current Day
         let today = new Date();
         dd = String(today.getDate()).padStart(2, '0');
@@ -1311,14 +1314,14 @@ let Store = async (req, res) => {
         yyyy = today.getFullYear();
         CurrentDay = mm + '/' + dd + '/' + yyyy;        
         getJobSheetCode = req.body.jobsheetCode;
-        console.log(req.body);
+        
         getOrderStoreArray = req.body.arrayProductID;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
             for (let i = 0; i < getOrderStoreArray.length; i++) {
                 isCheckWarehoue = await Warehouse.find({ jobsheet_code: getJobSheetCode }).count();
-                console.log('kiem tra ton tai thành phẩm', isCheckWarehoue);
+                
                 if (isCheckWarehoue === 0) {
                     isCheckStoreWareHouse=true;
                     getWarehouse = new Warehouse({
@@ -1347,7 +1350,7 @@ let Store = async (req, res) => {
                     ]
                 }]
             }).count();
-           // console.log('giá trị tồn tại cuối cùng là', isCheckExits);
+          
             if (isCheckExits === 0) {
                 await JobSheet.updateOne({ jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }
@@ -1368,7 +1371,7 @@ let Store = async (req, res) => {
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
             for (let i = 0; i < getOrderStoreArray.length; i++) {
                 isCheckWarehoue = await Warehouse.find({ jobsheet_code: getJobSheetCode }).count();
-               // console.log('kiem tra ton tai bán thành phẩm', isCheckWarehoue);
+              
                 if (isCheckWarehoue === 0) {
                     isCheckStoreWareHouse=true;
                     getWarehouse = new Warehouse({
@@ -1438,8 +1441,7 @@ const countSeriesinDay = async (data, specificDate) => {
     start.setHours(0, 0, 0, 0);
     const end = new Date(specificDate);
     end.setHours(23, 59, 59, 999);
-    const count = await JobSheet.find({ created: { $gte: start, $lt: end }, product_series_code: data }).count();
-  //  console.log("Số lượng bản ghi có product_series_code là", data, "trong ngày", specificDate, "là", count);
+    const count = await JobSheet.find({ created: { $gte: start, $lt: end }, product_series_code: data }).count();  
     return count;      
 }
 

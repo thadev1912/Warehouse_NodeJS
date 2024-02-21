@@ -4,6 +4,8 @@ const Schema = mongoose.Schema
 const RolePermissionSchema = new Schema({ 
     role_permission_name:  { type: String},
     role_permission_group: { type: String},    
+    role_notification_group:[{ type: String }],
+    id_role:{type:String},
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now}
 });

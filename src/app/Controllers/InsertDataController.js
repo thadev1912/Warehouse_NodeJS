@@ -18,8 +18,7 @@ const hanldeOrderProduct = async (req, res) => {
         getJobSheetCode = req.body.jobsheetCode;
         isCompleted=true;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
-        getProductionType = getInfo.product_type_code;
-        console.log(getProductionType);
+        getProductionType = getInfo.product_type_code;       
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
             //create Assemble Collection(Product)
             let today = new Date();
@@ -33,7 +32,7 @@ const hanldeOrderProduct = async (req, res) => {
                 await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: '1' });  
             }    
             isCheckJobsheetCode = await Assemble.findOne({ jobsheet_code: getJobSheetCode }).count();
-            console.log('đếm được là', isCheckJobsheetCode);                        
+                                 
                 if (isCheckJobsheetCode === 0) {
                 getAssemble = new Assemble({
                     jobsheet_code: getJobSheetCode,
@@ -57,7 +56,7 @@ const hanldeOrderProduct = async (req, res) => {
                 await JobSheet.updateMany({ jobsheet_code: getJobSheetCode }, { jobsheet_status: '1' });            
             }                
             isCheckJobsheetCode = await Welding.find({ jobsheet_code: getJobSheetCode }).count();
-            console.log('đếm được là', isCheckJobsheetCode);
+           
             if (isCheckJobsheetCode === 0) {
                 getWelding = new Welding({
                     jobsheet_code: getJobSheetCode,
@@ -161,7 +160,7 @@ const handleOrderQC =async(req,res)=>
 {
     try {
         // Example Generate ............//
-        console.log(req.body);
+       
         getJobSheetCode = req.body.jobsheetCode;
         getUser=req.body.getUser;
         let today = new Date();
@@ -180,21 +179,19 @@ const handleOrderQC =async(req,res)=>
         isCheckStatus = true;
         getQCArray = req.body.arrayProductID;
         getJobSheetCode = req.body.jobsheetCode;
-        const getCode = getJobSheetCode.substring(0,5);
-        console.log('giá trị lấy được là',getCode);
+        const getCode = getJobSheetCode.substring(0,5);       
         // mergeCodeQualityControl=req.body.mergeCodeQualityControl;
-        // mergeCodeQualityControl=req.body.mergeCodeQualityControl;
-        // console.log(mergeCodeQualityControl);
+        // mergeCodeQualityControl=req.body.mergeCodeQualityControl;        
         getUSer = req.body.fullname;
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {
                         //Loop here..........//           
-                console.log(getProductionType);                
+                            
                 isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
-                console.log('kiem tra ton tai thành phẩm', isCheckQuantityControl)
+              
                 if (isCheckQuantityControl === 0) {
-                    console.log('chạy tới đây rồi!!!')
+                  
                     getQualityControl = new QualityControl({
                         quality_control_code: 'QC'+getCode+'TP50R001',
                         jobsheet_code: getJobSheetCode,
@@ -223,10 +220,9 @@ const handleOrderQC =async(req,res)=>
         else if ((getProductionType == 'N') || (getProductionType == 'S')) {
             //Loop here..........// 
                       
-                isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();
-                console.log('kiem tra ton tai bán thành phẩm', isCheckQuantityControl)
+                isCheckQuantityControl = await QualityControl.find({ jobsheet_code: getJobSheetCode }).count();              
                 if (isCheckQuantityControl === 0) {
-                    console.log('code thôi!');
+                   
                     getQualityControl = new QualityControl({
                         quality_control_code: 'QC'+getCode+'TS50R001',
                         jobsheet_code: getJobSheetCode,
@@ -266,14 +262,13 @@ const handleOrderQC =async(req,res)=>
 }
 let handleUpdateQC = async (req, res) => {
     try {
-    console.log(req.body);
+   
     getJobSheetCode = req.body.jobsheetCode;   
     getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');    
-    getProductionType = getInfo.product_type_code;
-    console.log(getProductionType);
+    getProductionType = getInfo.product_type_code;   
     if ((getProductionType == 'P') || (getProductionType == 'R')) {
         isCheck = await Product.find({ jobsheet_code: getJobSheetCode }).count();
-        console.log('kiểm tra tồn tại',isCheck); 
+       
         if (isCheck > 0) {
             getProduct = await Product.updateMany({ jobsheet_code: getJobSheetCode }, {
                 $set: {
@@ -297,7 +292,7 @@ let handleUpdateQC = async (req, res) => {
     }
     else if ((getProductionType == 'N') || (getProductionType == 'S')) {
         isCheck = await SemiProduct.find({ jobsheet_code: getJobSheetCode }).count();     
-        console.log('kiểm tra tồn tại',isCheck);  
+       
         if (isCheck > 0) {
             getSemiProduct = await SemiProduct.updateMany({ jobsheet_code: getJobSheetCode }, {
                 $set: {
@@ -336,7 +331,7 @@ catch (err) {
 }
 let hanldeStoreWarehouse = async (req, res) => {
     try {
-        console.log(req.body);
+       
         //create Current Day
         let today = new Date();
         dd = String(today.getDate()).padStart(2, '0');
@@ -344,12 +339,11 @@ let hanldeStoreWarehouse = async (req, res) => {
         yyyy = today.getFullYear();
         CurrentDay = mm + '/' + dd + '/' + yyyy;        
         getJobSheetCode = req.body.jobsheetCode;
-        console.log(req.body);       
+           
         getInfo = await JobSheet.findOne({ jobsheet_code: getJobSheetCode }).select('product_type_code');
         getProductionType = getInfo.product_type_code;
         if ((getProductionType == 'P') || (getProductionType == 'R')) {           
-                isCheckWarehoue = await Warehouse.find({ jobsheet_code: getJobSheetCode }).count();
-                console.log('kiem tra ton tai thành phẩm', isCheckWarehoue);
+                isCheckWarehoue = await Warehouse.find({ jobsheet_code: getJobSheetCode }).count();              
                 if (isCheckWarehoue === 0) {
                     isCheckStoreWareHouse=true;
                     getWarehouse = new Warehouse({
@@ -375,7 +369,7 @@ let hanldeStoreWarehouse = async (req, res) => {
                     ]
                 }]
             }).count();
-           // console.log('giá trị tồn tại cuối cùng là', isCheckExits);
+         
             if (isCheckExits === 0) {
                 await JobSheet.updateOne({ jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }
@@ -420,7 +414,7 @@ let hanldeStoreWarehouse = async (req, res) => {
                     ]
                 }]
             }).count();
-            console.log('giá trị tồn tại cuối cùng là', isCheckExits);
+           
             if (isCheckExits === 0) {
                 await JobSheet.updateOne({  jobsheet_code:getJobSheetCode }, { jobsheet_status: '2' });
             }

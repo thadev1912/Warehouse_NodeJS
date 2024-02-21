@@ -105,10 +105,11 @@ let index1 = async (req, res) => {
 }
 let store = async (req, res) => {
     try {
-        console.log(req.body);
+        
         console.log(req.area_id);
        // req.body.location_area= req.body.area_id > 100 ? 'JP' : 'VN';
         req.body.location_area =  req.body.area_id > 200 && req.body.area_id <= 299 ? 'TL' :  req.body.area_id > 100 ? 'JP' : 'VN';
+        console.log(req.body);
         console.log(req.files);
         const getArrImage = req.files;
         // reqName = new Date().toISOString().split('T')[0];
@@ -314,7 +315,16 @@ let updateLocationReportIMS = async (req, res) => {
                 $group: {
                     _id: null,
                     totalInstalled: { $sum: { $toInt: "$installed" } },
-                    totalNextPhase: { $sum: { $toInt: "$next_phase" } },
+                    totalNextPhase: { $sum: {$cond: {
+                        if: {
+                            $or: [
+                                { $eq: ["$next_phase", null] }, 
+                                { $eq: ["$next_phase", ""] }  
+                            ]
+                        },
+                        then: 0, 
+                        else: { $toInt: "$next_phase" } 
+                    } } },
                 }
             },
         ]);
@@ -343,6 +353,7 @@ let updateLocationReportIMS = async (req, res) => {
 }
 let updatecountInstalled = async (req, res) => {
     _countInstalled = await ManagerIMS.aggregate([
+       
         {
             $lookup: {
                 from: "detail_manager_imsses",
@@ -355,15 +366,22 @@ let updatecountInstalled = async (req, res) => {
             $unwind: "$details" // Unwind để có thể tính tổng active_status trong từng document của ManagerIMSSchema
         },
         {
+            $addFields: {
+                "details.active_status": {
+                  $cond: [{ $in: [{ $toInt: "$details.active_status" }, [0, 1, 2]] }, 1, 0]
+                }
+              }
+        },
+        {
             $group: {
                 _id: "$area_id",
-                totalActiveStatus: { $sum: { $toInt: "$details.active_status" } }
+                totalActiveStatus: { $sum: "$details.active_status" }                   
             }
         },
         {
             $project: {
                 _id: 1,
-                totalActiveStatus: 1
+                totalActiveStatus:  { $toInt: "$totalActiveStatus" }
             }
         }
     ]);

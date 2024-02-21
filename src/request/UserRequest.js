@@ -58,10 +58,7 @@ const middlewareValidate = {
             email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net','vn'] } }).required().messages({
                 'string.empty': `Email không được bỏ trống`,
                 'string.email': `Email chưa đúng định dạng`,
-            }),
-            role_id: Joi.string().required().messages({
-                'string.empty': `Mã Role không được bỏ trống`,
-            }),
+            }),        
 
             position_id: Joi.string().required().messages({
                 'string.empty': `Mã Chức Vụ không được bỏ trống`,
@@ -75,6 +72,9 @@ const middlewareValidate = {
             avatar: Joi.string().allow(null).allow('').messages({
               //
             }),
+            ArrRoleID: Joi.string().allow(null).allow('').messages({
+                //
+              }),
         });
         const { error } = checkUser.validate(req.body, { abortEarly: false });
         if (error) {

@@ -68,8 +68,7 @@ let index1 = async (req, res) => {
 }
 let create = async (req, res) => {
     try {
-
-     console.log(req.body);
+     
         const getProductGroup = new ProductGroup(req.body);      
         checkId = await ProductGroup.find({ product_group_code:req.body.product_group_code}).count();      
         if (checkId>0) {

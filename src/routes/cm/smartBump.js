@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const smartBump=require('../../app/Controllers/CM/smartBump');
+const Auth =require('../../app/middlewares/authenticatetion');
+router.get('/listsmartBump',Auth.checkAuth,smartBump.index);
+router.post('/storesmartBump',Auth.checkAuth,smartBump.store);
+router.get('/editsmartBump',Auth.checkAuth,smartBump.edit);
+router.put('/updatesmartBump/:id',Auth.checkAuth,smartBump.update);
+router.delete('/deletesmartBump',Auth.checkAuth,smartBump.destroy);
+module.exports = router;

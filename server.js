@@ -21,9 +21,9 @@ const i18n = require('./src/helper/languague');
 const AllRoutersName = require('./src/app/models/all_routes_name');
 const setIvoince = require('./src/helper/setIvoince');
 const runcronJob= require('./src/helper/cronJob');
-const initBot=require('./src/helper/telegram');
-initBot.TelegramService();
-runcronJob();  //Cron auto
+//const initBot=require('./src/helper/telegram');
+//initBot.TelegramService();
+runcronJob.startCronJob();  //Cron auto
 app.use(cors());
 app.use(i18n.init);
 app.disable('x-powered-by');

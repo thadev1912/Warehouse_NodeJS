@@ -5,6 +5,8 @@ const validate=require('../../request/IMS/ManagerIMSRequest');
 const Auth =require('../../app/middlewares/authenticatetion');
 const Permision =require('../../app/middlewares/authorization');
 router.get('/listManagerIMS',Auth.checkAuth,Permision.checkPermision,manager_ims.index);
+router.post('/listbySearchManagerIMS',Auth.checkAuth,manager_ims.ListbySearch);
+router.post('/listbySearchManagerIMS1',Auth.checkAuth,manager_ims.ListbySearch1);
 router.post('/storeManagerIMS',Auth.checkAuth,Permision.checkPermision,validate.checkValidate,manager_ims.store);
 router.put('/updateManagerIMS/:id',Auth.checkAuth,Permision.checkPermision,validate.checkValidate,manager_ims.update);
 router.delete('/deleteManagerIMS/:id',Auth.checkAuth,Permision.checkPermision,manager_ims.destroy);

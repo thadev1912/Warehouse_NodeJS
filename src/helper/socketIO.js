@@ -16,7 +16,7 @@ function initializeSocket(httpServer) {
         });
         socket.on("eventChange", function (data2) {
             console.log(data2)
-            // Thực hiện xử lý hoặc truyền thông tin đến các client khác nếu cần
+           
         });
         socket.on("client-event", function (data3) { // vừa nhận vừa gửi
             console.log(data3)

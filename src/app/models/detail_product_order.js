@@ -6,7 +6,7 @@ const DetailProductOrderSchema = new Schema({
     detail_product_order_name:{type:String},
     detail_product_order_quantity:{type:Number},
     detail_product_order_unit:{type:String},
-    detail_product_order_finish:{type:String},
+    detail_product_order_finish:{type:Date},
     detail_product_order_packing:{type:String},
     detail_product_order_detail:{type:String}, 
     detail_product_order_purpose:{type:String}, 

@@ -160,11 +160,28 @@ let YearReportWMS =async(req,res)=>
                     }
                   }
             });  
-        }   
-        getTotalActiveSumbyYear= await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerWSM.aggregate(_getTotalActiveSumbyYear));     
-      //coverData=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getTotalActiveSumbyYear)        
-        
-         
+        }  
+        getTotalActiveSumbyYear='';
+        if(_getYear ==='all') 
+        {
+            getTotalActiveSumbyYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerWSM.aggregate(_getTotalActiveSumbyYear));
+        } 
+        else
+        {
+            getData=await DetailManagerWSM.aggregate(_getTotalActiveSumbyYear); 
+            const resultObject = {};
+            for (let month = 1; month <= 12; month++) {
+                resultObject[month] = 0;
+            }
+            getData.forEach(item => {
+                resultObject[item._id] = item.SumData;
+            });
+            getTotalActiveSumbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, Object.entries(resultObject).map(([key, value]) => ({ "_id": parseInt(key), "SumData": value })));
+            
+        }              
+       // getTotalActiveSumbyYear= await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerWSM.aggregate(_getTotalActiveSumbyYear));     
+          
+               
                        _getTotalActiveStatus=[
                         {
                             $project: {
@@ -238,7 +255,14 @@ let YearReportWMS =async(req,res)=>
                 $group: {
                     _id: null,
                     qtyNextPhase: {
-                        $sum: { $toInt: "$next_phase" }
+                    //    $sum: { $toInt: "$next_phase" }
+                    $sum: {
+                        $cond: {
+                            if: { $eq: [_getYear, 'all'] },  
+                            then: { $toInt: "$next_phase" },
+                            else: 0 
+                        }
+                    }
                     }              
                                    }
             }
@@ -297,7 +321,7 @@ let HeadersReportWMS =async (req,res)=>
     {
      //Sum all Installed
      const token = req.headers.token;
-     getData =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await DetailManagerWSM.aggregate([
+     getDashboardWMS =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await DetailManagerWSM.aggregate([
         {
             $group: {
                 _id:null,
@@ -323,11 +347,33 @@ let HeadersReportWMS =async (req,res)=>
             }
         }
     ])) ;
+    totalNextPhase =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await ManagerWSM.aggregate([
+        {
+            $group: {
+                _id: null,
+                qty: {
+                  //  $sum: { $toInt: "$next_phase" }
+                  $sum:{
+                    $cond: {
+                        if: {
+                            $or: [
+                                { $eq: ["$next_phase", null] }, 
+                                { $eq: ["$next_phase", ""] }  
+                            ]
+                        },
+                        then: 0, 
+                        else: { $toInt: "$next_phase" } 
+                    }
+                  }
+                }
+            }
+        }
+    ]));   
     if (getData) {
         res.json({
           status: 200,
           message: 'Get Data Completed',
-          getData,
+          getDashboardWMS,totalNextPhase
         });
       }
       else {

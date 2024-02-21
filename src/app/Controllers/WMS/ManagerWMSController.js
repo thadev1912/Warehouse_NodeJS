@@ -83,21 +83,36 @@ let index = async (req, res) => {
 }
 let store = async (req, res) => {
     try {
+        console.log(req.body);
         getAreaId = req.body.area_id;
         location_area = getAreaId > 100 ? 'JP' : 'VN';
         req.body.location_area = location_area;
-        const getManagerWSM = new ManagerWMS(req.body);
-        let getData = await getManagerWSM.save();
-        if (getData) {
-            res.json({
+        checkId=await ManagerWMS.find({area_id:getAreaId}).countDocuments();       
+        if(checkId>0)
+        {
+          res.json({
                 status: 200,
-                messege: 'Add new field completed',
-                //data: getData,
-            });
+                messege: 'Id has been Exits',
+                data:'error',
+               
+            });         
+            
         }
-        else {
-            throw new Error('Error connecting Database on Server');
+        else{
+            const getManagerWSM = new ManagerWMS(req.body);
+            let getData = await getManagerWSM.save();
+            if (getData) {
+                res.json({
+                    status: 200,
+                    messege: 'Add new field completed',
+                    //data: getData,
+                });
+            }
+            else {
+                throw new Error('Error connecting Database on Server');
+            }
         }
+        
     }
     catch (err) {
         console.log(err);

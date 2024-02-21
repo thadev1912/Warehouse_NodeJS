@@ -123,8 +123,8 @@ let index = async (req, res) => {
                     as: "GetSemiProduct",
                 }
             }
-        ]));        
-        coverData = await cryptJSon.decryptData(token, configCrypt.encryptionEnabled, getProduct);
+        ]));       
+       
         _getData = await DetailManagerWMS.aggregate([
             {
                 $match: {
@@ -146,7 +146,7 @@ let index = async (req, res) => {
             res.json({
                 status: 200,
                 message: 'Get Data Completed',
-                data: getData, getProvinceId, getStandard, getCategoriesSim, getProduct, coverData
+                data: getData, getProvinceId, getStandard, getCategoriesSim, getProduct,
             });
         }
         else {

@@ -7,8 +7,7 @@ const NotificationSchema = new Schema({
     action_notification:{type:String},
     type_notification:{type:String},    
     created_by:{type:String},
-    user_id:{type:String},
-    is_read:{type:String,default:0},
+    user_id:{type:String},   
     created: {type: Date, default: Date.now},
     updated: {type: Date, default: Date.now}
 });

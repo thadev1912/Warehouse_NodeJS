@@ -27,4 +27,5 @@ router.get('/listDetailMonthProductOrderTypeByYear/:id',Dashboard.listDetailMont
 router.get('/listDetailMonthJobsheetTypeByYear/:id',Dashboard.listDetailMonthJobsheetTypeByYear);
 router.get('/listDetailMonthSemiProductTypeByYear/:id',Dashboard.listDetailMonthSemiProductTypeByYear);
 router.get('/listDetailMonthProductTypeByYear/:id',Dashboard.listDetailMonthProductTypeByYear);
+router.get('/listYear',Dashboard.ListYear);
 module.exports = router;

@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const awdTube=require('../../app/Controllers/CM/awdTube');
+const Auth =require('../../app/middlewares/authenticatetion');
+router.post('/listAwdTube',Auth.checkAuth,awdTube.index);
+router.post('/storeAwdTube',Auth.checkAuth,awdTube.store);
+router.get('/editAwdTube',Auth.checkAuth,awdTube.edit);
+router.put('/updateAwdTube/:id',Auth.checkAuth,awdTube.update);
+router.delete('/deleteAwdTube',Auth.checkAuth,awdTube.destroy);
+module.exports = router;

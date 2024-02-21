@@ -34,8 +34,7 @@ catch (err) {
 }
 }
 let store = async (req, res) => {
-    try {
-        console.log(req.body);
+    try {      
         const getDetailProductOrder = new DetailProductOrder(req.body);   
         let getData = await getDetailProductOrder.save();         
         if (getData) {
@@ -101,8 +100,7 @@ let update = async (req, res) => {
 }
 let destroy = async (req, res) => {
     try {        
-        let id = req.query.id;
-        console.log(id);
+        let id = req.query.id;      
         getId = await DetailProductOrder.findByIdAndRemove({ _id: id });        
         if (getId) {
             setLogger.logDelete(getInfoUser,req); 

@@ -3,6 +3,7 @@ const UserRole = require('../models/user_role');
 const User = require('../models/user');
 const { ObjectId } = require('mongodb');
 const AllPermission = require('../models/all_routes_name');
+const NotifyType = require('../models/notification_type');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger');
@@ -13,7 +14,7 @@ let listPermissionGroup=async(req,res)=>{   //can show detail Roles
     getId=req.params.id;
     getPermissionGroupById=await RolePermission.findById(getId);
     CovertArrPermissionbyId =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,JSON.parse(getPermissionGroupById.role_permission_group));
-    console.log(CovertArrPermissionbyId);
+   
   if(getPermissionGroupById) {
     res.json({
         status: 200,
@@ -27,7 +28,7 @@ let listPermissionGroup=async(req,res)=>{   //can show detail Roles
         message: 'Error connecting Database on Server'
     });
 }
-    console.log(getPermissionGroupById);
+   
 }
 catch (err) {
     console.log(err);
@@ -43,12 +44,13 @@ let InfotoStore = async (req, res) => {
     try {
     const token = req.headers.token;
     getAllPermission = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await AllPermission.find());
+    getNotifyType=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await NotifyType.find());    
     if (getAllPermission) {
         res.json({
             success: true,
             status: 200,
             message: 'Get Data Completed',
-            data: getAllPermission,
+            data: getAllPermission,getNotifyType
         });
     }
     else {
@@ -71,22 +73,24 @@ catch (err) {
 }
 }
 let storePermisionsGroup = async (req, res) => {
-    try {       
-        getArray = req.body.getArray;
-        getrole_permission_name = req.body.role_permission_name
-        console.log(getArray);
-        const encodedPaths = JSON.stringify(getArray);
-        console.log(encodedPaths);
-        _rolePermission = new RolePermission({
+    try {    
+       
+        getArray = req.body.getArray;       
+        getrole_permission_name = req.body.role_permission_name          
+        const arrPermissionGroup =  JSON.stringify(getArray.filter(value => isNaN(parseInt(value))));      
+        const arrNotifiCationGroup = getArray.filter(value => !isNaN(parseInt(value)));          
+           _rolePermission = new RolePermission({
             role_permission_name: getrole_permission_name,
-            role_permission_group: encodedPaths
+            role_permission_group: arrPermissionGroup,
+            role_notification_group:arrNotifiCationGroup,
+            role_id:'0'
         });
         isComplete = await _rolePermission.save();
         if (isComplete) {
            setLogger.logStore(getInfoUser,req);
            res.json({
             status: 200,
-            messege: 'lưu giá trị thành công',
+            messege: 'Add data completed',
         });
         }
     }
@@ -101,20 +105,33 @@ let storePermisionsGroup = async (req, res) => {
 }
 let InfotoUpdatePermisionsGroup = async (req, res) => {
     try{
-    const token = req.headers.token; 
+    const token = req.headers.token;    
     PermisionsGroupId = new ObjectId(req.params.id);
     getAllRouteName = await AllPermission.find({});
     const getAllRouteNameToJson = JSON.stringify(getAllRouteName.map(permission => ({ permision_group: permission.routes_group,permision_code: permission.routes_code, permision_name: permission.routes_name })));
     const _getAllPermissions = JSON.parse(getAllRouteNameToJson);    
-    getRolePermissionbyId = await RolePermission.findOne({ _id: PermisionsGroupId });
-    getNameRolePermissionbyId=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,getRolePermissionbyId.role_permission_name);
-    const _getPermissionGroupById = JSON.parse(getRolePermissionbyId.role_permission_group);
-    const checkboxStatus =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Promise.all(_getAllPermissions.map(async (permission) => ({
+    getRolePermissionbyId = await RolePermission.findOne({ _id: PermisionsGroupId });  
+    getNameRolePermissionbyId=getRolePermissionbyId.role_permission_name;   
+    const _getPermissionGroupById = JSON.parse(getRolePermissionbyId.role_permission_group);   
+    const _getNotifiCationGroupById=getRolePermissionbyId.role_notification_group;    
+    //gop
+    // const mergPermission = _getPermissionGroupById.reduce((acc, item, index) => {
+    //     if (_getNotifiCationGroupById.includes((index + 1).toString())){
+    //         acc.push(item);
+    //       }
+    //       return acc;
+    //     }, []).concat(_getNotifiCationGroupById);
+    _getNotifiCationGroupById.forEach(item => {           
+        if (!_getPermissionGroupById.includes(item)) {
+            _getPermissionGroupById.push(item);
+        }
+    });     
+    const checkboxStatus =await Promise.all(_getAllPermissions.map(async (permission) => ({
         routes_group:permission.permision_group,
         routes_code: permission.permision_code,
         routes_name: permission.permision_name,
-        checked: await checkPermissionByIdExist(_getPermissionGroupById, permission.permision_code),
-    }))));  
+        checked: await checkPermissionByIdExist(_getPermissionGroupById,permission.permision_code),
+    })));   
       return res.json({
         status:200,
         success: true,
@@ -131,18 +148,18 @@ catch (err) {
 }
 }
 let updatePermisionsGroup = async (req, res) => {
-    try {
-    console.log(req.body);
-    getId = new ObjectId(req.params.id);
-    console.log(getId);
-    getArrayPermissionGroup = req.body.getArray;
-    console.log(getArrayPermissionGroup);
-    const covertJsonPermissions = JSON.stringify(getArrayPermissionGroup);
-    console.log(covertJsonPermissions);
+    try {    
+    getId = new ObjectId(req.params.id);   
+    getArray = req.body.getArray;
+    const arrPermissionGroup =  JSON.stringify(getArray.filter(value => isNaN(parseInt(value))));      
+    const arrNotifiCationGroup = getArray.filter(value => !isNaN(parseInt(value)));          
+   // const covertJsonPermissions = JSON.stringify(getArrayPermissionGroup);        
     _updaterolePermission = new RolePermission({
         _id:getId,
         role_permission_name: req.body.role_permission_name,
-        role_permission_group: covertJsonPermissions,
+        role_permission_group: arrPermissionGroup,
+        role_notification_group:arrNotifiCationGroup,
+
     });
    isCompleted=  await RolePermission.findOneAndUpdate(getId, {$set:_updaterolePermission});
    if (isCompleted) {
@@ -241,14 +258,12 @@ let infotoUpdateUserRole =async(req,res)=>
     let _getRolesbyUser = getRolesbyUser.map(item => item.role_permission_name).flat();
     getListUserRole = await RolePermission.find();
     covertArrListUserRole = JSON.stringify(getListUserRole.map(role => ({ role_id: role._id, role_name: role.role_permission_name })));
-    const _getAllRoles = JSON.parse(covertArrListUserRole);
-    console.log(_getAllRoles);
+    const _getAllRoles = JSON.parse(covertArrListUserRole);    
     const checkboxStatus =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await Promise.all(_getAllRoles.map(async (role) => ({
         role_permission_id: role.role_id,
         role_permission_name: role.role_name,
         checked: await checkRoleByIdExist(_getRolesbyUser, role.role_name),
-    }))));
-    console.log(checkboxStatus);
+    }))));    
         res.json({
             status: 200,
             message: 'Get Data Completed',
@@ -265,14 +280,11 @@ catch (err) {
 }
 }
 let UpdateUserRole = async (req,res) => {
-    try{
-    console.log(req.body);
+    try{    
     getUserId = new ObjectId(req.params.id);
-    getArrayRolesId = req.body.arrayRolesId;
-    console.log(getArrayRolesId);
+    getArrayRolesId = req.body.arrayRolesId;    
     ischeckStatus = true;
-    checkExitsIdUser = await UserRole.findOne({ user_id: getUserId }).count();
-    console.log(checkExitsIdUser);
+    checkExitsIdUser = await UserRole.findOne({ user_id: getUserId }).count();   
     if (checkExitsIdUser > 0) {
         isDeleted = await UserRole.deleteMany({ user_id: getUserId });
         if (isDeleted) {
@@ -350,8 +362,7 @@ let DeleteUserRole = async (res,req) => {
 }
  let DeletePermissionGroup = async (req,res) => {
     try{    
-    getIdPermissionGroup = new ObjectId(req.params.id);
-    console.log(getIdPermissionGroup);
+    getIdPermissionGroup = new ObjectId(req.params.id);   
     isComplete = await RolePermission.deleteOne({ _id: getIdPermissionGroup });
     checkIdRoleUser = await UserRole.find({ role_permission_id: getIdPermissionGroup }).count();
     if (checkIdRoleUser > 0) {

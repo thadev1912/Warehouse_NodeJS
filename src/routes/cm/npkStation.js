@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const npkStation=require('../../app/Controllers/CM/npk_station');
+const Auth =require('../../app/middlewares/authenticatetion');
+router.get('/listNpkStation',Auth.checkAuth,npkStation.index);
+router.post('/storeNpkStation',Auth.checkAuth,npkStation.store);
+router.get('/editNpkStation',Auth.checkAuth,npkStation.edit);
+router.put('/updateNpkStation/:id',Auth.checkAuth,npkStation.update);
+router.delete('/deleteNpkStation',Auth.checkAuth,npkStation.destroy);
+module.exports = router;

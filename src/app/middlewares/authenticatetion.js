@@ -16,7 +16,7 @@ const middlewareAuth = {
                 {
                     return res.json({
                         status: 402,
-                        messege: 'Token invalid or has been expried or invalid',     
+                        message: 'Token invalid or has been expried',     
                     });                  
                 }
             });           
@@ -24,7 +24,7 @@ const middlewareAuth = {
         else {
             return res.json({
                 status: 401,
-                messege: 'Access denied, Please login acccount system.....',     
+                message: 'Access denied, Please login to perform this action',     
             });           
         }
     },   

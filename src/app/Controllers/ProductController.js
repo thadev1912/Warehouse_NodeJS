@@ -60,8 +60,7 @@ let index = async (req, res) => {
 let create = async (req, res) => {
     try {        
         const token = req.headers.token;
-        const getProduct = new Product(req.body);  
-        console.log(req.body); 
+        const getProduct = new Product(req.body);          
       //  getOldSemiProductLot = req.body.old_semi_product_lot;
         getSemiProductLot = req.body.semi_product_lot;
         if(getSemiProductLot)

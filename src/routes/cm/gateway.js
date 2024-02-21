@@ -1,0 +1,10 @@
+var express = require('express');
+var router = express.Router();
+const gateway=require('../../app/Controllers/CM/gateway');
+const Auth =require('../../app/middlewares/authenticatetion');
+router.post('/listGetway',Auth.checkAuth,gateway.index);
+router.post('/storeGetway',Auth.checkAuth,gateway.store);
+router.get('/editGetway',Auth.checkAuth,gateway.edit);
+router.put('/updateGetway/:id',Auth.checkAuth,gateway.update);
+router.delete('/deleteGetway',Auth.checkAuth,gateway.destroy);
+module.exports = router;

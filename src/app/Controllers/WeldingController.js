@@ -23,7 +23,7 @@ let WeldingList = async (req, res) => {
         {
             getYear=parseInt(getSelect,10);        }
        
-        getCategoriesSim = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await CategoriesSim.find({ use_sim: '0' }));
+        getCategoriesSim = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await CategoriesSim.find({ use_sim: '0' }));       
         getSimPackage = await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await SimPackage.find());
         getJobSheetCode = req.params.id;      
        //fix version mongoDB
@@ -109,6 +109,12 @@ let WeldingList = async (req, res) => {
                   year: "$_id"
                 }
               },
+              {
+                $sort:
+                {
+                    year:1
+                }
+             } 
         ]));   
 
         if (getData) {
@@ -396,15 +402,22 @@ let approveWeldingOrder = async (req, res) => {
                 semi_product_assembler: getUser, semi_product_status: '4'
             }
         });       
-        getJobSheetCode = await SemiProduct.findOne({ semi_product_lot: getSemiProductLot });       
+        getJobSheetCode = await SemiProduct.findOne({ semi_product_lot: getSemiProductLot });  
+        console.log('thông tin',getJobSheetCode);    
         await Welding.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { welding_status: 'Đang hàn mạch' })
-        if (isCheck) {
-            setLogger.logAprrove(getInfoUser,req);
-            return res.json({
+        if (isCheck) {           
+         res.json({
                 status:200,
                 success: true,              
                 message: 'Get Data Completed'
-            });
+            });           
+            setLogger.logAprrove(getInfoUser,req);
+            _isPermission = await notifyRealtime.hasPermission(getInfoUser._id,6); 
+            if(_isPermission)
+            {
+                notifyRealtime.RealtimeUpdateJobsheet(getJobSheetCode.jobsheet_code,getInfoUser,null,6);  
+            }
+            
         }
         else {
             return res.json({
@@ -424,8 +437,8 @@ let approveWeldingOrder = async (req, res) => {
     }
 }
 let updateWeldingOrder = async (req, res) => {
-    try {   
-        console.log(req.body);          
+    try {  
+               
         getSemiProductLot = req.params.id;
         getOldSim = req.body.old_sim;
         getNewSim = req.body.categories_sim_id;
@@ -443,9 +456,13 @@ let updateWeldingOrder = async (req, res) => {
                 manage_sim_note: '',
             });          
             await CategoriesSim.findByIdAndUpdate(getOldSim, { use_sim: '0', $set: getCancelCategoriesSim }); 
-            await updateSim.updateStatusSim();           
-            console.log("giá trị sim được cập nhật1"); 
-            await notifyRealtime.RealtimeWarningSim();                                   
+            await updateSim.updateStatusSim();         
+            _isPermission = await notifyRealtime.hasPermission(getInfoUser._id,1); 
+            if(_isPermission)
+            {
+                await notifyRealtime.RealtimeWarningSim(1);   
+            }
+                                           
             await SemiProduct.findOneAndUpdate({ semi_product_lot: getSemiProductLot }, { $set:{semi_product_status:'10',semi_product_assembler:'',categories_sim_id:'',semi_product_assembly_date:''} });      
             isExits=await SemiProduct.findOne({ semi_product_lot: getSemiProductLot}).count();
             if(isExits>0)
@@ -468,8 +485,8 @@ let updateWeldingOrder = async (req, res) => {
                 manage_sim_note: '',
             })
             await CategoriesSim.findByIdAndUpdate(OldId, { use_sim: '0', $set: getClearCategoriesSim });      
-            await updateSim.updateStatusSim();     
-           console.log("giá trị sim được cập nhật2");
+            await updateSim.updateStatusSim();    
+          
          // await countWarningSim.countWarningSim();          
         }            
         if (getNewSim) {
@@ -484,9 +501,13 @@ let updateWeldingOrder = async (req, res) => {
                 manage_sim_note: req.body.semi_product_note,
             });
             await CategoriesSim.findByIdAndUpdate(getId, { use_sim: '1', $set: getUpdateCategoriesSim }); 
-            await updateSim.updateStatusSim();    
-           console.log("giá trị sim được cập nhật3");
-           await notifyRealtime.RealtimeWarningSim();          
+            await updateSim.updateStatusSim();   
+          
+           _isPermission = await notifyRealtime.hasPermission(getInfoUser._id,1); 
+           if(_isPermission)
+           {
+               await notifyRealtime.RealtimeWarningSim(1);   
+           }   
         }
         await QualityControl.findOneAndUpdate({ jobsheet_code: InfoSemiProduct.jobsheet_code }, { quality_control_status: 'Đang hàn mạch' });
         if (getData) {

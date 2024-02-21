@@ -29,8 +29,7 @@ let index = async (req, res) => {
     }
 }
 let create = async (req, res) => {
-    try {
-        console.log(req.body);
+    try {       
         const getAllRouterName = new AllRouterName(req.body);  
        
         let getData = await getAllRouterName.save();       
@@ -63,8 +62,7 @@ let create = async (req, res) => {
 
 let edit = async (req, res) => {
     try {       
-        id = req.params.id;
-        console.log(id);
+        id = req.params.id;       
         getId = await AllRouterName.find({ _id:id });       
         if (getId) {
             return res.json({

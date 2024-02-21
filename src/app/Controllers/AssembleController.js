@@ -7,6 +7,7 @@ const SimPackage = require('../models/sim_packages');
 const cryptJSon = require('../../helper/cryptJSon');
 const configCrypt = require('../../../config/cryptJson');
 const setLogger = require('../../helper/setLogger');
+const notifyRealtime=require('../../helper/notifyRealtime');
 let AssembleList = async (req, res) => {
     try {                
         const token = req.headers.token; 
@@ -61,8 +62,13 @@ let AssembleList = async (req, res) => {
                   year: "$_id"
                 }
               },
-        ])); 
-        console.log(getSelectYear);
+              {
+                $sort:
+                {
+                    year:1
+                }
+             } 
+        ]));        
         if (getData) {
              res.json({
                 status:200,
@@ -332,8 +338,7 @@ let showDetailAssemble = async (req, res) => {
 let approveAssembleOrder = async (req, res) => {
     try {
         getUser = req.body.fullname;
-        getProductCode = req.params.id;
-        console.log(getProductCode);
+        getProductCode = req.params.id;       
         isCheck = await Product.updateOne({ product_code: getProductCode }, {
             $set: {
                 product_assembler: getUser, product_status: '4'
@@ -341,13 +346,20 @@ let approveAssembleOrder = async (req, res) => {
         });
         getJobSheetCode = await Product.findOne({ product_code: getProductCode });       
         await Assemble.findOneAndUpdate({ jobsheet_code: getJobSheetCode.jobsheet_code }, { assemble_status: 'Đang lắp ráp' });
-        if (isCheck) {
-            setLogger.logAprrove(getInfoUser,req); 
-            return res.json({
+        if (isCheck) {          
+             res.json({
                 status:200,
                 success: true,               
                 message: 'Get Data Completed'
             });
+            setLogger.logAprrove(getInfoUser,req); 
+            _isPermission = await notifyRealtime.hasPermission(getInfoUser._id,6); 
+            if(_isPermission)
+            {
+                notifyRealtime.RealtimeUpdateJobsheet(getJobSheetCode.jobsheet_code,getInfoUser,null,6);  
+            }
+            
+           
         }
         else {
             return res.json({
@@ -383,8 +395,7 @@ let infotoUpdate = async (req, res) => {
             {
                 $match: { semi_product_lot: getIdLotSemiProduct.semi_product_lot }
             }
-        ]);
-        console.log(getIdLotSemiProduct);
+        ]);      
         getData = await Product.aggregate([
             {
                 $lookup: {
@@ -425,9 +436,7 @@ let infotoUpdate = async (req, res) => {
     }
 }
 let updateAssembleOrder = async (req, res) => {
-    try {
-        console.log(req.body);
-        console.log('giá trị params',req.params.id);
+    try {       
         getProductCode = req.params.id;
         getOldSemiProductLot = req.body.old_semi_product_lot;
         getSemiProductLot = req.body.semi_product_lot;

@@ -1,7 +1,7 @@
 
 const nodeMailer = require('nodemailer')
-const adminEmail = 'tha.thach@rynantech.com'
-const adminPassword = 'Khongcopass'
+const adminEmail = 'rynanmanage@rynantech.com'
+const adminPassword = 'RynanManage@2023'
 const mailHost = 'c22605.sgvps.net'
 const mailPort = 587
 const sendMail = (to, subject, htmlContent) => {

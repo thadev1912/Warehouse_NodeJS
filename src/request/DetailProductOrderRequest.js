@@ -15,7 +15,7 @@ const middlewareValidate = {
       detail_product_order_unit: Joi.string().allow(null).allow('').messages({  
                
       }),  
-      detail_product_order_finish: Joi.string().allow(null).allow('').messages({  
+      detail_product_order_finish: Joi.Date().allow(null).allow('').messages({  
            
       }),  
       detail_product_order_packing: Joi.string().allow(null).allow('').messages({  

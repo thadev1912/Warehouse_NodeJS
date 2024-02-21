@@ -15,7 +15,20 @@ let LocationReportIMS = async (req, res) => {
                 $group: {
                     _id: null,
                     totalInstalled: { $sum: { $toInt: "$installed" } },
-                    totalNextPhase: { $sum: { $toInt: "$next_phase" } },
+                    totalNextPhase: {
+                        $sum: {
+                            $cond: {
+                                if: {
+                                    $or: [
+                                        { $eq: ["$next_phase", null] }, 
+                                        { $eq: ["$next_phase", ""] }  
+                                    ]
+                                },
+                                then: 0, 
+                                else: { $toInt: "$next_phase" } 
+                            }
+                        }
+                        }
                 }
             },
         ]);        
@@ -136,10 +149,29 @@ let YearReportIMS = async (req, res) => {
                     }
                   }
             });  
-        }   
-     getTotalInstalledSumbyYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerISM.aggregate(_getTotalInstalledSumbyYear)); 
-    
-     coverData=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getTotalInstalledSumbyYear)       
+        }
+        getTotalInstalledSumbyYear='';
+        if(_getYear ==='all') 
+        {
+            getTotalInstalledSumbyYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerISM.aggregate(_getTotalInstalledSumbyYear));
+        } 
+        else
+        {
+            getData=await DetailManagerISM.aggregate(_getTotalInstalledSumbyYear); 
+           // console.log(getData);
+            const resultObject = {};
+            for (let month = 1; month <= 12; month++) {
+                resultObject[month] = 0;
+            }
+            getData.forEach(item => {
+                resultObject[item._id] = item.SumData;
+            });
+            //console.log('giá trị object',resultObject)
+            getTotalInstalledSumbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, Object.entries(resultObject).map(([key, value]) => ({ "_id": parseInt(key), "SumData": value })));
+            
+        }
+              
+     
         //Sum all Installed
         _getTotalInstalled=[
             {
@@ -175,7 +207,24 @@ let YearReportIMS = async (req, res) => {
                 $group: {
                     _id: null,
                     qty: {
-                        $sum: { $toInt: "$next_phase" }
+                       // $sum: { $toInt: "$next_phase" }
+                       $sum: {
+                        $cond: {
+                            if: { $eq: [_getYear, 'all'] },  // Kiểm tra điều kiện _getYear !== 'all'
+                           // then: { $toInt: "$next_phase" },
+                           then:{ $cond: {
+                            if: {
+                                $or: [
+                                    { $eq: ["$next_phase", null] }, 
+                                    { $eq: ["$next_phase", ""] }  
+                                ]
+                            },
+                            then: 0, 
+                            else: { $toInt: "$next_phase" } 
+                        }},
+                            else: 0  // Gán giá trị 0 nếu _getYear !== 'all'
+                        }
+                    }
                     }
                 }
             }
@@ -187,16 +236,16 @@ let YearReportIMS = async (req, res) => {
                 }
             });
         } 
-        if(_getYear !=='all')
-        {
-            _getTotalNextPhase.unshift({
-                $match: {
-                    $expr: {
-                        $eq: [{ $year: "$installtion_date" },getYear]
-                    }
-                  }
-            });  
-        }   
+        // if(_getYear !=='all')
+        // {
+        //     _getTotalNextPhase.unshift({
+        //         $match: {
+        //             $expr: {
+        //                 $eq: [{ $year: "$installtion_date" },getYear]
+        //             }
+        //           }
+        //     });  
+        // }   
         getTotalNextPhase=  await ManagerISM.aggregate(_getTotalNextPhase);        
         _totalNextPhase = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, getTotalNextPhase?.[0]?.qty ?? 0);
         if ((getTotalInstalledSumbyYear)&&(getTotalInstalled) && (getTotalNextPhase)) {
@@ -205,7 +254,7 @@ let YearReportIMS = async (req, res) => {
                 message: 'Get Data Completed!!',
                 data: {
                     getTotal: {
-                        totalInstalledByYear: getTotalInstalledSumbyYear,coverData,
+                        totalInstalledByYear: getTotalInstalledSumbyYear,
                         SumInstalled: _SumInstalled,
                         totalNextPhase: _totalNextPhase,
 
@@ -252,7 +301,19 @@ let HeadersReportIMS = async (req, res) => {
             $group: {
                 _id: null,
                 qty: {
-                    $sum: { $toInt: "$next_phase" }
+                  //  $sum: { $toInt: "$next_phase" }
+                  $sum:{
+                    $cond: {
+                        if: {
+                            $or: [
+                                { $eq: ["$next_phase", null] }, 
+                                { $eq: ["$next_phase", ""] }  
+                            ]
+                        },
+                        then: 0, 
+                        else: { $toInt: "$next_phase" } 
+                    }
+                  }
                 }
             }
         }
@@ -262,14 +323,15 @@ let HeadersReportIMS = async (req, res) => {
     getLocationJaPan = await ManagerISM.aggregate([
         {
             $match: {
-                location_area: 'JP'
+               // location_area: 'JP'
+               location_area: { $ne: 'VN' }
             }
         },
         {
             $group: {
                 _id: null,
                 qty: {
-                    $sum: { $toInt: "$installed" }
+                   $sum: { $toInt: "$installed" }
                 }
             }
         },
@@ -292,6 +354,29 @@ let HeadersReportIMS = async (req, res) => {
         },
     ]);
     _getLocationVietNam = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, getLocationVietNam?.[0]?.qty ?? 0);
+    //Total maintenance
+    totalStatus= await DetailManagerISM.aggregate([
+        
+            {
+                $project: {  
+                    active: { $eq: [{ $toInt: "$active_status" }, 1] },  
+                    inactive: { $eq: [{ $toInt: "$active_status" }, 0] },              
+                    maintenance: { $eq: [{ $toInt: "$active_status" }, 2] }
+                }
+              },               
+    {
+        $group: {
+          _id: null,    
+          qtyActive: { $sum: { $cond: [{ $eq: ["$active", true] }, 1, 0] } },
+          qtyinactive: { $sum: { $cond: [{ $eq: ["$inactive", true] }, 1, 0] } },                        
+          qtyMaintenance: { $sum: { $cond: [{ $eq: ["$maintenance", true] }, 1, 0] } }
+        }
+      }
+    ]);
+    _totalActive =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,totalStatus?.[0]?.qtyActive ?? 0);
+    _totalInactive =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,totalStatus?.[0]?.qtyinactive ?? 0);
+    _totalmaintenance =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,totalStatus?.[0]?.qtyMaintenance ?? 0);
+    console.log(_totalmaintenance);
     if ((getTotalInstalled) && (getTotalNextPhase)) {
         res.json({
             status: 200,
@@ -301,7 +386,10 @@ let HeadersReportIMS = async (req, res) => {
                     SumInstalled: _SumInstalled,
                     totalNextPhase: _totalNextPhase,
                     getLocationJaPan: _getLocationJaPan,
-                    getLocationVietNam: _getLocationVietNam
+                    getLocationVietNam: _getLocationVietNam,
+                    totalActive:_totalActive,
+                    totalInactive:_totalInactive,
+                    totalMaintenance:_totalmaintenance
                 }
             },
         });

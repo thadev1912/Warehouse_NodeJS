@@ -2,10 +2,10 @@
 const TelegramBot = require('node-telegram-bot-api');
 const Cookies = require('cookies');
 const axios = require('axios');
-const bot = new TelegramBot('6412939057:AAF1QkPIoLKmud84ah4M9z7z2bi3-0ZbY-k', { polling: true });
+//const bot = new TelegramBot('6412939057:AAF1QkPIoLKmud84ah4M9z7z2bi3-0ZbY-k', { polling: true });
 const userStates = new Map();
 const welcomedUsers = new Set();
-const groupId = -4168858450;  //nhóm 2 người
+//const groupId = -4168858450;  //nhóm 2 người
 const TelegramService = async () => {   
     // Bắt đầu lắng nghe sự kiện từ Telegram
     bot.on('polling_error', (error) => {

@@ -87,9 +87,8 @@ let index = async (req, res) => {
 }
 let create = async (req, res) => {
     try {  
-        console.log(req.body);      
-        const getSemiProduct = new SemiProduct(req.body);
-        console.log(getSemiProduct._id.toString());
+          
+        const getSemiProduct = new SemiProduct(req.body);       
         getNha=getSemiProduct._id.toString();
         getSemiProduct.semi_product_used='0';
         let getIdSim = req.body.categories_sim_id;        
@@ -105,7 +104,7 @@ let create = async (req, res) => {
                   
         })
        
-        console.log('giá trị info nhận được là',PassInfo);        
+           
         updateData = await CategoriesSim.findByIdAndUpdate(getIdSim, { $set: PassInfo, use_sim: '1' });
         let getData = await getSemiProduct.save();
         await updateSim.updateStatusSim();
@@ -171,7 +170,7 @@ let edit = async (req, res) => {
 }
 const update = async (req, res) => {
     try {     
-        console.log(req.body); 
+        
         const id = req.params.id;
         const newSemiProductData = req.body;
         const oldSemiProductId = newSemiProductData.old_semi_product_id;        
@@ -239,8 +238,7 @@ const update = async (req, res) => {
 }
 const destroy = async (req, res) => {
     try {
-        let id = req.query.id;
-        console.log(id);       
+        let id = req.query.id;         
         const semiProduct = await SemiProduct.findById(id);
         if (!semiProduct) {
             return res.json({

@@ -397,7 +397,7 @@ let PieChartReport = async (req, res) => {
 const totalProductOrderByYear = async (req, res) => {
   try {
     const token = req.headers.token;
-    getTotal = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await ProductOrder.aggregate([
+    getTotalProductOrder = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await ProductOrder.aggregate([
       {
         $addFields: {
           production_order_create: { $toDate: "$production_order_create" }
@@ -419,11 +419,38 @@ const totalProductOrderByYear = async (req, res) => {
         $sort: { _id: 1 }
       }
     ]));
-    if ((getTotal)) {
+    
+ getSelectYear=await ProductOrder.aggregate([
+  {
+    $addFields: {
+      production_order_create: { $toDate: "$production_order_create" }
+    }
+  },
+  {
+      $group:{
+          _id:{$year:"$production_order_create"
+          }
+      }
+  },
+  {
+      $project: {
+        _id: 0,
+        year: "$_id"
+      }
+    },
+  {
+      $sort:{
+          year:1
+      }
+  }
+]);       
+
+   
+    if ((getTotalProductOrder)) {
       res.json({
         status: 200,
         message: 'Get Data Completed!!',
-        totalProductOrder: getTotal,
+        totalProductOrder: getTotalProductOrder,getSelectYear
       });
     }
     else {
@@ -465,6 +492,7 @@ const totalJobsheetByYear = async (req, res) => {
         $sort: { _id: 1 }
       }
     ]));
+
     if ((getTotal)) {
       res.json({
         status: 200,
@@ -649,7 +677,7 @@ const listDetailMonthJobsheetbyYear = async (req, res) => {
   try {
     const token = req.headers.token;
     getYear = req.params.id;
-    getlistDetailMonthbyYear = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([
+    _getlistDetailMonthbyYear = await JobSheet.aggregate([
       {
         $match: {
           jobsheet_create_date: {
@@ -680,7 +708,30 @@ const listDetailMonthJobsheetbyYear = async (req, res) => {
       {
         $sort: { _id: 1 }
       }
-    ]));
+    ]);
+   // console.log('giá trị đầu vào',getlistDetailMonthbyYear);
+    const resultObject = {};
+    for (let month = 1; month <= 12; month++) {
+      resultObject[month] = { count: 0, createNewJobSheet: 0, processingJobSheet: 0, completedJobSheet: 0, cancelJobSheet: 0 };
+    } 
+    // Gán số lượng công việc tương ứng với tháng vào object
+    _getlistDetailMonthbyYear.forEach(item => {
+      const month = item._id;
+      resultObject[month].count = item.count;
+      resultObject[month].createNewJobSheet = item.createNewJobSheet;
+      resultObject[month].processingJobSheet = item.processingJobSheet;
+      resultObject[month].completedJobSheet = item.completedJobSheet;
+      resultObject[month].cancelJobSheet = item.cancelJobSheet;
+    });
+    const getlistDetailMonthbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  Object.values(resultObject).map((item, index) => ({
+      _id: index + 1,
+      count: item.count,
+      createNewJobSheet: item.createNewJobSheet,
+      processingJobSheet: item.processingJobSheet,
+      completedJobSheet: item.completedJobSheet,
+      cancelJobSheet: item.cancelJobSheet,
+    })));
+   
     if ((getlistDetailMonthbyYear)) {
       res.json({
         status: 200,
@@ -757,7 +808,7 @@ const listDetailMonthProductOrderbyYear = async (req, res) => {
   try {
     const token = req.headers.token;
     getYear = req.params.id;
-    getlistDetailMonthProductOrderbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await ProductOrder.aggregate([
+    _getlistDetailMonthProductOrderbyYear =await ProductOrder.aggregate([
       {
         $addFields: {
           production_order_create: { $toDate: "$production_order_create" },         
@@ -792,8 +843,27 @@ const listDetailMonthProductOrderbyYear = async (req, res) => {
       {
         $sort: { _id: 1 }
       }
-    ]));
-        
+    ]);
+    console.log('giá trị đầu vào',_getlistDetailMonthProductOrderbyYear);
+    const resultObject = {};
+    for (let month = 1; month <= 12; month++) {
+      resultObject[month] = { count: 0, createNewProductOrder: 0, acceptProductOrder: 0, cancelProductOrder: 0};
+    } 
+    // Gán số lượng công việc tương ứng với tháng vào object
+    _getlistDetailMonthProductOrderbyYear.forEach(item => {
+      const month = item._id;
+      resultObject[month].count = item.count;
+      resultObject[month].createNewProductOrder = item.createNewProductOrder;
+      resultObject[month].acceptProductOrder = item.acceptProductOrder;
+      resultObject[month].cancelProductOrder = item.cancelProductOrder;     
+    }); 
+    const getlistDetailMonthProductOrderbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  Object.values(resultObject).map((item, index) => ({
+      _id: index + 1,
+      count: item.count,
+      createNewProductOrder: item.createNewProductOrder,
+      acceptProductOrder: item.acceptProductOrder,
+      cancelProductOrder: item.cancelProductOrder,      
+    })));  
     if ((getlistDetailMonthProductOrderbyYear)) {
       res.json({
         status: 200,
@@ -878,7 +948,7 @@ const listDetailMonthSemiProductbyYear =async(req,res)=>
   try {
     const token = req.headers.token;     
     getYear=req.params.id;
-    getlistDetailMonthSemiProductbyYear = await SemiProduct.aggregate([  
+    _getlistDetailMonthSemiProductbyYear = await SemiProduct.aggregate([  
       {
         $lookup: {
           from: "jobsheets",
@@ -918,6 +988,25 @@ const listDetailMonthSemiProductbyYear =async(req,res)=>
         $sort: { _id: 1 }
       },    
     ]);
+ // console.log('giá trị đầu vào',getlistDetailMonthbyYear);
+ const resultObject = {};
+ for (let month = 1; month <= 12; month++) {
+   resultObject[month] = { count: 0, passSemiProduct: 0, failSemiProduct: 0};
+ } 
+ // Gán số lượng công việc tương ứng với tháng vào object
+ _getlistDetailMonthSemiProductbyYear.forEach(item => {
+   const month = item._id;
+   resultObject[month].count = item.count;
+   resultObject[month].passSemiProduct = item.passSemiProduct;
+   resultObject[month].failSemiProduct = item.failSemiProduct;  
+ });
+ const getlistDetailMonthSemiProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  Object.values(resultObject).map((item, index) => ({
+  _id: index + 1,
+  count: item.count,
+  passSemiProduct: item.passSemiProduct,
+  failSemiProduct: item.failSemiProduct, 
+})));
+covertData=await cryptJSon.decryptData(token, configCrypt.encryptionEnabled,getlistDetailMonthSemiProductbyYear);
     if (getlistDetailMonthSemiProductbyYear) {
       res.json({
         status: 200,
@@ -1001,7 +1090,7 @@ const listDetailMonthProductbyYear =async(req,res)=>
   try {
     const token = req.headers.token;     
     getYear=req.params.id;
-    getlistDetailMonthProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await Product.aggregate([  
+    _getlistDetailMonthProductbyYear = await Product.aggregate([  
       {
         $lookup: {
           from: "jobsheets",
@@ -1040,7 +1129,26 @@ const listDetailMonthProductbyYear =async(req,res)=>
       {
         $sort: { _id: 1 }
       },    
-    ]));
+    ]);
+  // console.log('giá trị đầu vào',getlistDetailMonthbyYear);
+  const resultObject = {};
+  for (let month = 1; month <= 12; month++) {
+    resultObject[month] = { count: 0, passProduct: 0, failProduct: 0,  };
+  } 
+  // Gán số lượng công việc tương ứng với tháng vào object
+  _getlistDetailMonthProductbyYear.forEach(item => {
+    const month = item._id;
+    resultObject[month].count = item.count;
+    resultObject[month].passProduct = item.passProduct;
+    resultObject[month].failProduct = item.failProduct;   
+  });
+  const getlistDetailMonthProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  Object.values(resultObject).map((item, index) => ({
+    _id: index + 1,
+    count: item.count,
+    passProduct: item.passProduct,
+    failProduct: item.failProduct,   
+  })));
+  coverData=await cryptJSon.decryptData(token, configCrypt.encryptionEnabled,getlistDetailMonthProductbyYear) 
     if (getlistDetailMonthProductbyYear) {
       res.json({
         status: 200,
@@ -1300,7 +1408,7 @@ const listDetailMonthProductOrderTypeByYear =async(req,res)=>
   try {
     const token = req.headers.token;
     getYear = req.params.id;
-    getlistDetailMonthProductOrderbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await ProductOrder.aggregate([
+    _getlistDetailMonthProductOrderbyYear =await ProductOrder.aggregate([
       {
         $addFields: {
           production_order_create: { $toDate: "$production_order_create" },         
@@ -1333,8 +1441,25 @@ const listDetailMonthProductOrderTypeByYear =async(req,res)=>
       {
         $sort: { _id: 1 }
       }
-    ]));
-        
+    ]);
+     // console.log('giá trị đầu vào',getlistDetailMonthbyYear);
+     const resultObject = {};
+     for (let month = 1; month <= 12; month++) {
+       resultObject[month] = { count: 0, totalSemiProduct: 0, totalProduct: 0 };
+     } 
+     // Gán số lượng công việc tương ứng với tháng vào object
+     _getlistDetailMonthProductOrderbyYear.forEach(item => {
+       const month = item._id;
+       resultObject[month].count = item.count;
+       resultObject[month].totalSemiProduct= item.totalSemiProduct;
+       resultObject[month].totalProduct = item.totalProduct;      
+     });
+     const getlistDetailMonthProductOrderbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  Object.values(resultObject).map((item, index) => ({
+      _id: index + 1,
+      count: item.count,
+      totalSemiProduct: item.totalSemiProduct,
+      totalProduct: item.totalProduct,
+         })));
     if ((getlistDetailMonthProductOrderbyYear)) {
       res.json({
         status: 200,
@@ -1364,7 +1489,7 @@ const listDetailMonthJobsheetTypeByYear =async(req,res)=>
   try {
     const token = req.headers.token;
     getYear = req.params.id;
-    getlistDetailMonthbyYear = await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([
+    _getlistDetailMonthbyYear = await JobSheet.aggregate([
       {
         $match: {
           jobsheet_create_date: {
@@ -1404,7 +1529,25 @@ const listDetailMonthJobsheetTypeByYear =async(req,res)=>
       {
         $sort: { _id: 1 }
       }
-    ]));
+    ]);
+    // console.log('giá trị đầu vào',getlistDetailMonthbyYear);
+    const resultObject = {};
+    for (let month = 1; month <= 12; month++) {
+      resultObject[month] = { count: 0, SemiProduct: 0, Product: 0};
+    } 
+    // Gán số lượng công việc tương ứng với tháng vào object
+    _getlistDetailMonthbyYear.forEach(item => {
+      const month = item._id;
+      resultObject[month].count = item.count;
+      resultObject[month].SemiProduct = item.SemiProduct;
+      resultObject[month].Product = item.Product;     
+    });
+    const getlistDetailMonthbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  Object.values(resultObject).map((item, index) => ({
+      _id: index + 1,
+      count: item.count,
+      SemiProduct: item.SemiProduct,
+      Product: item.Product,     
+    })));
     if ((getlistDetailMonthbyYear)) {
       res.json({
         status: 200,
@@ -1435,7 +1578,7 @@ const listDetailMonthSemiProductTypeByYear =async(req,res)=>
     try {
       const token = req.headers.token;     
       getYear=req.params.id;
-      getlistDetailMonthSemiProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([ 
+      _getlistDetailMonthSemiProductbyYear =await JobSheet.aggregate([ 
         {
            $match:{
             $or:[
@@ -1483,7 +1626,26 @@ const listDetailMonthSemiProductTypeByYear =async(req,res)=>
         {
           $sort: { _id: 1 }
         },    
-      ]));
+      ]);
+      // console.log('giá trị đầu vào',getlistDetailMonthbyYear);
+    const resultObject = {};
+    for (let month = 1; month <= 12; month++) {
+      resultObject[month] = { count: 0, RDProduct: 0, SXProduct: 0};
+    } 
+    // Gán số lượng công việc tương ứng với tháng vào object
+    _getlistDetailMonthSemiProductbyYear.forEach(item => {
+      const month = item._id;
+      resultObject[month].count = item.count;
+      resultObject[month].RDProduct = item.RDProduct;
+      resultObject[month].SXProduct = item.SXProduct;
+     
+    });
+    const getlistDetailMonthSemiProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  Object.values(resultObject).map((item, index) => ({
+      _id: index + 1,
+      count: item.count,
+      RDProduct : item.RDProduct ,
+      SXProduct: item.SXProduct,      
+    })));
       if (getlistDetailMonthSemiProductbyYear) {
         res.json({
           status: 200,
@@ -1514,7 +1676,7 @@ const listDetailMonthProductTypeByYear =async(req,res)=>
     try {
       const token = req.headers.token;     
       getYear=req.params.id;
-      getlistDetailMonthProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled, await JobSheet.aggregate([ 
+      _getlistDetailMonthProductbyYear = await JobSheet.aggregate([ 
         {
            $match:{
             $or:[
@@ -1562,7 +1724,25 @@ const listDetailMonthProductTypeByYear =async(req,res)=>
         {
           $sort: { _id: 1 }
         },    
-      ]));
+      ]);
+         // console.log('giá trị đầu vào',getlistDetailMonthbyYear);
+    const resultObject = {};
+    for (let month = 1; month <= 12; month++) {
+      resultObject[month] = { count: 0, RDProduct: 0,  SXProduct: 0 };
+    } 
+    // Gán số lượng công việc tương ứng với tháng vào object
+    _getlistDetailMonthProductbyYear.forEach(item => {
+      const month = item._id;
+      resultObject[month].count = item.count;
+      resultObject[month].RDProduct = item.RDProduct;
+      resultObject[month].SXProduct = item.SXProduct;
+       });
+       const getlistDetailMonthProductbyYear =await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,  Object.values(resultObject).map((item, index) => ({
+        _id: index + 1,
+        count: item.count,
+        RDProduct: item.RDProduct,
+        SXProduct: item.SXProduct,       
+      })));
       if (getlistDetailMonthProductbyYear) {
         res.json({
           status: 200,
@@ -1586,6 +1766,135 @@ const listDetailMonthProductTypeByYear =async(req,res)=>
         error: err.message,
       });
     }
+}
+const ListYear =async(req,res)=>
+{
+  const token = req.headers.token;     
+  //ProductOrder
+  getListYearbyProductOrder=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await ProductOrder.aggregate([
+    {
+      $addFields: {
+        production_order_create: { $toDate: "$production_order_create" }
+      }
+    },
+    {
+        $group:{
+            _id:{$year:"$production_order_create"
+            }
+        }
+    },
+    {
+        $project: {
+          _id: 0,
+          year: "$_id"
+        }
+      },
+    {
+        $sort:{
+            year:1
+        }
+    }
+  ]));   
+  //Jobsheet
+  getListYearbyJobsheet=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await JobSheet.aggregate([
+    {
+      $addFields: {
+        production_order_create: { $toDate: "$jobsheet_create_date" }
+      }
+    },
+    {
+        $group:{
+            _id:{$year:"$jobsheet_create_date"
+            }
+        }
+    },
+    {
+        $project: {
+          _id: 0,
+          year: "$_id"
+        }
+      },
+    {
+        $sort:{
+            year:1
+        }
+    }
+  ]));   
+  //Semi-ProductOrder
+  getListYearbySemiProductOrder=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await SemiProduct.aggregate([
+    {
+      $lookup: {
+        from: "jobsheets",
+        localField: "jobsheet_code",
+        foreignField: "jobsheet_code",
+        as: "jobSheetData"
+      }
+    },
+    {
+      $unwind: "$jobSheetData"
+    },
+    {
+      $project: {
+        _id:0,
+        year: { $year: "$jobSheetData.jobsheet_create_date" },
+       
+      }
+    },
+    {
+      $group: {
+        _id: "$year",       
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+]));       
+getListYearbyProduct=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await Product.aggregate([
+  {
+    $lookup: {
+      from: "jobsheets",
+      localField: "jobsheet_code",
+      foreignField: "jobsheet_code",
+      as: "jobSheetData"
+    }
+  },
+  {
+    $unwind: "$jobSheetData"
+  },
+  {
+    $project: {
+      _id:0,
+      year: { $year: "$jobSheetData.jobsheet_create_date" },
+     
+    }
+  },
+  {
+    $group: {
+      _id: "$year",       
+    }
+  },
+  {
+    $sort: { _id: 1 }
+  }
+]));       
+
+  if((getListYearbyProductOrder) && (getListYearbyProductOrder)&&(getListYearbySemiProductOrder)) 
+  {
+    if (getListYearbyProductOrder) {
+      res.json({
+        status: 200,
+        message: 'Get Data Completed!!',
+        data:{getListYearbyProductOrder,getListYearbyJobsheet,getListYearbySemiProductOrder,getListYearbyProduct},
+      });
+    }
+    else {
+      return res.json({
+        status: 500,
+        success: false,
+        message: 'Error connecting Database on Server'
+      });
+    }
+  }
 }
 module.exports = {
   HeaderReport: HeaderReport,
@@ -1612,6 +1921,6 @@ module.exports = {
   listDetailMonthJobsheetTypeByYear:listDetailMonthJobsheetTypeByYear,
   listDetailMonthSemiProductTypeByYear:listDetailMonthSemiProductTypeByYear,
   listDetailMonthProductTypeByYear:listDetailMonthProductTypeByYear,
-  
+  ListYear
      
 }

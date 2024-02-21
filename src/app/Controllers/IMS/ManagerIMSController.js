@@ -13,7 +13,7 @@ let index = async (req, res) => {
         console.log(req.body);            
         const token = req.headers.token;
         let getProvinces =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ProvinceISM.find({}));        
-        _countInstalled = await countInstalled();
+        _countInstalled = await countInstalled();       
         getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await ManagerISM.aggregate([
             {
                 $lookup: {
@@ -23,12 +23,14 @@ let index = async (req, res) => {
                     as: "getProvinceData"
                 }
             },
+       
             {
                 $sort: {
-                    created: -1 
+                    created: 1 
                 }
             },   
-        ]));
+        ]));    
+       
         getSelectYear=await cryptJSon.encryptData(token, configCrypt.encryptionEnabled,await DetailManagerIMS.aggregate([
             {
                 $group:{
@@ -75,12 +77,203 @@ let index = async (req, res) => {
         });
     }
 }
+const ListbySearch =async(req,res)=>
+{
+    try
+    {
+  console.log(req.body); 
+  const token = req.headers.token; 
+  const getStationName = req.body.StationName || null;   
+  const getTrapCode =req.body.TrapCode || null;
+  const getSerial =req.body.Serial || null;
+  const getYear =parseInt(req.body.Year) || null;
+  const pipeline = [
+    {
+      $addFields: {
+        installationYear: { $year: "$installation_date" }
+      }
+    },
+    {
+      $sort: {
+        created: -1
+      }
+    }
+  ];  
+
+   if (getStationName) {
+    pipeline.push(
+        {
+            $match: {                                      
+                name_station: { $regex: String(getStationName), $options: "i" } ,                                       
+                }
+        },
+         );
+  }
+  if (getTrapCode) {
+    pipeline.push(
+        {
+            $match: {                                      
+                trap_code: { $regex: String(getTrapCode), $options: "i" } ,                                       
+                }
+        },
+         );
+  }
+  if (getSerial) {
+    pipeline.push(
+        {
+            $match: {                                      
+                serial_number: { $regex: String(getSerial), $options: "i" } ,                                       
+                }
+        },
+         );
+  }
+  if(getYear)
+  {
+  pipeline.push({    
+    $match: {
+        $expr: {
+            $eq: [{ $year: "$installtion_date" },getYear]
+        }
+      }         
+});
+  }
+  
+  const getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await DetailManagerIMS.aggregate(pipeline));
+  const covertData=await  cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getData );
+  if (getData) {
+    res.json({
+        status: 200,
+        message: 'Get Data Completed',
+        data:getData,covertData
+    });
+}      
+else {
+    return res.json({
+        status:500,
+        success: false,                
+        message: 'Error connecting Database on Server'
+    });
+}  
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });
+  
+}
+}
+const ListbySearch1 =async(req,res)=>
+{
+    try
+    {
+  console.log(req.body); 
+  const token = req.headers.token; 
+  const getStationName = req.body.StationName || null;   
+  const getTrapCode =req.body.TrapCode || null;
+  const getSerial =req.body.Serial || null;
+  const getYear =parseInt(req.body.Year) || null;
+  const pipeline = [
+    {
+      $addFields: {
+        installationYear: { $year: "$installation_date" }
+      }
+    },
+    {
+      $sort: {
+        created: -1
+      }
+    }
+  ];  
+
+   if (getStationName) {
+    pipeline.push(
+        {
+            $match: {                                      
+                name_station: { $regex: String(getStationName), $options: "i" } ,                                       
+                }
+        },
+         );
+  }
+  if (getTrapCode) {
+    pipeline.push(
+        {
+            $match: {                                      
+                trap_code: { $regex: String(getTrapCode), $options: "i" } ,                                       
+                }
+        },
+         );
+  }
+  if (getSerial) {
+    pipeline.push(
+        {
+            $match: {                                      
+                serial_number: { $regex: String(getSerial), $options: "i" } ,                                       
+                }
+        },
+         );
+  }
+  if(getYear)
+  {
+  pipeline.push({    
+    $match: {
+        $expr: {
+            $eq: [{ $year: "$installtion_date" },getYear]
+        }
+      }         
+});
+  }
+  
+  const getData =await cryptJSon.encryptData(token,configCrypt.encryptionEnabled, await DetailManagerIMS.aggregate(pipeline));
+  const covertData=await  cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getData );
+  if (getData) {
+    res.json({
+        status: 200,
+        message: 'Get Data Completed',
+        data:getData,covertData
+    });
+}      
+else {
+    return res.json({
+        status:500,
+        success: false,                
+        message: 'Error connecting Database on Server'
+    });
+}  
+}
+catch (err) {
+    console.log(err);
+    return res.json({
+        status:500,
+        success: false,           
+        error: err.message,
+    });
+  
+}
+}
+
+
 let store = async (req, res) => {
     try {
         getAreaId = req.body.area_id;
        // location_area = getAreaId > 100 ? 'JP' : 'VN';
         location_area =  req.body.area_id > 200 && req.body.area_id <= 299 ? 'TL' :  req.body.area_id > 100 ? 'JP' : 'VN';
         req.body.location_area = location_area;
+        checkId=await ManagerISM.find({area_id:getAreaId}).countDocuments();   
+        if(checkId>0)
+        {
+          res.json({
+                status: 200,
+                messege: 'Id has been Exits',
+                data:'error',
+               
+            });         
+            
+        }
+        else
+        {
         const getManagerISM = new ManagerISM(req.body);
         let getData = await getManagerISM.save();
         if (getData) {
@@ -95,6 +288,7 @@ let store = async (req, res) => {
             throw new Error('Error connecting Database on Server');
         }
     }
+}
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });
@@ -171,6 +365,7 @@ let destroy = async (req, res) => {
 }
 let countInstalled = async (req, res) => {
     _countInstalled = await ManagerISM.aggregate([
+       
         {
             $lookup: {
                 from: "detail_manager_imsses",
@@ -183,15 +378,22 @@ let countInstalled = async (req, res) => {
             $unwind: "$details" 
         },
         {
+            $addFields: {
+                "details.active_status": {
+                  $cond: [{ $in: [{ $toInt: "$details.active_status" }, [0, 1, 2]] }, 1, 0]
+                }
+              }
+        },
+        {
             $group: {
                 _id: "$area_id",
-                totalActiveStatus: { $sum: { $toInt: "$details.active_status" } }
+                totalActiveStatus: { $sum: "$details.active_status" }
             }
         },
         {
             $project: {
                 _id: 1,
-                totalActiveStatus: 1
+                totalActiveStatus:{ $toInt: "$totalActiveStatus" }
             }
         }
     ]);
@@ -223,5 +425,7 @@ module.exports =
     update: update,
     destroy: destroy,   
     countInstalled: countInstalled,   
+    ListbySearch,
+    ListbySearch1,
   
 }

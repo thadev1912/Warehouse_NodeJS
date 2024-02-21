@@ -467,73 +467,7 @@ const destroy = async (req, res) => {
         });
     }
 };
-let showNotification =async(req,res)=>
-{
-  const token = req.headers.token;  
-  //countData=await Notification.find({is_read:'0'}).sort({ created: -1 }).countDocuments();
-  getData=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Notification.find().sort({ created: -1 }));
-  coverData=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,getData); 
-  countNotRead=await cryptJSon.encryptData(token,configCrypt.encryptionEnabled,await Notification.find({is_read:'0'}).countDocuments());
-  coverCount=await cryptJSon.decryptData(token,configCrypt.encryptionEnabled,countNotRead);
-  if(getData)
-  { 
-    return res.json({
-    status:200,
-    success: true,
-    data:getData,countNotRead,coverData,coverCount,
-    message: 'get Infomation Completed'
-});
 
-  }
-}
-let showNotification1 =async(req,res)=>
-{
-  const token = req.headers.token;  
-  //countData=await Notification.find({is_read:'0'}).sort({ created: -1 }).countDocuments();
-  getData=await Notification.findOne().sort({ created: -1 });
- 
-  countNotRead=await Notification.find({is_read:'0'}).countDocuments();
-  hasUpdate='Active';
-  if(getData)
-  { 
-    return res.json({
-    status:200,
-    success: true,
-    data:countNotRead,hasUpdate,getData,
-    message: 'get Infomation Completed'
-});
-
-  }
-}
-const updateNotification =async(req,res)=>
-{
-    
-    req.body.updated=new Date();
-    let id = req.params.id;  
-    console.log(req.params.id);
-    console.log(req.body);
-    getData = await Notification.findByIdAndUpdate(id, { $set: req.body })
-    if (getData) {
-        getNewData = await Notification.findOne({ _id: id });
-        res.json({
-            status:200,
-            success: true, message: 'Infomation field has been updated'
-        });       
-    }
-    else {
-         res.json({
-            status:500,
-            success: false,                
-            message: 'Error connecting Database on Server'
-        });
-    }
-
-}
-const testRef=async(req,res)=>
-{
-    const result = await CategoriesSim.find().populate('sim_package_id');
-    res.json(result);
-}
 module.exports = {
     index: index,
     indexEsim,
@@ -542,9 +476,6 @@ module.exports = {
     edit: edit,
     update: update,
     destroy: destroy,
-    updateStatusSim:updateStatusSim,   
-    showNotification:showNotification,
-    updateNotification:updateNotification,
-    testRef:testRef,
-    showNotification1:showNotification1,
+    updateStatusSim:updateStatusSim,  
+
 }
